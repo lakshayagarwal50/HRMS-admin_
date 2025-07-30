@@ -3,13 +3,8 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 // import AuthLayout from '../components/layout/AuthLayout';
-<<<<<<< HEAD
-import AdminLayout from "../components/layout/AdminLayout";
-import AuthLayout from "../components/layout/AuthLayout";
-=======
-import AdminLayout from '../layout/AdminLayout';
-import AuthLayout from '../layout/AuthLayout';
->>>>>>> 270466522e0be72912562ec9ace80235bdad6f20
+import AdminLayout from "../layout/AdminLayout";
+import AuthLayout from "../layout/AuthLayout";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(
