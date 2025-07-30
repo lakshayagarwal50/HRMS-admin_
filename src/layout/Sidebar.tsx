@@ -17,7 +17,7 @@ import {
   Menu,
   X,
 } from 'lucide-react';
-import { auth } from '../../services/firebase/auth';
+import { auth } from '../services/firebase/auth';
 
 // Define a more structured type for sub-menu items
 interface SubMenuItem {
