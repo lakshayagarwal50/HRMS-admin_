@@ -191,7 +191,7 @@ const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {isSidebarOpen && <div className="fixed inset-0  bg-opacity-50 z-30 lg:hidden" onClick={toggleSidebar}></div>}
+      {isSidebarOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" onClick={toggleSidebar}></div>}
     </>
   );
 };
