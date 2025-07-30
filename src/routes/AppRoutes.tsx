@@ -16,7 +16,7 @@ const GettingStarted = lazy(
 const EmployeesTable = lazy(
   () => import("../features/EmployeeSetup/list/pages/EmployeesTable")
 );
-
+const CreateEmployeeForm = lazy(() =>import("../features/EmployeeSetup/CreateEmployee/pages/CreateEmployee"));
 const AppRoutes = () => (
   <Suspense
     fallback={
@@ -39,6 +39,8 @@ const AppRoutes = () => (
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/GettingStartedPage" element={<GettingStarted />} />
         <Route path="/employees/list" element={<EmployeesTable />} />
+                <Route path="/employees/create" element={<CreateEmployeeForm />} />
+
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />
