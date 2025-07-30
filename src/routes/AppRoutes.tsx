@@ -14,7 +14,7 @@ const GettingStarted = lazy(
   () => import("../features/gettingstarted/pages/GettingStartedPage")
 );
 const EmployeesTable = lazy(
-  () => import("../features/EmployeeSetup/pages/EmployeesTable")
+  () => import("../features/EmployeeSetup/list/pages/EmployeesTable")
 );
 
 const AppRoutes = () => (
