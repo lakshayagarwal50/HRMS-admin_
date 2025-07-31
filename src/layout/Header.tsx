@@ -21,7 +21,7 @@ const Header: React.FC = () => {
             <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
               <User className="text-[#8A2BE2]" size={20} />
             </div>
-            <span className="hidden sm:inline text-sm font-medium text-gray-800">John Doe</span>
+            <span className="hidden sm:inline text-sm font-medium text-gray-800">Full name</span>
           </div>
         </div>
       </div>

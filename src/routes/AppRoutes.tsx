@@ -8,7 +8,7 @@ import AuthLayout from "../layout/AuthLayout";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(
-  () => import("../features/payroll/pages/PayrollDashboard")
+  () => import("../pages/Dashboard/DashboardPage")
 );
 const GettingStarted = lazy(
   () => import("../features/gettingstarted/pages/GettingStartedPage")
