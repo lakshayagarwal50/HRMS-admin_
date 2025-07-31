@@ -17,6 +17,13 @@ const GettingStarted = lazy(
 const EmployeesTable = lazy(
   () => import("../features/EmployeeSetup/list/pages/EmployeesTable")
 );
+const SalaryComponent = lazy(
+  () => import("../features/EmployeeSetup/list/pages/SalaryComponent")
+);
+const EmployeeDetailPage = lazy(
+  () => import("../features/EmployeeSetup/list/pages/EmployeeDetailPage")
+);
+
 const CreateEmployeeForm = lazy(
   () => import("../features/EmployeeSetup/CreateEmployee/pages/CreateEmployee")
 );
@@ -45,6 +52,22 @@ const AppRoutes = () => (
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/getting-started" element={<GettingStarted />} />
         <Route path="/employees/list" element={<EmployeesTable />} />
+        <Route
+          path="/employees/list/SalaryComponent"
+          element={
+            <SalaryComponent
+              employeeCode={""}
+              employeeName={""}
+              selectedMonth={""}
+              selectedYear={""}
+              onClose={function (): void {
+                throw new Error("Function not implemented.");
+              }}
+            /> //create payslip
+          }
+        />
+        <Route path="/employees/list/detail/:employeeCode" element={<EmployeeDetailPage />} />
+        <Route path="/employees/create" element={<CreateEmployeeForm />} />
         <Route path="/employees/create" element={<CreateEmployeeForm />} />
         <Route path="/employees/upload" element={<UploadEmployee/>} />
 
