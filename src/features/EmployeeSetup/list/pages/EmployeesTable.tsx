@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 // import Table, { type Column } from "../Table/Table";
-import Table, { type Column } from "../../../layout/Table";
+import Table, { type Column } from "../../../../layout/Table";
 import { MoreVertical } from "lucide-react";
-import Modal from "../../../layout/Modal";
+import Modal from "../../../../layout/Modal";
 
 interface Employee {
   code: string;
