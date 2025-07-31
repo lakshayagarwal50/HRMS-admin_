@@ -8,6 +8,8 @@ import AuthLayout from "../layout/AuthLayout";
 import DepartmentPage from "../pages/GettingStarted/Department/DepartmentPage";
 import DesignationPage from "../pages/GettingStarted/Designation.tsx/DesignationPage";
 import RolePage from "../pages/GettingStarted/Role/RolePage";
+import OrganizationSettingsPage from "../pages/GettingStarted/OraganisationSetting/OrganizationSettingsPage";
+import WorkingPatternsPage from "../pages/GettingStarted/WorkingPattern/WorkingPatternsPage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(
@@ -40,12 +42,14 @@ const AppRoutes = () => (
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/GettingStartedPage" element={<GettingStarted />} />
+        <Route path="/getting-started" element={<GettingStarted />} />
         <Route path="/employees/list" element={<EmployeesTable />} />
         <Route path="/employees/create" element={<CreateEmployeeForm />} />
         <Route path="/department" element={<DepartmentPage/>}/>
         <Route path="/designation" element={<DesignationPage/>}/>
         <Route path="/role" element={<RolePage/>}/>
+        <Route path="/OragnisationSetting" element={<OrganizationSettingsPage/>} />
+        <Route path="/working-patterns" element={<WorkingPatternsPage/>}/>
         
 
       </Route>
