@@ -5,13 +5,14 @@ import ProtectedRoute from "./ProtectedRoute";
 // import AuthLayout from '../components/layout/AuthLayout';
 import AdminLayout from "../layout/AdminLayout";
 import AuthLayout from "../layout/AuthLayout";
+import DepartmentPage from "../pages/GettingStarted/Department/DepartmentPage";
+import DesignationPage from "../pages/GettingStarted/Designation.tsx/DesignationPage";
+import RolePage from "../pages/GettingStarted/Role/RolePage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
-const Dashboard = lazy(
-  () => import("../features/payroll/pages/PayrollDashboard")
-);
+const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
 const GettingStarted = lazy(
-  () => import("../features/gettingstarted/pages/GettingStartedPage")
+  () => import("../pages/GettingStarted/GettingStartedPage")
 );
 const EmployeesTable = lazy(
   () => import("../features/EmployeeSetup/list/pages/EmployeesTable")
@@ -22,8 +23,12 @@ const SalaryComponent = lazy(
 const EmployeeDetailPage = lazy(
   () => import("../features/EmployeeSetup/list/pages/EmployeeDetailPage")
 );
+
 const CreateEmployeeForm = lazy(
   () => import("../features/EmployeeSetup/CreateEmployee/pages/CreateEmployee")
+);
+const UploadEmployee = lazy(
+  () => import("../features/EmployeeSetup/Uploademployee/pages/Uploademployee")
 );
 const AppRoutes = () => (
   <Suspense
@@ -63,6 +68,12 @@ const AppRoutes = () => (
         />
         <Route path="/employees/list/detail/:employeeCode" element={<EmployeeDetailPage />} />
         <Route path="/employees/create" element={<CreateEmployeeForm />} />
+        <Route path="/employees/create" element={<CreateEmployeeForm />} />
+        <Route path="/employees/upload" element={<UploadEmployee/>} />
+
+        <Route path="/department" element={<DepartmentPage />} />
+        <Route path="/designation" element={<DesignationPage />} />
+        <Route path="/role" element={<RolePage />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />
