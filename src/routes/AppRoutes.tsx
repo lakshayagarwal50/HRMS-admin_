@@ -16,7 +16,15 @@ const GettingStarted = lazy(
 const EmployeesTable = lazy(
   () => import("../features/EmployeeSetup/list/pages/EmployeesTable")
 );
-const CreateEmployeeForm = lazy(() =>import("../features/EmployeeSetup/CreateEmployee/pages/CreateEmployee"));
+const SalaryComponent = lazy(
+  () => import("../features/EmployeeSetup/list/pages/SalaryComponent")
+);
+const EmployeeDetailPage = lazy(
+  () => import("../features/EmployeeSetup/list/pages/EmployeeDetailPage")
+);
+const CreateEmployeeForm = lazy(
+  () => import("../features/EmployeeSetup/CreateEmployee/pages/CreateEmployee")
+);
 const AppRoutes = () => (
   <Suspense
     fallback={
@@ -39,8 +47,22 @@ const AppRoutes = () => (
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/GettingStartedPage" element={<GettingStarted />} />
         <Route path="/employees/list" element={<EmployeesTable />} />
-                <Route path="/employees/create" element={<CreateEmployeeForm />} />
-
+        <Route
+          path="/employees/list/SalaryComponent"
+          element={
+            <SalaryComponent
+              employeeCode={""}
+              employeeName={""}
+              selectedMonth={""}
+              selectedYear={""}
+              onClose={function (): void {
+                throw new Error("Function not implemented.");
+              }}
+            /> //create payslip
+          }
+        />
+        <Route path="/employees/list/detail/:employeeCode" element={<EmployeeDetailPage />} />
+        <Route path="/employees/create" element={<CreateEmployeeForm />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />

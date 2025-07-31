@@ -11,7 +11,8 @@ interface ModalProps {
   confirmButtonText?: string;
   cancelButtonText?: string;
   showCancelButton?: boolean; // We'll keep this for flexibility, though default is now true
-  type?: "warning" | "info" | "success" | "error"; // For different styling themes
+  type?: "warning" | "info" | "success" | "error";
+  children?: React.ReactNode; // For different styling themes
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -23,9 +24,13 @@ const Modal: React.FC<ModalProps> = ({
   onConfirm,
   confirmButtonText = "CONFIRM", // Default text to uppercase
   cancelButtonText = "CANCEL", // Default text to uppercase
-  showCancelButton = true, // Default to true as per your request for two buttons
-  type = "warning", // default type
-}) => {
+  showCancelButton = true, 
+  
+  // Default to true as per your request for two buttons
+  type = "warning",
+  children // Make sure to include children here
+}) => { // default type
+
   if (!isOpen) {
     return null;
   }
