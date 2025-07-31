@@ -10,16 +10,19 @@ import DesignationPage from "../pages/GettingStarted/Designation.tsx/Designation
 import RolePage from "../pages/GettingStarted/Role/RolePage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
-const Dashboard = lazy(
-  () => import("../pages/Dashboard/DashboardPage")
-);
+const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
 const GettingStarted = lazy(
   () => import("../pages/GettingStarted/GettingStartedPage")
 );
 const EmployeesTable = lazy(
   () => import("../features/EmployeeSetup/list/pages/EmployeesTable")
 );
-const CreateEmployeeForm = lazy(() =>import("../features/EmployeeSetup/CreateEmployee/pages/CreateEmployee"));
+const CreateEmployeeForm = lazy(
+  () => import("../features/EmployeeSetup/CreateEmployee/pages/CreateEmployee")
+);
+const UploadEmployee = lazy(
+  () => import("../features/EmployeeSetup/Uploademployee/pages/Uploademployee")
+);
 const AppRoutes = () => (
   <Suspense
     fallback={
@@ -43,11 +46,11 @@ const AppRoutes = () => (
         <Route path="/GettingStartedPage" element={<GettingStarted />} />
         <Route path="/employees/list" element={<EmployeesTable />} />
         <Route path="/employees/create" element={<CreateEmployeeForm />} />
-        <Route path="/department" element={<DepartmentPage/>}/>
-        <Route path="/designation" element={<DesignationPage/>}/>
-        <Route path="/role" element={<RolePage/>}/>
-        
+        <Route path="/employees/upload" element={<UploadEmployee/>} />
 
+        <Route path="/department" element={<DepartmentPage />} />
+        <Route path="/designation" element={<DesignationPage />} />
+        <Route path="/role" element={<RolePage />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />
