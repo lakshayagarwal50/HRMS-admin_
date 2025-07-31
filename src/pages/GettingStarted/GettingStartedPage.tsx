@@ -1,4 +1,6 @@
 import React from 'react';
+// 1. Import the Link component from react-router-dom
+import { Link } from 'react-router-dom';
 import {
   Clock,
   FileText,
@@ -14,18 +16,22 @@ import {
   Globe,
 } from 'lucide-react';
 
+
 interface CardItem {
   label: string;
   icon: React.ComponentType<{ className?: string; size?: number }>;
+  // The link property already exists, which is great!
+  link?: string;
 }
 
 const cardItems: CardItem[] = [
   { label: 'Working Patterns', icon: Clock },
   { label: 'Payslip Components', icon: FileText },
   { label: 'Location', icon: MapPin },
-  { label: 'Department', icon: GitBranch },
-  { label: 'Designation', icon: UserCheck },
-  { label: 'Role', icon: Tag },
+  // This item has the link we will use for navigation
+  { label: 'Department', icon: GitBranch , link: '/department'},
+  { label: 'Designation', icon: UserCheck , link: '/designation'},
+  { label: 'Role', icon: Tag , link: "/role"},
   { label: 'Holiday Configuration', icon: Settings },
   { label: 'Holiday Calendar', icon: Calendar },
   { label: 'Organisation Setting', icon: Building },
@@ -63,19 +69,29 @@ const GettingStartedPge: React.FC = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 ">
-          {cardItems.map((item, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-md p-6 flex items-center space-x-4 hover:shadow-lg transition-shadow duration-200 border border-gray-300"
-            >
-              <div className="flex-shrink-0 bg-white p-2 rounded-md">
-                <item.icon className="text-[#8A2BE2]" size={24} />
+          {cardItems.map((item, index) => {
+            // 2. Conditionally wrap the card in a Link if item.link exists
+            const cardContent = (
+              <div className="bg-white rounded-lg shadow-md p-6 flex items-center space-x-4 hover:shadow-lg transition-shadow duration-200 border border-gray-300 h-full">
+                <div className="flex-shrink-0 bg-white p-2 rounded-md">
+                  <item.icon className="text-[#8A2BE2]" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-normal text-gray-900">{item.label}</h3>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-normal text-gray-900">{item.label}</h3>
-              </div>
-            </div>
-          ))}
+            );
+
+            if (item.link) {
+              return (
+                <Link to={item.link} key={index}>
+                  {cardContent}
+                </Link>
+              );
+            }
+
+            return <div key={index}>{cardContent}</div>;
+          })}
         </div>
       </main>
     </div>
