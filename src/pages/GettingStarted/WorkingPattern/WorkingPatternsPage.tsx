@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 
 // Import your generic table component and its types
-import Table, { type Column } from '../../../layout/Table'
+import Table, { type Column } from '../../../components/common/Table'
 
 // Define the structure for a working pattern
 interface WorkingPattern {
