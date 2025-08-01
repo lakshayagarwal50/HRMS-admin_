@@ -2,14 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Plus, MoreHorizontal, ChevronRight } from 'lucide-react';
 
 // --- Import your reusable components ---
-import Table, { type Column } from "../../../layout/Table"; // Adjust path if needed
-// You would also import your Create/Update/Alert modals/panels here
-// import CreateDesignation from './CreateDesignation';
-// import UpdateDesignation from './UpdateDesignation';
-// import AlertModal from './AlertModal';
+// Note: Adjust these import paths to match your project structure
+import Table, { type Column } from "../../../layout/Table"; 
+import CreateDesignation from '../../../components/Designation/CreateDesignation';
+import UpdateDesignation from '../../../components/Designation/UpdateDesignation';
 
 // --- TYPE DEFINITIONS ---
-// Updated to match the new UI from the image
 interface Designation {
   id: number;
   s_no: number;
@@ -21,7 +19,6 @@ interface Designation {
 }
 
 // --- MOCK DATA ---
-// Updated to reflect the new structure and content
 const sampleDesignations: Designation[] = [
   { id: 1, s_no: 1, name: 'Business Analyst', code: '5161', description: 'Lorem ipsum is simply dummy text of the printing...', department: 'Support team', status: 'Active' },
   { id: 2, s_no: 2, name: 'Designing', code: '5411', description: 'Lorem ipsum is simply dummy text of the printing...', department: 'Management', status: 'Inactive' },
@@ -35,10 +32,18 @@ const sampleDesignations: Designation[] = [
 const DesignationPage: React.FC = () => {
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [, setPanelOpen] = useState(false); // For Create/Update panels
+  const [isCreatePanelOpen, setCreatePanelOpen] = useState(false);
+  
+  // This state now holds the data of the designation being edited, or null if none.
+  const [editingDesignation, setEditingDesignation] = useState<Designation | null>(null);
+
+  // This function is called when the "Edit" button is clicked.
+  const handleEditClick = (designation: Designation) => {
+    setEditingDesignation(designation); // Set the data for the update form
+    setActiveDropdown(null); // Close the dropdown menu
+  };
 
   // --- Column Definitions for the Table ---
-  // This is now updated to match the new UI
   const columns: Column<Designation>[] = [
     { key: 's_no', header: 'S_No' },
     { key: 'name', header: 'Name' },
@@ -64,7 +69,8 @@ const DesignationPage: React.FC = () => {
           </button>
           {activeDropdown === row.id && (
             <div ref={dropdownRef} className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-20">
-              <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
+              {/* The onClick handler is now connected */}
+              <a href="#" onClick={() => handleEditClick(row)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
               <a href="#" className="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100">Inactive</a>
             </div>
           )}
@@ -104,7 +110,7 @@ const DesignationPage: React.FC = () => {
       <main>
         <div className="flex justify-between items-center mb-4">
             <button
-                onClick={() => setPanelOpen(true)}
+                onClick={() => setCreatePanelOpen(true)}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700"
             >
                 <Plus size={20} className="-ml-1 mr-2" />
@@ -120,8 +126,13 @@ const DesignationPage: React.FC = () => {
         />
       </main>
       
-      {/* Modals/Panels would be rendered here */}
-      {/* <CreateDesignation isOpen={isPanelOpen} onClose={() => setPanelOpen(false)} /> */}
+      {/* Render the Create and Update Panels */}
+      <CreateDesignation isOpen={isCreatePanelOpen} onClose={() => setCreatePanelOpen(false)} /> 
+      <UpdateDesignation 
+        isOpen={!!editingDesignation} // Panel is open if editingDesignation is not null
+        onClose={() => setEditingDesignation(null)} // Close by setting state to null
+        designationData={editingDesignation} // Pass the data to the panel
+      />
     </div>
   );
 };
