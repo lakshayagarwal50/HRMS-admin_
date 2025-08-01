@@ -8,6 +8,8 @@ import AuthLayout from "../layout/AuthLayout";
 import DepartmentPage from "../pages/GettingStarted/Department/DepartmentPage";
 import DesignationPage from "../pages/GettingStarted/Designation.tsx/DesignationPage";
 import RolePage from "../pages/GettingStarted/Role/RolePage";
+import WorkingPatternsPage from "../pages/GettingStarted/WorkingPattern/WorkingPatternsPage";
+import OrganizationSettingsPage from "../pages/GettingStarted/OraganisationSetting/OrganizationSettingsPage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
@@ -50,7 +52,7 @@ const AppRoutes = () => (
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/GettingStartedPage" element={<GettingStarted />} />
+        <Route path="/getting-started" element={<GettingStarted />} />
         <Route path="/employees/list" element={<EmployeesTable />} />
         <Route
           path="/employees/list/SalaryComponent"
@@ -74,6 +76,8 @@ const AppRoutes = () => (
         <Route path="/department" element={<DepartmentPage />} />
         <Route path="/designation" element={<DesignationPage />} />
         <Route path="/role" element={<RolePage />} />
+        <Route path="/working-patterns" element={<WorkingPatternsPage/>} />
+        <Route path="/organisation-setting" element={<OrganizationSettingsPage/>}/>
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />

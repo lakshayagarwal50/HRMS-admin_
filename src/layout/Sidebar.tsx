@@ -34,7 +34,7 @@ interface MenuItem {
 
 // Update the menuItems array with links for all sub-items
 const menuItems: MenuItem[] = [
-    { label: 'Getting Started', icon: Rocket, link: '/GettingStartedPage' },
+    { label: 'Getting Started', icon: Rocket, link: '/getting-started' },
     { label: 'Dashboard', icon: LayoutDashboard, link: '/' },
     {
       label: 'Employee Setup',

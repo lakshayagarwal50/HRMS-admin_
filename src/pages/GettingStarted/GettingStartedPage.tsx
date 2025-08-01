@@ -25,7 +25,7 @@ interface CardItem {
 }
 
 const cardItems: CardItem[] = [
-  { label: 'Working Patterns', icon: Clock },
+  { label: 'Working Patterns', icon: Clock , link: '/working-patterns' },
   { label: 'Payslip Components', icon: FileText },
   { label: 'Location', icon: MapPin },
   // This item has the link we will use for navigation
@@ -34,7 +34,7 @@ const cardItems: CardItem[] = [
   { label: 'Role', icon: Tag , link: "/role"},
   { label: 'Holiday Configuration', icon: Settings },
   { label: 'Holiday Calendar', icon: Calendar },
-  { label: 'Organisation Setting', icon: Building },
+  { label: 'Organisation Setting', icon: Building , link: '/organisation-setting'},
   { label: 'Sequence Number', icon: ListOrdered },
   { label: 'Payroll Configuration', icon: CreditCard },
   { label: 'Web Checkin Setting', icon: Globe },
@@ -49,10 +49,10 @@ const GettingStartedPge: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">Getting Started</h1>
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb">
-            <ol className="flex items-center space-x-2">
+            <ol className="flex items-center space-x-2 ">
               <li>
-                <a href="#" className="text-sm text-gray-500 hover:text-gray-700">
-                  Home
+                <a href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700">
+                  Dashboard
                 </a>
               </li>
               <li>
