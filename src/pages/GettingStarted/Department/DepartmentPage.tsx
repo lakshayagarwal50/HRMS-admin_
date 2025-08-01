@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MoreHorizontal, ChevronRight, Plus } from 'lucide-react';
+import { MoreHorizontal, ChevronRight, Plus , X as AlertIcon} from 'lucide-react';
 
-// --- Import your Generic Table and its Column type ---
+// --- Import your components ---
 import Table, { type Column } from "../../../layout/Table"; // Adjust this path if needed
+import CreateDepartment from "../../../components/GettingStarted/CreateDepartment"; // The "Create" side panel
+import UpdateDepartment from '../../../components/GettingStarted/UpdateDepartment'; // The "Update" side panel
+import AlertModal from '../../../components/Modal/AlertModal';
 
 // --- TYPE DEFINITIONS ---
-// This now includes an optional s_no for the serial number
 type Department = {
   id: number;
-  s_no?: number; // Added for serial number
+  s_no?: number;
   name: string;
   code: string;
   status: 'Active' | 'Inactive';
@@ -20,15 +22,8 @@ const departmentData: Department[] = [
   { id: 2, name: 'Engineering', code: 'ENG-002', status: 'Active' },
   { id: 3, name: 'Finance & Accounting', code: 'FIN-003', status: 'Active' },
   { id: 4, name: 'Marketing', code: 'MKT-004', status: 'Inactive' },
-  { id: 5, name: 'Sales', code: 'SAL-005', status: 'Active' },
-  { id: 6, name: 'IT Support', code: 'IT-006', status: 'Active' },
-  { id: 7, name: 'Operations', code: 'OPS-007', status: 'Inactive' },
-  { id: 8, name: 'Customer Service', code: 'CS-008', status: 'Active' },
-  { id: 9, name: 'Research & Development', code: 'RD-009', status: 'Active' },
-  { id: 10, name: 'Legal', code: 'LEG-010', status: 'Inactive' },
 ];
 
-// Add serial numbers to the data
 const dataWithSNo = departmentData.map((item, index) => ({
   ...item,
   s_no: index + 1,
@@ -39,17 +34,43 @@ const dataWithSNo = departmentData.map((item, index) => ({
 const DepartmentPage: React.FC = () => {
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isCreatePanelOpen, setCreatePanelOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+
+  // --- State to manage the Alert Modal ---
+  const [alertData, setAlertData] = useState<{ isOpen: boolean; department: Department | null }>({
+    isOpen: false,
+    department: null,
+  });
 
   const toggleDropdown = (id: number) => {
     setActiveDropdown(activeDropdown === id ? null : id);
   };
 
-  // Effect to close dropdown on outside click
+  const handleEditClick = (department: Department) => {
+    setEditingDepartment(department);
+    setActiveDropdown(null);
+  };
+
+  // --- Handler to open the alert modal ---
+  const handleInactiveClick = (department: Department) => {
+    setAlertData({ isOpen: true, department });
+    setActiveDropdown(null);
+  };
+
+  // --- Handler to confirm the action ---
+  const handleConfirmInactive = () => {
+    if (alertData.department) {
+      console.log(`Inactivating department: ${alertData.department.name}`);
+      // Add your logic here to update the department's status
+    }
+    setAlertData({ isOpen: false, department: null }); // Close the modal
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        const target = event.target as HTMLElement;
-        if (!target.closest('button[data-dropdown-toggle]')) {
+        if (!(event.target as HTMLElement).closest('button[data-dropdown-toggle]')) {
           setActiveDropdown(null);
         }
       }
@@ -58,41 +79,28 @@ const DepartmentPage: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // --- Define columns for the generic table ---
   const columns: Column<Department>[] = [
-    {
-      key: 's_no',
-      header: 'S.No',
-    },
-    {
-      key: 'name',
-      header: 'Name',
-    },
-    {
-      key: 'code',
-      header: 'Code',
-    },
-    {
-      key: 'status',
-      header: 'Status',
+    { key: 's_no', header: 'S.No' },
+    { key: 'name', header: 'Name' },
+    { key: 'code', header: 'Code' },
+    { key: 'status', header: 'Status',
       render: (row) => (
         <span className={`px-3 py-1 text-xs leading-5 font-semibold rounded-full ${row.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
           {row.status}
         </span>
       ),
     },
-    {
-      key: 'action',
-      header: 'Action',
+    { key: 'action', header: 'Action',
       render: (row) => (
         <div className="relative">
-          <button data-dropdown-toggle onClick={() => toggleDropdown(row.id)} className="text-gray-500 hover:text-[#8A2BE2] p-1 rounded-full focus:outline-none">
+          <button data-dropdown-toggle onClick={() => toggleDropdown(row.id)} className="text-gray-500 hover:text-[#8A2BE2] p-1 rounded-full">
             <MoreHorizontal size={20} />
           </button>
           {activeDropdown === row.id && (
             <div ref={dropdownRef} className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-20">
-              <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
-              <a href="#" className="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100">Inactive</a>
+              <a href="#" onClick={() => handleEditClick(row)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
+              {/* Update the onClick handler for the Inactive button */}
+              <a href="#" onClick={() => handleInactiveClick(row)} className="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100">Inactive</a>
             </div>
           )}
         </div>
@@ -103,7 +111,7 @@ const DepartmentPage: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-full p-4 sm:p-6 lg:p-8">
       <header className="mb-8">
-        <div className="flex justify-between items-center flex-wrap gap-4">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Department</h1>
             <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
@@ -114,7 +122,7 @@ const DepartmentPage: React.FC = () => {
               <span className="font-medium text-gray-800">Department</span>
             </nav>
           </div>
-          <button className="bg-[#8A2BE2] text-white px-4 py-2 rounded-md hover:bg-[#7a1fb8] transition-colors duration-200 flex items-center space-x-2">
+          <button onClick={() => setCreatePanelOpen(true)} className="bg-[#8A2BE2] text-white px-4 py-2 rounded-md hover:bg-[#7a1fb8] flex items-center space-x-2">
             <Plus size={20} />
             <span>ADD NEW</span>
           </button>
@@ -122,7 +130,6 @@ const DepartmentPage: React.FC = () => {
       </header>
 
       <main>
-        {/* --- Use the generic Table component --- */}
         <Table
           columns={columns}
           data={dataWithSNo}
@@ -130,6 +137,21 @@ const DepartmentPage: React.FC = () => {
           searchPlaceholder="Search Departments..."
         />
       </main>
+
+      {/* Render Panels and Modals */}
+      <CreateDepartment isOpen={isCreatePanelOpen} onClose={() => setCreatePanelOpen(false)} />
+      <UpdateDepartment isOpen={!!editingDepartment} onClose={() => setEditingDepartment(null)} departmentData={editingDepartment} />
+      
+      {/* --- Render the AlertModal --- */}
+      <AlertModal
+        isOpen={alertData.isOpen}
+        onClose={() => setAlertData({ isOpen: false, department: null })}
+        onConfirm={handleConfirmInactive}
+        title="Inactive Department"
+        icon={<AlertIcon className="text-red-500" size={40} strokeWidth={3} />}
+      >
+        <p>Are you sure you want to inactive this department?</p>
+      </AlertModal>
     </div>
   );
 };

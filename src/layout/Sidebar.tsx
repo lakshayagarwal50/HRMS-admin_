@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  HandCoins,
 } from 'lucide-react';
 import { auth } from '../services/firebase/auth';
 
@@ -91,6 +92,7 @@ const menuItems: MenuItem[] = [
         { label: 'Criteria & Scale', link: '/rating/criteria' },
       ],
     },
+     { label: 'Loan & Advances', icon: HandCoins, link: '/loanandandvance' },
     {
       label: 'Reports',
       icon: FileText,
