@@ -24,12 +24,13 @@ const Modal: React.FC<ModalProps> = ({
   onConfirm,
   confirmButtonText = "CONFIRM", // Default text to uppercase
   cancelButtonText = "CANCEL", // Default text to uppercase
-  showCancelButton = true, 
-  
+  showCancelButton = true,
+
   // Default to true as per your request for two buttons
   type = "warning",
-  children // Make sure to include children here
-}) => { // default type
+  children, // Make sure to include children here
+}) => {
+  // default type
 
   if (!isOpen) {
     return null;
@@ -84,7 +85,7 @@ const Modal: React.FC<ModalProps> = ({
       //     position: "fixed",
       //     top: "0",
       //     width: "100vw",
-      
+
       //     left: "0",
       //     zIndex: "99",
       //     backgroundColor: "rgba(0,0,0,0.5)",
