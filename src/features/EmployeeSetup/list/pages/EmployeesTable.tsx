@@ -607,11 +607,10 @@
 
 // export default EmployeesTable;
 import React, { useState, useRef, useEffect } from "react";
-import Table, { type Column } from "../../../../layout/Table"; // Original import - UNCOMMENTED
+import Table, { type Column } from "../../../../components/common/Table"; // Original import - UNCOMMENTED
 import { MoreVertical, CalendarDays } from "lucide-react";
-import Modal from "../../../../layout/Modal"; // Original import - UNCOMMENTED
+import Modal from "../../../../components/common/NotificationModal"; // Original import - UNCOMMENTED
 import { useNavigate } from "react-router-dom";
-
 
 interface Employee {
   code: string;
@@ -851,14 +850,14 @@ const EmployeesTable: React.FC = () => {
   const handleAction = (actionName: string, employee: Employee) => {
     // setEmployeeForModal(employee);
     // setActionToConfirm(actionName);
-    // setModalQuestion(undefined); 
+    // setModalQuestion(undefined);
     // Clear any previous question
 
     switch (actionName) {
       case "View Details":
         console.log("View Details for:", employee);
         navigate(`/employees/list/detail/${employee.code}`);
-        break; 
+        break;
         break;
       case "Create Payslip":
         setEmployeeForModal(employee); // Set the employee for payslip creation
