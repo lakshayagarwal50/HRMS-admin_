@@ -1,22 +1,20 @@
 // src/hooks/useAuth.ts
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { onAuthChange } from '../services';
-import { setUser, setLoading } from '../features/auth/authSlice';
-import type { RootState } from '../store/store';
-import type { User } from '../types/auth';
 
+import { useAppSelector } from '../store/hooks'; // Import our new typed selector
+
+/**
+ * @description A custom hook to access authentication state from the Redux store.
+ * @returns An object with the current user, authentication status, and loading state.
+ */
 export const useAuth = () => {
-  const dispatch = useDispatch();
-  const authState = useSelector((state: RootState) => state.auth);
+  // Select the needed state properties from the auth slice in the Redux store
+  const { isAuthenticated, user, isLoading } = useAppSelector((state) => state.auth);
 
-  useEffect(() => {
-    dispatch(setLoading());
-    const unsubscribe = onAuthChange((user: User | null) => {
-      dispatch(setUser(user));
-    });
-    return unsubscribe;
-  }, [dispatch]);
-
-  return authState;
+  // Return the values needed by components like ProtectedRoute
+  // We rename isLoading to 'loading' to match what your ProtectedRoute expects
+  return {
+    isAuthenticated,
+    user,
+    loading: isLoading,
+  };
 };
