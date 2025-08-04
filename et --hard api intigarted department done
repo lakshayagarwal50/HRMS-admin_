@@ -1,0 +1,181 @@
+[33mcommit ec23cd99b325bedd24e9e0fb5e730dc803911d52[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/deepak/sidebar[m[33m, [m[1;31morigin/feature/deepak/sidebar[m[33m)[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Fri Aug 1 18:06:44 2025 +0530
+
+    api intigarted department done
+
+[33mcommit 2fbea091e296a360b310a4d7287905b7fe016809[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Fri Aug 1 15:13:29 2025 +0530
+
+    sidebar update
+
+[33mcommit 10086b8ed1491195424bf2ac7a5bc82ed6d01bb9[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Thu Jul 31 17:41:32 2025 +0530
+
+    working pattern
+
+[33mcommit 0ec7b694469dd2feca606ac2c288c578f87b67b6[m
+Merge: 8a05b4a c89f720
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Thu Jul 31 17:12:46 2025 +0530
+
+    Merge branch 'dev' of https://github.com/lakshay-agarwal1/Employee-Payroll into dev
+
+[33mcommit 8a05b4a9f584e9b26eaaa10f960f64e3ac214aac[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Thu Jul 31 17:07:51 2025 +0530
+
+    upload
+
+[33mcommit 5dc46390d8cb9bdf0ea02cd475e2dcb1283ad0b2[m
+Merge: 9a7dcd6 60b2476
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Thu Jul 31 17:00:14 2025 +0530
+
+    update
+
+[33mcommit c89f720b8b1ab0c9715ee9893d8a5fdaecea9da7[m
+Merge: fd8ca3f 9a7dcd6
+Author: riya-gupta-1 <riya.gupta@appinventiv.com>
+Date:   Thu Jul 31 16:54:57 2025 +0530
+
+    latest update
+
+[33mcommit 60b247640ba0c5eab91450aabf769414933aba6c[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Thu Jul 31 16:52:10 2025 +0530
+
+    working pattern
+
+[33mcommit 9a7dcd67dc24a1e462391e266cd2f6959386fc21[m
+Author: Lakshay Agarwal <lakshay.agarwal1@appinventiv.com>
+Date:   Thu Jul 31 16:49:43 2025 +0530
+
+    added the upload employee functionality
+
+[33mcommit fd8ca3f005200c87add052cac5725ce445421e3b[m
+Author: riya-gupta-1 <riya.gupta@appinventiv.com>
+Date:   Thu Jul 31 16:43:08 2025 +0530
+
+    profile sidebar and employee detail
+
+[33mcommit 2397743f97674044b74f2d010a84752c5191874c[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Thu Jul 31 13:05:03 2025 +0530
+
+    designation,department, role
+
+[33mcommit e5432c075c8a138d6d96a4a9f640bbb09a5c2a44[m
+Merge: ee6a404 162cf3d
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Thu Jul 31 11:06:22 2025 +0530
+
+    Merge branch 'dev' into feature/deepak/sidebar
+
+[33mcommit ee6a404816d172b640fdae81d5252874d4750447[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Thu Jul 31 11:04:36 2025 +0530
+
+    dashboard
+
+[33mcommit 162cf3dbb5eeb4f70d22431741a6cbab76fd8d29[m
+Author: Lakshay Agarwal <lakshay.agarwal1@appinventiv.com>
+Date:   Wed Jul 30 19:03:19 2025 +0530
+
+    createEmployeeForm added
+
+[33mcommit a08087c5af82f7d4af6251ca03698b25f900c53a[m
+Author: riya-gupta-1 <riya.gupta@appinventiv.com>
+Date:   Wed Jul 30 18:51:17 2025 +0530
+
+    created new list folder
+
+[33mcommit 998b90bc8fa173fbdcad2a6e5da8d47850248174[m
+Merge: 1d56c43 7cb9e84
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Wed Jul 30 18:34:32 2025 +0530
+
+    Merge branch 'dev' into feature/deepak/sidebar
+
+[33mcommit 1d56c4340c6a8b620ec4dffa655ef6045f9121a2[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Wed Jul 30 18:32:31 2025 +0530
+
+    update
+
+[33mcommit 7cb9e84b89753405bad92128cacb7b68ada44a56[m
+Author: riya-gupta-1 <riya.gupta@appinventiv.com>
+Date:   Wed Jul 30 18:26:48 2025 +0530
+
+    employee list
+
+[33mcommit 71ad2fda1ebc4590df3f24dba9200f02efe8f623[m
+Merge: 78a4ecd 2704665
+Author: riya-gupta-1 <riya.gupta@appinventiv.com>
+Date:   Wed Jul 30 17:44:28 2025 +0530
+
+    Merge branch 'dev' of https://github.com/lakshay-agarwal1/Employee-Payroll into dev
+
+[33mcommit 78a4ecd843582c3affd8613e0f68b072fec46591[m
+Author: riya-gupta-1 <riya.gupta@appinventiv.com>
+Date:   Wed Jul 30 17:34:57 2025 +0530
+
+    new code
+
+[33mcommit 2f2452b635383c448f3ff20d0ce297f3c4c5e13e[m
+Author: riya-gupta-1 <riya.gupta@appinventiv.com>
+Date:   Wed Jul 30 16:54:02 2025 +0530
+
+    comment removed
+
+[33mcommit db11c64596eead19b6a34309119020b3ca38db62[m
+Author: riya-gupta-1 <riya.gupta@appinventiv.com>
+Date:   Wed Jul 30 16:51:15 2025 +0530
+
+    Revert "initial push"
+    
+    This reverts commit f2e378d8389348ab651f1bf44c5952ba3dc7354f.
+
+[33mcommit f2e378d8389348ab651f1bf44c5952ba3dc7354f[m
+Author: guptariya01 <guptariya210307@gmail.com>
+Date:   Wed Jul 30 15:30:07 2025 +0530
+
+    initial push
+
+[33mcommit 270466522e0be72912562ec9ace80235bdad6f20[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Wed Jul 30 14:40:42 2025 +0530
+
+    layout structure
+
+[33mcommit 4aa02f9ac923973f0171ffc214df53e309c0d44d[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Wed Jul 30 12:40:12 2025 +0530
+
+    sidebar link
+
+[33mcommit 2cf8e664b0a905c5819cb3cdb637186d21ca0055[m
+Author: Lakshay Agarwal <lakshay.agarwal1@appinventiv.com>
+Date:   Wed Jul 30 11:09:20 2025 +0530
+
+    Added login layout improvements and image assets
+
+[33mcommit e6550aa5193d1cb7a10cfb3e91d9596bd2ab309e[m
+Author: Deepak Kumar <deepakkumar1@appinventiv.com>
+Date:   Tue Jul 29 16:22:07 2025 +0530
+
+    enhance sidebar and header
+
+[33mcommit 9b95d6668b74c3bef1109fb3a7ba3682b2d43650[m[33m ([m[1;31morigin/feature/lakshay/login[m[33m)[m
+Author: Lakshay Agarwal <lakshay.agarwal1@appinventiv.com>
+Date:   Tue Jul 29 12:57:23 2025 +0530
+
+    Set up core app structure with Firebase auth, RTK store, routing, and login flow
+
+[33mcommit 9c52dd5f165daa51211fb3758e5291032750d2d1[m
+Author: Lakshay Agarwal <lakshay.agarwal1@appinventiv.com>
+Date:   Mon Jul 28 12:43:58 2025 +0530
+
+    first commit basic starter

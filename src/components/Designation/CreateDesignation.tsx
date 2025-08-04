@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import SidePanelForm from '../common/SidePanelForm';
 
-// Assuming a generic SidePanelForm component exists
- 
+// --- Redux Imports ---
+import { addDesignation, type NewDesignation } from '../../store/slice/designationSlice'; // Adjust path
+import type { AppDispatch } from "../../store/store" // Adjust path
 
 // --- PROPS DEFINITION ---
 interface CreateDesignationProps {
   isOpen: boolean;
   onClose: () => void;
-  // onSubmit: (data: { name: string; code: string; description: string; department: string }) => void;
 }
 
 // --- REUSABLE FORM FIELD COMPONENTS ---
@@ -51,10 +52,11 @@ const FormSelect: React.FC<{
 
 // --- MAIN COMPONENT ---
 const CreateDesignation: React.FC<CreateDesignationProps> = ({ isOpen, onClose }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
-  const [department, setDepartment] = useState('Project management');
+  const [department, setDepartment] = useState('Project management'); // Default value
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,9 +64,19 @@ const CreateDesignation: React.FC<CreateDesignationProps> = ({ isOpen, onClose }
       alert('Designation Name is required.');
       return;
     }
-    const formData = { name, code, description, department };
-    console.log('Submitting Designation:', formData);
-    onClose();
+
+    // Construct the new designation object to be sent to the thunk
+    const newDesignation: NewDesignation = {
+      name: name,
+      code: code,
+      description: description,
+      department: department,
+      status: 'active', // Default status for new designations
+    };
+
+    // Dispatch the action to add the new designation
+    dispatch(addDesignation(newDesignation));
+    onClose(); // Close the panel after submission
   };
 
   return (

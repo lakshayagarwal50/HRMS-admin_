@@ -4,12 +4,14 @@ import authReducer from '../features/auth/authSlice';
 // import employeeReducer from "../features/employee/employeeSlice";
 import employeeReducer from "./slice/employeeSlice"
 import departmentReducer from "./slice/departmentSlice"
+import designationReducer from './slice/designationSlice'; 
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     employee:employeeReducer,
-     departments: departmentReducer,
+    departments: departmentReducer,
+    designations: designationReducer,
   },
 });
 
