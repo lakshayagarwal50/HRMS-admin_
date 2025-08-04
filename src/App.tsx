@@ -1,8 +1,14 @@
 // src/App.tsx
-import AppRoutes from './routes/AppRoutes';
+import { Provider } from "react-redux";
+import AppRoutes from "./routes/AppRoutes";
+import { store } from "./store/store";
 
 function App() {
-  return <AppRoutes />;
+  return (
+    <Provider store={store}>
+      <AppRoutes />
+    </Provider>
+  );
   // return (
   //   <h1 className='text-2xl'>App</h1>
   // )

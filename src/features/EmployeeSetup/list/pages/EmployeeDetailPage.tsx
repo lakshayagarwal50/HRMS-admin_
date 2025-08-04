@@ -1,1171 +1,72 @@
-// import React, { useState, useEffect } from "react";
-// import { useParams } from "react-router-dom";
-// // Import the separated sidebar component and the menuItems array
-// import ProfileSidebar, { menuItems } from "../layout/ProfileSidebar";
-
-// // --- MOCK DATA SOURCE ---
-// // This simulates a database of detailed employee profiles.
-// // The `employeeId` should match the `code` from your EmployeesTable.
-// const ALL_EMPLOYEES_DETAILS = [
-//   {
-//     name: "Cody Fisher",
-//     employeeId: "1651",
-//     status: "Active",
-//     dob: "15/02/1990",
-//     gender: "Male",
-//     phone: "9876543211",
-//     maritalStatus: "Married",
-//     email: "cody.fisher@example.com",
-//     secondaryEmail: "--",
-//     pan: "ABCD1234E",
-//     aadhar: "112233445566",
-//     currentAddress: "123 Tech Park, Noida",
-//     permanentAddress: "456 Home Town, Delhi",
-//     totalExperience: "4+",
-//     login: {
-//       username: "1651",
-//       enabled: "Enable",
-//       locked: "Disable",
-//     },
-//     avatarUrl: "https://i.pravatar.cc/128?u=codyfisher",
-//   },
-//   {
-//     name: "Robert Fox",
-//     employeeId: "8542",
-//     status: "Inactive",
-//     dob: "20/10/1995",
-//     gender: "Male",
-//     phone: "9876543212",
-//     maritalStatus: "Single",
-//     email: "robert.fox@example.com",
-//     secondaryEmail: "rfox@personal.com",
-//     pan: "FGHI5678J",
-//     aadhar: "223344556677",
-//     currentAddress: "789 Innovation Hub, Noida",
-//     permanentAddress: "101 Native Place, Jaipur",
-//     totalExperience: "3+",
-//     login: {
-//       username: "8542",
-//       enabled: "Disable",
-//       locked: "Enable",
-//     },
-//     avatarUrl: "https://i.pravatar.cc/128?u=robertfox",
-//   },
-//   {
-//     name: "Arlene McCoy",
-//     employeeId: "1152",
-//     status: "Active",
-//     dob: "21/12/1988",
-//     gender: "Female",
-//     phone: "9876543213",
-//     maritalStatus: "Married",
-//     email: "arlene.mccoy@example.com",
-//     secondaryEmail: "--",
-//     pan: "KLMN9101P",
-//     aadhar: "334455667788",
-//     currentAddress: "456 Corporate Towers, Noida",
-//     permanentAddress: "789 Family House, Noida",
-//     totalExperience: "8+",
-//     login: {
-//       username: "1152",
-//       enabled: "Enable",
-//       locked: "Disable",
-//     },
-//     avatarUrl: "https://i.pravatar.cc/128?u=arlenemccoy",
-//   },
-// ];
-
-// // --- TYPE DEFINITIONS ---
-// type EmployeeData = (typeof ALL_EMPLOYEES_DETAILS)[0];
-
-// interface DetailItemProps {
-//   label: string;
-//   value: string | number;
-// }
-
-// interface SectionHeaderProps {
-//   title: string;
-//   action?: React.ReactNode;
-// }
-
-// // --- REUSABLE UI COMPONENTS (Unchanged) ---
-// const SectionHeader: React.FC<SectionHeaderProps> = ({ title, action }) => (
-//   <div className="flex justify-between items-center pb-4">
-//     <h3 className="text-lg font-semibold text-[#741CDD]">{title}</h3>
-//     {action}
-//   </div>
-// );
-
-// const DetailItem: React.FC<DetailItemProps> = ({ label, value }) => (
-//   <div className="flex justify-between items-center py-3 border-b border-gray-100">
-//     <p className="text-sm text-gray-500">{label}</p>
-//     <p className="text-sm font-medium text-gray-800">{value}</p>
-//   </div>
-// );
-
-// const EditButton = () => (
-//   <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md">
-//     <svg
-//       xmlns="http://www.w3.org/2000/svg"
-//       width="14"
-//       height="14"
-//       viewBox="0 0 24 24"
-//       fill="none"
-//       stroke="currentColor"
-//       strokeWidth="2"
-//       strokeLinecap="round"
-//       strokeLinejoin="round"
-//     >
-//       <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-//       <path d="m15 5 4 4" />
-//     </svg>
-//     Edit
-//   </button>
-// );
-
-// // --- CONTENT SECTION COMPONENTS ---
-// const GeneralInfo: React.FC<{ data: EmployeeData }> = ({ data }) => (
-//   <div className="space-y-8">
-//     <section>
-//       <SectionHeader title="General Info" action={<EditButton />} />
-//       <div className="flex justify-center py-6">
-//         <div className="relative">
-//           <img
-//             src={data.avatarUrl}
-//             alt="Employee Avatar"
-//             className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
-//             onError={(e) => {
-//               const initials =
-//                 data.name
-//                   .split(" ")
-//                   .map((n) => n[0])
-//                   .join("") || "??";
-//               e.currentTarget.src = `https://placehold.co/128x128/E8E8E8/4A4A4A?text=${initials}`;
-//             }}
-//           />
-//           <button className="absolute bottom-1 right-1 bg-[#741CDD] text-white rounded-full p-2 hover:bg-[#5a16ad] transition-colors shadow-md">
-//             <svg
-//               xmlns="http://www.w3.org/2000/svg"
-//               width="16"
-//               height="16"
-//               viewBox="0 0 24 24"
-//               fill="none"
-//               stroke="currentColor"
-//               strokeWidth="2"
-//               strokeLinecap="round"
-//               strokeLinejoin="round"
-//             >
-//               <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-//             </svg>
-//           </button>
-//         </div>
-//       </div>
-//       <div className="space-y-2">
-//         <DetailItem label="Name" value={data.name} />
-//         <DetailItem label="Employee ID" value={data.employeeId} />
-//         <DetailItem label="Status" value={data.status} />
-//         <DetailItem label="DOB" value={data.dob} />
-//         <DetailItem label="Gender" value={data.gender} />
-//         <DetailItem label="Phone Number" value={data.phone} />
-//         <DetailItem label="Marital Status" value={data.maritalStatus} />
-//         <DetailItem label="Email Primary" value={data.email} />
-//         <DetailItem label="Secondary Email" value={data.secondaryEmail} />
-//         <DetailItem label="PAN Number" value={data.pan} />
-//         <DetailItem label="Aadhar Number" value={data.aadhar} />
-//         <DetailItem label="Current Address" value={data.currentAddress} />
-//         <DetailItem label="Permanent Address" value={data.permanentAddress} />
-//         <DetailItem label="Total Experience" value={data.totalExperience} />
-//       </div>
-//     </section>
-//     <section>
-//       <SectionHeader title="Login Details" action={<EditButton />} />
-//       <div className="space-y-2">
-//         <DetailItem label="Username" value={data.login.username} />
-//         <DetailItem label="Login Enabled" value={data.login.enabled} />
-//         <DetailItem label="Account Locked" value={data.login.locked} />
-//       </div>
-//     </section>
-//   </div>
-// );
-
-// // --- PLACEHOLDER COMPONENTS (Unchanged) ---
-// const PlaceholderComponent: React.FC<{ title: string }> = ({ title }) => (
-//   <div>
-//     <SectionHeader title={title} action={<EditButton />} />
-//     <div className="bg-gray-50 p-6 rounded-lg border border-dashed text-center text-gray-500">
-//       <p>Content for {title} will be displayed here.</p>
-//       <p className="text-sm mt-1">This is a placeholder component.</p>
-//     </div>
-//   </div>
-// );
-
-// const ProfessionalInfo = () => (
-//   <PlaceholderComponent title="Professional Details" />
-// );
-// // ... (Other placeholder components are unchanged) ...
-// const Projects = () => <PlaceholderComponent title="Projects" />;
-
-// // --- MAIN PAGE COMPONENT ---
-// export default function EmployeeDetailPage() {
-//   const { employeeCode } = useParams<{ employeeCode: string }>();
-//   const [employee, setEmployee] = useState<EmployeeData | null>(null);
-//   const [loading, setLoading] = useState(true);
-//   const [currentSection, setCurrentSection] = useState<string>("general");
-
-//   useEffect(() => {
-//     setLoading(true);
-//     // In a real app, you would fetch from an API. Here we simulate it.
-//     console.log(`Searching for employee with code: ${employeeCode}`);
-//     if (employeeCode) {
-//       setTimeout(() => {
-//         const foundEmployee = ALL_EMPLOYEES_DETAILS.find(
-//           (emp) => emp.employeeId === employeeCode
-//         );
-//         setEmployee(foundEmployee || null);
-//         setLoading(false);
-//       }, 500); // Simulate network delay
-//     } else {
-//       setLoading(false);
-//     }
-//   }, [employeeCode]);
-
-//   const renderSection = () => {
-//     if (!employee) return null; // Should not happen due to checks below, but good practice
-
-//     switch (currentSection) {
-//       case "general":
-//         return <GeneralInfo data={employee} />;
-//       case "professional":
-//         return <ProfessionalInfo />;
-//       // ... (add other cases as you build them out) ...
-//       default:
-//         // Find the title for the placeholder
-//         const item =
-//           menuItems.find(
-//             (m: string) =>
-//               m.toLowerCase().replace(/, | & | /g, "_") === currentSection
-//           ) || currentSection;
-//         return <PlaceholderComponent title={item} />;
-//     }
-//   };
-
-//   const getSectionTitle = () => {
-//     const item = menuItems.find(
-//       (m: string) =>
-//         m.toLowerCase().replace(/, | & | /g, "_") === currentSection
-//     );
-//     return item
-//       ? item
-//           .split(" ")
-//           .map(
-//             (w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
-//           )
-//           .join(" ")
-//       : "Details";
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="flex justify-center items-center h-screen bg-slate-50">
-//         <p className="text-lg text-gray-500 animate-pulse">
-//           Loading Employee Details...
-//         </p>
-//       </div>
-//     );
-//   }
-
-//   if (!employee) {
-//     return (
-//       <div className="flex flex-col justify-center items-center h-screen bg-slate-50 text-center">
-//         <h1 className="text-2xl font-bold text-red-600">Employee Not Found</h1>
-//         <p className="text-md text-gray-600 mt-2">
-//           No employee with ID '{employeeCode}' could be found.
-//         </p>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8">
-//       <div className="max-w-7xl mx-auto">
-//         <header className="mb-6">
-//           <h1 className="text-2xl font-bold text-gray-900">{employee.name}</h1>
-//           <p className="text-sm text-gray-500 mt-1">
-//             Dashboard / Employee Setup / List / Detail /{" "}
-//             <span className="text-[#741CDD] font-medium">
-//               {getSectionTitle()}
-//             </span>
-//           </p>
-//         </header>
-//         <div className="flex flex-col md:flex-row items-start gap-6">
-//           <ProfileSidebar
-//             activeItem={currentSection}
-//             onSectionChange={setCurrentSection}
-//           />
-//           <main className="flex-grow w-full bg-white p-6 rounded-lg border border-gray-200">
-//             {renderSection()}
-//           </main>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-// import React, {
-//   useState,
-//   useEffect,
-//   type ChangeEvent,
-//   type FormEvent,
-// } from "react";
-
-// const ALL_EMPLOYEES_DETAILS = [
-//   {
-//     name: "Cody Fisher",
-//     firstName: "Cody",
-//     lastName: "Fisher",
-//     title: "Mr",
-//     employeeId: "1651",
-//     status: "Active",
-//     dob: "1990-02-15",
-//     gender: "Male",
-//     phone: "9876543211",
-//     maritalStatus: "Married",
-//     email: "cody.fisher@example.com",
-//     secondaryEmail: "--",
-//     pan: "ABCD1234E",
-//     aadhar: "112233445566",
-//     currentAddress: "123 Tech Park, Noida",
-//     permanentAddress: "456 Home Town, Delhi",
-//     totalExperience: "4+",
-//     login: {
-//       username: "1651",
-//       enabled: "Enable",
-//       locked: "Disable",
-//     },
-//     avatarUrl: "https://i.pravatar.cc/128?u=codyfisher",
-//   },
-//   // Other employees...
-// ];
-
-// type EmployeeData = (typeof ALL_EMPLOYEES_DETAILS)[0];
-
-// // --- FORM COMPONENT TYPES ---
-
-// export interface FormFieldOption {
-//   value: string | number;
-//   label: string;
-// }
-
-// export interface FormField {
-//   name: string;
-//   label: string;
-//   type:
-//     | "text"
-//     | "number"
-//     | "textarea"
-//     | "select"
-//     | "date"
-//     | "switch"
-//     | "password"
-//     | "email";
-//   placeholder?: string;
-//   required?: boolean;
-//   options?: FormFieldOption[];
-//   spanFull?: boolean;
-// }
-
-// export interface GenericFormProps {
-//   title: string;
-//   fields: FormField[];
-//   initialState: Record<string, any>;
-//   onSubmit: (data: Record<string, any>) => void;
-//   onCancel?: () => void;
-//   submitButtonText?: string;
-//   cancelButtonText?: string;
-// }
-
-// // --- REUSABLE GENERIC FORM COMPONENT ---
-
-// const GenericForm: React.FC<GenericFormProps> = ({
-//   title,
-//   fields,
-//   initialState,
-//   onSubmit,
-//   onCancel,
-//   submitButtonText = "Submit",
-//   cancelButtonText = "Cancel",
-// }) => {
-//   const [formData, setFormData] = useState<Record<string, any>>(initialState);
-
-//   useEffect(() => {
-//     setFormData(initialState);
-//   }, [initialState]);
-
-//   const handleChange = (
-//     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-//   ) => {
-//     const { name, value, type } = e.target;
-//     const isCheckbox = type === "checkbox";
-//     const checkedValue = (e.target as HTMLInputElement).checked;
-//     setFormData((prev) => ({
-//       ...prev,
-//       [name]: isCheckbox ? checkedValue : value,
-//     }));
-//   };
-
-//   const handleSubmit = (e: FormEvent) => {
-//     e.preventDefault();
-//     onSubmit(formData);
-//   };
-
-//   const renderField = (field: FormField) => {
-//     const commonInputClasses =
-//       "w-full p-2 border border-slate-300 rounded-md bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#714CDD] focus:border-[#714CDD] transition-colors duration-200 ease-in-out";
-//     const value = formData[field.name] ?? "";
-//     switch (field.type) {
-//       case "select":
-//         return (
-//           <select
-//             id={field.name}
-//             name={field.name}
-//             value={value}
-//             onChange={handleChange}
-//             required={field.required}
-//             className={commonInputClasses}
-//           >
-//             <option value="" disabled>
-//               Please Select
-//             </option>
-//             {field.options?.map((option) => (
-//               <option key={option.value} value={option.value}>
-//                 {option.label}
-//               </option>
-//             ))}
-//           </select>
-//         );
-//       case "textarea":
-//         return (
-//           <textarea
-//             id={field.name}
-//             name={field.name}
-//             value={value}
-//             onChange={handleChange}
-//             placeholder={field.placeholder}
-//             required={field.required}
-//             rows={3}
-//             className={commonInputClasses}
-//           />
-//         );
-//       default:
-//         return (
-//           <input
-//             id={field.name}
-//             name={field.name}
-//             type={field.type}
-//             value={value}
-//             onChange={handleChange}
-//             placeholder={field.placeholder}
-//             required={field.required}
-//             className={commonInputClasses}
-//           />
-//         );
-//     }
-//   };
-
-//   return (
-//     <div className="bg-white h-full flex flex-col">
-//       <div className="relative flex justify-center items-center p-6 border-b border-slate-200">
-//         <h2 className="text-xl font-bold text-slate-800">{title}</h2>
-//         {onCancel && (
-//           <button
-//             onClick={onCancel}
-//             className="absolute right-6 text-slate-400 hover:text-slate-600"
-//           >
-//             <svg
-//               className="w-6 h-6"
-//               fill="none"
-//               stroke="currentColor"
-//               viewBox="0 0 24 24"
-//               xmlns="http://www.w3.org/2000/svg"
-//             >
-//               <path
-//                 strokeLinecap="round"
-//                 strokeLinejoin="round"
-//                 strokeWidth="2"
-//                 d="M6 18L18 6M6 6l12 12"
-//               ></path>
-//             </svg>
-//           </button>
-//         )}
-//       </div>
-//       <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto p-6">
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-5">
-//           {fields.map((field) => (
-//             <div
-//               key={field.name}
-//               className={field.spanFull ? "md:col-span-3" : ""}
-//             >
-//               <label
-//                 htmlFor={field.name}
-//                 className="block text-sm font-medium text-slate-600 mb-1.5"
-//               >
-//                 {field.label}
-//                 {field.required && <span className="text-red-500 ml-1">*</span>}
-//               </label>
-//               {renderField(field)}
-//             </div>
-//           ))}
-//         </div>
-//       </form>
-//       <div className="flex items-center justify-center gap-4 p-6 border-t border-slate-200">
-//         {onCancel && (
-//           <button
-//             type="button"
-//             onClick={onCancel}
-//             className="py-2.5 px-8 font-semibold bg-slate-100 text-slate-700 rounded-md hover:bg-slate-200 transition-colors"
-//           >
-//             {cancelButtonText}
-//           </button>
-//         )}
-//         <button
-//           type="submit"
-//           onClick={handleSubmit}
-//           className="py-2.5 px-8 font-semibold text-white bg-[#714CDD] rounded-md hover:bg-[#5f3dbb] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#714CDD] transition-colors shadow-sm"
-//         >
-//           {submitButtonText}
-//         </button>
-//       </div>
-//     </div>
-//   );
-// };
-
-// // --- SIDEBAR & UI COMPONENTS ---
-
-// const menuItems = [
-//   "General",
-//   "Professional",
-//   "Bank Detail",
-//   "PF, ESI & PT",
-//   "Declaration",
-//   "Salary Distribution",
-//   "Payslips",
-//   "Attendance",
-//   "Loan and Advances",
-//   "Previous Job Details",
-//   "Employee Activities",
-//   "Projects",
-// ];
-
-// const ProfileSidebar: React.FC<{
-//   activeItem: string;
-//   onSectionChange: (section: string) => void;
-// }> = ({ activeItem, onSectionChange }) => (
-//   <aside className="w-full md:w-64 lg:w-72 flex-shrink-0">
-//     <div className="bg-white p-4 rounded-lg border border-gray-200">
-//       <h3 className="text-base font-semibold text-gray-500 mb-4 px-2">
-//         Employee Setup
-//       </h3>
-//       <nav className="space-y-1">
-//         {menuItems.map((item) => {
-//           const key = item.toLowerCase().replace(/, | & | /g, "_");
-//           const isActive = activeItem === key;
-//           return (
-//             <button
-//               key={key}
-//               onClick={() => onSectionChange(key)}
-//               className={`w-full text-left px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
-//                 isActive
-//                   ? "bg-[#714CDD] text-white"
-//                   : "text-gray-700 hover:bg-gray-100"
-//               }`}
-//             >
-//               {item}
-//             </button>
-//           );
-//         })}
-//       </nav>
-//     </div>
-//   </aside>
-// );
-
-// const SectionHeader: React.FC<{ title: string; action?: React.ReactNode }> = ({
-//   title,
-//   action,
-// }) => (
-//   <div className="flex justify-between items-center pb-4">
-//     <h3 className="text-lg font-semibold text-[#714CDD]">{title}</h3>
-//     {action}
-//   </div>
-// );
-
-// const DetailItem: React.FC<{ label: string; value: string | number }> = ({
-//   label,
-//   value,
-// }) => (
-//   <div className="flex justify-between items-center py-3 border-b border-gray-100">
-//     <p className="text-sm text-gray-500">{label}</p>
-//     <p className="text-sm font-medium text-gray-800">{value}</p>
-//   </div>
-// );
-
-// const EditButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-//   <button
-//     onClick={onClick}
-//     className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md"
-//   >
-//     <svg
-//       xmlns="http://www.w3.org/2000/svg"
-//       width="14"
-//       height="14"
-//       viewBox="0 0 24 24"
-//       fill="none"
-//       stroke="currentColor"
-//       strokeWidth="2"
-//       strokeLinecap="round"
-//       strokeLinejoin="round"
-//     >
-//       <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-//       <path d="m15 5 4 4" />
-//     </svg>
-//     Edit
-//   </button>
-// );
-
-// // --- CONTENT SECTION COMPONENTS ---
-
-// const GeneralInfo: React.FC<{
-//   data: EmployeeData;
-//   onEditClick: () => void;
-// }> = ({ data, onEditClick }) => (
-//   <div className="space-y-8">
-//     <section>
-//       <SectionHeader
-//         title="General Info"
-//         action={<EditButton onClick={onEditClick} />}
-//       />
-//       <div className="flex justify-center py-6">
-//         <div className="relative">
-//           <img
-//             src={data.avatarUrl}
-//             alt="Employee Avatar"
-//             className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
-//           />
-//         </div>
-//       </div>
-//       <div className="space-y-2">
-//         <DetailItem label="Name" value={data.name} />
-//         <DetailItem label="Employee ID" value={data.employeeId} />
-//         <DetailItem label="Status" value={data.status} />
-//         <DetailItem label="DOB" value={data.dob} />
-//         <DetailItem label="Gender" value={data.gender} />
-//         <DetailItem label="Phone Number" value={data.phone} />
-//         <DetailItem label="Marital Status" value={data.maritalStatus} />
-//         <DetailItem label="Email Primary" value={data.email} />
-//         <DetailItem label="Secondary Email" value={data.secondaryEmail} />
-//         <DetailItem label="PAN Number" value={data.pan} />
-//         <DetailItem label="Aadhar Number" value={data.aadhar} />
-//         <DetailItem label="Current Address" value={data.currentAddress} />
-//         <DetailItem label="Permanent Address" value={data.permanentAddress} />
-//         <DetailItem label="Total Experience" value={data.totalExperience} />
-//       </div>
-//     </section>
-//   </div>
-// );
-
-// const PlaceholderComponent: React.FC<{ title: string }> = ({ title }) => (
-//   <div>
-//     <SectionHeader
-//       title={title}
-//       action={
-//         <EditButton onClick={() => alert(`Edit for ${title} clicked!`)} />
-//       }
-//     />
-//     <div className="bg-gray-50 p-6 rounded-lg border border-dashed text-center text-gray-500">
-//       <p>Content for {title} will be displayed here.</p>
-//     </div>
-//   </div>
-// );
-
-// // --- MAIN PAGE COMPONENT ---
-
-// export default function EmployeeDetailPage() {
-//   const employeeCode = "1651";
-//   const [employee, setEmployee] = useState<EmployeeData | null>(null);
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [currentSection, setCurrentSection] = useState("general");
-
-//   useEffect(() => {
-//     const foundEmployee = ALL_EMPLOYEES_DETAILS.find(
-//       (emp) => emp.employeeId === employeeCode
-//     );
-//     setEmployee(foundEmployee || null);
-//   }, [employeeCode]);
-
-//   const handleFormSubmit = (data: Record<string, any>) => {
-//     console.log("Form Submitted! Updating employee data...", data);
-//     setEmployee(data as EmployeeData);
-//     alert("Employee details updated! Check the console for the data.");
-//     setIsModalOpen(false);
-//   };
-
-//   const employeeFormFields: FormField[] = [
-//     {
-//       name: "title",
-//       label: "Title",
-//       type: "select",
-//       required: true,
-//       options: [
-//         { value: "Mr", label: "Mr." },
-//         { value: "Mrs", label: "Mrs." },
-//         { value: "Ms", label: "Ms." },
-//       ],
-//     },
-//     { name: "firstName", label: "First Name", type: "text", required: true },
-//     { name: "lastName", label: "Last Name", type: "text", required: true },
-//     {
-//       name: "employeeId",
-//       label: "Employee ID",
-//       type: "text",
-//       required: true,
-//       spanFull: true,
-//     },
-//     {
-//       name: "status",
-//       label: "Status",
-//       type: "select",
-//       required: true,
-//       spanFull: true,
-//       options: [
-//         { value: "Active", label: "Active" },
-//         { value: "Inactive", label: "Inactive" },
-//       ],
-//     },
-//     {
-//       name: "gender",
-//       label: "Gender",
-//       type: "select",
-//       required: true,
-//       spanFull: true,
-//       options: [
-//         { value: "Male", label: "Male" },
-//         { value: "Female", label: "Female" },
-//         { value: "Other", label: "Other" },
-//       ],
-//     },
-//     {
-//       name: "phone",
-//       label: "Phone Number",
-//       type: "text",
-//       required: true,
-//       spanFull: true,
-//     },
-//     {
-//       name: "maritalStatus",
-//       label: "Marital Status",
-//       type: "select",
-//       required: true,
-//       spanFull: true,
-//       options: [
-//         { value: "Single", label: "Single" },
-//         { value: "Married", label: "Married" },
-//       ],
-//     },
-//     {
-//       name: "email",
-//       label: "Email/Primary",
-//       type: "email",
-//       required: true,
-//       spanFull: true,
-//     },
-//     {
-//       name: "secondaryEmail",
-//       label: "Secondary Email",
-//       type: "email",
-//       spanFull: true,
-//     },
-//     { name: "pan", label: "PAN Number", type: "text", spanFull: true },
-//     { name: "aadhar", label: "Aadhar Number", type: "text", spanFull: true },
-//     {
-//       name: "currentAddress",
-//       label: "Current Address",
-//       type: "textarea",
-//       spanFull: true,
-//     },
-//     {
-//       name: "permanentAddress",
-//       label: "Permanent Address",
-//       type: "textarea",
-//       spanFull: true,
-//     },
-//     {
-//       name: "totalExperience",
-//       label: "Total Experience",
-//       type: "text",
-//       spanFull: true,
-//     },
-//   ];
-
-//   const renderSection = () => {
-//     if (!employee) return null;
-
-//     switch (currentSection) {
-//       case "general":
-//         return (
-//           <GeneralInfo
-//             data={employee}
-//             onEditClick={() => setIsModalOpen(true)}
-//           />
-//         );
-//       default:
-//         const itemTitle =
-//           menuItems.find(
-//             (m) => m.toLowerCase().replace(/, | & | /g, "_") === currentSection
-//           ) || "Details";
-//         return <PlaceholderComponent title={itemTitle} />;
-//     }
-//   };
-
-//   const getSectionTitle = () => {
-//     return (
-//       menuItems.find(
-//         (m) => m.toLowerCase().replace(/, | & | /g, "_") === currentSection
-//       ) || "Details"
-//     );
-//   };
-
-//   if (!employee) {
-//     return <div className="text-center p-10">Loading Employee...</div>;
-//   }
-
-//   return (
-//     <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8">
-//       <div className="max-w-7xl mx-auto">
-//         <header className="mb-6">
-//           <h1 className="text-2xl font-bold text-gray-900">{employee.name}</h1>
-//           <p className="text-sm text-gray-500 mt-1">
-//             Dashboard / Employee Setup / List / Detail /{" "}
-//             <span className="text-[#714CDD] font-medium">
-//               {getSectionTitle()}
-//             </span>
-//           </p>
-//         </header>
-//         <div className="flex flex-col md:flex-row items-start gap-6">
-//           <ProfileSidebar
-//             activeItem={currentSection}
-//             onSectionChange={setCurrentSection}
-//           />
-//           <main className="flex-grow w-full bg-white p-6 rounded-lg border border-gray-200">
-//             {renderSection()}
-//           </main>
-//         </div>
-//       </div>
-
-//       {/* Modal container */}
-//       <div
-//         className={`fixed inset-0 z-40 transition-opacity duration-300 ${
-//           isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-//         }`}
-//       >
-//         <div
-//           className="absolute inset-0 bg-black bg-opacity-50"
-//           onClick={() => setIsModalOpen(false)}
-//         ></div>
-//         <div
-//           className={`fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
-//             isModalOpen ? "translate-x-0" : "translate-x-full"
-//           }`}
-//         >
-//           {employee && (
-//             <GenericForm
-//               title="Edit General Info"
-//               fields={employeeFormFields}
-//               initialState={employee}
-//               onSubmit={handleFormSubmit}
-//               onCancel={() => setIsModalOpen(false)}
-//               submitButtonText="Update"
-//               cancelButtonText="Cancel"
-//             />
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 import React, {
   useState,
   useEffect,
   type ChangeEvent,
   type FormEvent,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
 } from "react";
-import { useParams } from "react-router-dom";
-// Assuming ProfileSidebar and menuItems are in this path
+import { useParams, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+
+// --- REDUX & TYPE IMPORTS ---
+import type { AppDispatch, RootState } from "../../../../store/store";
+import {
+  fetchEmployeeDetails,
+  type EmployeeDetail,
+} from "../../../../store/slice/employeeSlice";
+import {
+  addBankDetails,
+  updateBankDetails,
+} from "../../../../store/slice/bankSlice";
+import { updateGeneralInfo } from "../../../../store/slice/generalSlice";
+import { updateProfessionalInfo } from "../../../../store/slice/professionalSlice";
+
+// --- COMPONENT IMPORTS ---
 import ProfileSidebar, { menuItems } from "../layout/ProfileSidebar";
 
-// --- MOCK DATA SOURCE ---
-const ALL_EMPLOYEES_DETAILS = [
-  {
-    name: "Cody Fisher",
-    employeeId: "1651",
-    status: "Active",
-    dob: "1990-02-15",
-    gender: "Male",
-    phone: "9876543211",
-    maritalStatus: "Married",
-    email: "cody.fisher@example.com",
-    secondaryEmail: "--",
-    pan: "ABCD1234E",
-    aadhar: "112233445566",
-    currentAddress: "123 Tech Park, Noida",
-    permanentAddress: "456 Home Town, Delhi",
-    totalExperience: "4+",
-    login: {
-      username: "1651",
-      enabled: "Enable",
-      locked: "Disable",
-    },
-    avatarUrl: "https://i.pravatar.cc/128?u=codyfisher",
-  },
-  // Other employee records...
-];
-
 // --- TYPE DEFINITIONS ---
-type EmployeeData = (typeof ALL_EMPLOYEES_DETAILS)[0];
-
-interface DetailItemProps {
-  label: string;
-  value: string | number;
-}
-
-interface SectionHeaderProps {
-  title: string;
-  action?: React.ReactNode;
-}
-
-// --- FORM COMPONENT TYPES ---
 export interface FormFieldOption {
   value: string | number;
   label: string;
 }
-
 export interface FormField {
   name: string;
   label: string;
-  type:
-    | "text"
-    | "select"
-    | "date"
-    | "email"
-    | "textarea"
-    | "password"
-    | "switch";
+  type: "text" | "number" | "textarea" | "select" | "date" | "email";
   placeholder?: string;
   required?: boolean;
   options?: FormFieldOption[];
   spanFull?: boolean;
 }
-
-export interface GenericFormProps {
-  title: string;
+interface GenericFormProps {
   fields: FormField[];
   initialState: Record<string, any>;
   onSubmit: (data: Record<string, any>) => void;
-  onCancel?: () => void;
-  submitButtonText?: string;
 }
 
-// --- REUSABLE GENERIC FORM COMPONENT ---
-const GenericForm: React.FC<GenericFormProps> = ({
-  title,
-  fields,
-  initialState,
-  onSubmit,
-  onCancel,
-  submitButtonText = "Submit",
-}) => {
-  const [formData, setFormData] = useState<Record<string, any>>(initialState);
-
-  useEffect(() => {
-    setFormData(initialState);
-  }, [initialState]);
-
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target;
-    const isCheckbox = type === "checkbox";
-    const checkedValue = (e.target as HTMLInputElement).checked;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: isCheckbox ? checkedValue : value,
-    }));
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  const renderField = (field: FormField) => {
-    const commonInputClasses =
-      "w-full p-2 border border-slate-300 rounded-md bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#741CDD] focus:border-[#741CDD] transition-colors";
-    const value = formData[field.name] ?? "";
-
-    switch (field.type) {
-      case "select":
-        return (
-          <select
-            id={field.name}
-            name={field.name}
-            value={value}
-            onChange={handleChange}
-            required={field.required}
-            className={commonInputClasses}
-          >
-            {field.options?.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        );
-      case "textarea":
-        return (
-          <textarea
-            id={field.name}
-            name={field.name}
-            value={value}
-            onChange={handleChange}
-            placeholder={field.placeholder}
-            required={field.required}
-            rows={3}
-            className={commonInputClasses}
-          />
-        );
-
-      case "switch":
-        return (
-          <label
-            htmlFor={field.name}
-            className="flex items-center cursor-pointer mt-2"
-          >
-            <div className="relative">
-              <input
-                type="checkbox"
-                id={field.name}
-                name={field.name}
-                className="sr-only"
-                checked={!!value}
-                onChange={handleChange}
-              />
-              <div
-                className={`block w-14 h-8 rounded-full transition-colors ${
-                  value ? "bg-[#741CDD]" : "bg-gray-200"
-                }`}
-              ></div>
-              <div
-                className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${
-                  value ? "translate-x-6" : "translate-x-0"
-                }`}
-              ></div>
-            </div>
-          </label>
-        );
-
-      default:
-        return (
-          <input
-            id={field.name}
-            name={field.name}
-            type={field.type}
-            value={value}
-            onChange={handleChange}
-            placeholder={field.placeholder}
-            required={field.required}
-            className={commonInputClasses}
-          />
-        );
-    }
-  };
-
-  return (
-    <div className="bg-white h-full flex flex-col">
-      <div className="relative flex justify-center items-center p-6 border-b border-slate-200">
-        <h2 className="text-xl font-bold text-slate-800">{title}</h2>
-        {onCancel && (
-          <button
-            onClick={onCancel}
-            className="absolute right-6 text-slate-400 hover:text-slate-600"
-            aria-label="Close"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
-            </svg>
-          </button>
-        )}
-      </div>
-      <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-          {fields.map((field) => (
-            <div
-              key={field.name}
-              className={field.spanFull ? "md:col-span-2" : ""}
-            >
-              <label
-                htmlFor={field.name}
-                className="block text-sm font-medium text-slate-600 mb-1.5"
-              >
-                {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
-              </label>
-              {renderField(field)}
-            </div>
-          ))}
-        </div>
-      </form>
-      <div className="flex items-center justify-end gap-4 p-6 border-t border-slate-200">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="py-2.5 px-8 font-semibold bg-slate-100 text-slate-700 rounded-md hover:bg-slate-200 transition-colors"
-          >
-            Cancel
-          </button>
-        )}
-        <button
-          type="submit"
-          onClick={handleSubmit}
-          className="py-2.5 px-8 font-semibold text-white bg-[#741CDD] rounded-md hover:bg-[#5f3dbb] transition-colors shadow-sm"
-        >
-          {submitButtonText}
-        </button>
-      </div>
-    </div>
-  );
-};
-
 // --- REUSABLE UI COMPONENTS ---
-const SectionHeader: React.FC<SectionHeaderProps> = ({ title, action }) => (
+const SectionHeader: React.FC<{
+  title: string;
+  action?: React.ReactNode;
+}> = ({ title, action }) => (
   <div className="flex justify-between items-center pb-4">
     <h3 className="text-lg font-semibold text-[#741CDD]">{title}</h3>
     {action}
   </div>
 );
-const DetailItem: React.FC<DetailItemProps> = ({ label, value }) => (
+
+const DetailItem: React.FC<{ label: string; value: string | number }> = ({
+  label,
+  value,
+}) => (
   <div className="flex justify-between items-center py-3 border-b border-gray-100">
     <p className="text-sm text-gray-500">{label}</p>
-    <p className="text-sm font-medium text-gray-800">{value}</p>
+    <p className="text-sm font-medium text-gray-800">{value || "--"}</p>
   </div>
 );
+
 const EditButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -1189,164 +90,293 @@ const EditButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   </button>
 );
 
-// --- CONTENT SECTION COMPONENTS ---
-const GeneralInfo: React.FC<{
-  data: EmployeeData;
-  onEditClick: () => void;
-  onLoginEditClick: () => void;
-}> = ({ data, onEditClick, onLoginEditClick }) => (
-  <div className="space-y-8">
-    <section>
-      <SectionHeader
-        title="General Info"
-        action={<EditButton onClick={onEditClick} />}
-      />
-      <div className="flex justify-center py-6">
-        <div className="relative">
-          <img
-            src={data.avatarUrl}
-            alt="Employee Avatar"
-            className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
-            onError={(e) => {
-              const i =
-                data.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("") || "??";
-              e.currentTarget.src = `https://placehold.co/128x128/E8E8E8/4A4A4A?text=${i}`;
-            }}
-          />
-          <button className="absolute bottom-1 right-1 bg-[#741CDD] text-white rounded-full p-2 hover:bg-[#5a16ad] transition-colors shadow-md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div className="space-y-2">
-        <DetailItem label="Name" value={data.name} />
-        <DetailItem label="Employee ID" value={data.employeeId} />
-        <DetailItem label="Status" value={data.status} />
-        <DetailItem label="DOB" value={data.dob} />
-        <DetailItem label="Gender" value={data.gender} />
-        <DetailItem label="Phone Number" value={data.phone} />
-        <DetailItem label="Marital Status" value={data.maritalStatus} />
-        <DetailItem label="Email Primary" value={data.email} />
-        <DetailItem label="Secondary Email" value={data.secondaryEmail} />
-        <DetailItem label="PAN Number" value={data.pan} />
-        <DetailItem label="Aadhar Number" value={data.aadhar} />
-        <DetailItem label="Current Address" value={data.currentAddress} />
-        <DetailItem label="Permanent Address" value={data.permanentAddress} />
-        <DetailItem label="Total Experience" value={data.totalExperience} />
-      </div>
-    </section>
-    <section>
-      <SectionHeader
-        title="Login Details"
-        action={<EditButton onClick={onLoginEditClick} />}
-      />
-      <div className="space-y-2">
-        <DetailItem label="Username" value={data.login.username} />
-        <DetailItem label="Login Enabled" value={data.login.enabled} />
-        <DetailItem label="Account Locked" value={data.login.locked} />
-      </div>
-    </section>
-  </div>
+const AddButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="flex items-center gap-1.5 text-sm text-white bg-[#741CDD] hover:bg-[#5f3dbb] transition-colors px-3 py-1.5 rounded-md font-semibold"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+    Add
+  </button>
 );
 
-const PlaceholderComponent: React.FC<{ title: string }> = ({ title }) => (
+const PlaceholderComponent: React.FC<{ title: string; onEdit: () => void }> = ({
+  title,
+  onEdit,
+}) => (
   <div>
-    <SectionHeader
-      title={title}
-      action={<EditButton onClick={() => alert(`Edit ${title}!`)} />}
-    />
+    <SectionHeader title={title} action={<EditButton onClick={onEdit} />} />
     <div className="bg-gray-50 p-6 rounded-lg border border-dashed text-center text-gray-500">
       <p>Content for {title} will be displayed here.</p>
     </div>
   </div>
 );
 
-// --- MAIN PAGE COMPONENT ---
-export default function EmployeeDetailPage() {
-  const { employeeCode } = useParams<{ employeeCode: string }>();
-  const [employee, setEmployee] = useState<EmployeeData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentSection, setCurrentSection] = useState<string>("general");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+// --- PAGE-SPECIFIC SECTION COMPONENTS ---
+const GeneralInfo: React.FC<{ data: EmployeeDetail; onEdit: () => void }> = ({
+  data,
+  onEdit,
+}) => {
+  const { general } = data;
+  const fullName = `${general.name.first || ""} ${
+    general.name.last || ""
+  }`.trim();
+  return (
+    <div>
+      <SectionHeader
+        title="General Info"
+        action={<EditButton onClick={onEdit} />}
+      />
+      <div className="space-y-2">
+        <DetailItem label="Name" value={fullName} />
+        <DetailItem label="Employee ID" value={general.empCode} />
+        <DetailItem label="Status" value={general.status} />
+        <DetailItem label="Gender" value={general.gender} />
+        <DetailItem
+          label="Phone Number"
+          value={`${general.phoneNum.code} ${general.phoneNum.num}`}
+        />
+        <DetailItem label="Email Primary" value={general.primaryEmail} />
+      </div>
+    </div>
+  );
+};
 
-  useEffect(() => {
-    setLoading(true);
-    if (employeeCode) {
-      setTimeout(() => {
-        const foundEmployee = ALL_EMPLOYEES_DETAILS.find(
-          (emp) => emp.employeeId === employeeCode
-        );
-        setEmployee(foundEmployee || null);
-        setLoading(false);
-      }, 500);
-    } else {
-      setLoading(false);
-    }
-  }, [employeeCode]);
+const ProfessionalInfo: React.FC<{
+  data: EmployeeDetail;
+  onEdit: () => void;
+}> = ({ data, onEdit }) => {
+  const { professional } = data;
+  return (
+    <div>
+      <SectionHeader
+        title="Professional Details"
+        action={<EditButton onClick={onEdit} />}
+      />
+      <div className="space-y-2">
+        <DetailItem label="Designation" value={professional.designation} />
+        <DetailItem label="Department" value={professional.department} />
+        <DetailItem
+          label="Joining Date"
+          value={new Date(professional.joiningDate).toLocaleDateString()}
+        />
+        <DetailItem label="Location" value={professional.location} />
+        <DetailItem
+          label="Reporting Manager"
+          value={professional.reportingManager}
+        />
+        <DetailItem label="Work Week" value={professional.workWeek} />
+        <DetailItem label="Annual CTC" value={professional.ctcAnnual} />
+        <DetailItem label="Holiday Group" value={professional.holidayGroup} />
+        <DetailItem
+          label="Payslip Component"
+          value={professional.payslipComponent}
+        />
+      </div>
+    </div>
+  );
+};
 
-  const handleFormSubmit = (formData: Record<string, any>) => {
-    if (!employee) return;
-    const updatedEmployee: EmployeeData = {
-      ...employee,
-      ...formData,
-      name: `${formData.firstName} ${formData.lastName}`,
+const BankDetailsSection: React.FC<{
+  data: EmployeeDetail;
+  onEdit: () => void;
+}> = ({ data, onEdit }) => {
+  return (
+    <div>
+      <SectionHeader
+        title="Bank Detail"
+        action={
+          data.bankDetails && data.bankDetails.id ? (
+            <EditButton onClick={onEdit} />
+          ) : (
+            <AddButton onClick={onEdit} />
+          )
+        }
+      />
+      <div className="space-y-2">
+        <DetailItem
+          label="Bank Name"
+          value={data.bankDetails?.bankName ?? "--"}
+        />
+        <DetailItem
+          label="Account Name"
+          value={data.bankDetails?.accountName ?? "--"}
+        />
+        <DetailItem
+          label="Branch Name"
+          value={data.bankDetails?.branchName ?? "--"}
+        />
+        <DetailItem
+          label="Account Type"
+          value={data.bankDetails?.accountType ?? "--"}
+        />
+        <DetailItem
+          label="Account No"
+          value={data.bankDetails?.accountNum ?? "--"}
+        />
+        <DetailItem
+          label="IFSC Code"
+          value={data.bankDetails?.ifscCode ?? "--"}
+        />
+      </div>
+    </div>
+  );
+};
+
+// --- GENERIC FORM COMPONENT ---
+const GenericForm = forwardRef<{ handleSubmit: () => void }, GenericFormProps>(
+  ({ fields, initialState, onSubmit }, ref) => {
+    const [formData, setFormData] = useState<Record<string, any>>(initialState);
+    const formEl = useRef<HTMLFormElement>(null);
+
+    useEffect(() => {
+      setFormData(initialState);
+    }, [initialState]);
+
+    useImperativeHandle(ref, () => ({
+      handleSubmit: () => {
+        formEl.current?.requestSubmit();
+      },
+    }));
+
+    const handleChange = (
+      e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    ) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
     };
-    setEmployee(updatedEmployee);
-    alert("Employee details updated successfully!");
-    setIsModalOpen(false);
-  };
 
-  const handleLoginSubmit = (formData: Record<string, any>) => {
-    if (!employee) return;
-
-    if (formData.password && formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-
-    const updatedLoginDetails = {
-      username: formData.username,
-      enabled: formData.enabled ? "Enable" : "Disable",
-      locked: formData.locked ? "Enable" : "Disable",
+    const handleFormSubmit = (e: FormEvent) => {
+      e.preventDefault();
+      onSubmit(formData);
     };
 
-    setEmployee({ ...employee, login: updatedLoginDetails });
-    alert("Login details updated successfully!");
-    setIsLoginModalOpen(false);
-  };
+    const renderField = (field: FormField) => {
+      const commonInputClasses =
+        "w-full p-2 border border-slate-300 rounded-md bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#714CDD] focus:border-[#714CDD] transition-colors duration-200 ease-in-out";
+      const value = formData[field.name] ?? "";
 
-  // The full, original form fields for the General Info modal
-  const employeeFormFields: FormField[] = [
+      switch (field.type) {
+        case "select":
+          return (
+            <select
+              id={field.name}
+              name={field.name}
+              value={value}
+              onChange={handleChange}
+              required={field.required}
+              className={commonInputClasses}
+            >
+              <option value="" disabled>
+                Please Select
+              </option>
+              {field.options?.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          );
+        case "textarea":
+          return (
+            <textarea
+              id={field.name}
+              name={field.name}
+              value={value}
+              onChange={handleChange}
+              placeholder={field.placeholder}
+              required={field.required}
+              rows={3}
+              className={commonInputClasses}
+            />
+          );
+        default:
+          return (
+            <input
+              id={field.name}
+              name={field.name}
+              type={field.type}
+              value={value}
+              onChange={handleChange}
+              placeholder={field.placeholder}
+              required={field.required}
+              className={commonInputClasses}
+            />
+          );
+      }
+    };
+
+    return (
+      <form ref={formEl} onSubmit={handleFormSubmit} className="contents">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+          {fields.map((field) => (
+            <div
+              key={field.name}
+              className={field.spanFull ? "md:col-span-2" : ""}
+            >
+              <label
+                htmlFor={field.name}
+                className="block text-sm font-medium text-slate-600 mb-1.5"
+              >
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              {renderField(field)}
+            </div>
+          ))}
+        </div>
+      </form>
+    );
+  }
+);
+
+// --- GENERIC MODAL COMPONENT ---
+const EditModal: React.FC<{
+  editingSection: string;
+  editingItemId: string | null;
+  employeeData: EmployeeDetail;
+  onClose: () => void;
+  onSubmit: (data: Record<string, any>) => void;
+}> = ({ editingSection, editingItemId, employeeData, onClose, onSubmit }) => {
+  const formRef = useRef<{ handleSubmit: () => void }>(null);
+
+  const generalInfoFields: FormField[] = [
+    {
+      name: "title",
+      label: "Title",
+      type: "select",
+      required: true,
+      options: [
+        { value: "MR", label: "MR" },
+        { value: "MISS", label: "MISS" },
+      ],
+    },
     { name: "firstName", label: "First Name", type: "text", required: true },
     { name: "lastName", label: "Last Name", type: "text", required: true },
+    { name: "empCode", label: "Employee ID", type: "text", required: true },
     {
       name: "status",
       label: "Status",
       type: "select",
       required: true,
-      spanFull: true,
       options: [
         { value: "Active", label: "Active" },
         { value: "Inactive", label: "Inactive" },
       ],
     },
-    { name: "dob", label: "Date of Birth", type: "date", required: true },
     {
       name: "gender",
       label: "Gender",
@@ -1355,125 +385,433 @@ export default function EmployeeDetailPage() {
       options: [
         { value: "Male", label: "Male" },
         { value: "Female", label: "Female" },
-        { value: "Other", label: "Other" },
       ],
     },
-    { name: "phone", label: "Phone Number", type: "text", required: true },
+    { name: "phoneNum", label: "Phone Number", type: "text", required: true },
     {
       name: "maritalStatus",
       label: "Marital Status",
       type: "select",
       required: true,
-      spanFull: true,
       options: [
         { value: "Single", label: "Single" },
         { value: "Married", label: "Married" },
-        { value: "Divorced", label: "Divorced" },
       ],
     },
     {
-      name: "email",
+      name: "primaryEmail",
       label: "Email Primary",
       type: "email",
       required: true,
       spanFull: true,
     },
-    {
-      name: "secondaryEmail",
-      label: "Secondary Email",
-      type: "email",
-      spanFull: true,
-    },
-    { name: "pan", label: "PAN Number", type: "text", spanFull: true },
-    { name: "aadhar", label: "Aadhar Number", type: "text", spanFull: true },
-    {
-      name: "currentAddress",
-      label: "Current Address",
-      type: "textarea",
-      spanFull: true,
-    },
-    {
-      name: "permanentAddress",
-      label: "Permanent Address",
-      type: "textarea",
-      spanFull: true,
-    },
   ];
 
-  const loginFormFields: FormField[] = [
+  const professionalInfoFields: FormField[] = [
     {
-      name: "username",
-      label: "Username",
+      name: "location",
+      label: "Location",
+      type: "select",
+      options: [
+        { value: "Noida", label: "Noida" },
+        { value: "Gurgaon", label: "Gurgaon" },
+      ],
+    },
+    {
+      name: "department",
+      label: "Department",
+      type: "select",
+      options: [
+        { value: "HR", label: "HR" },
+        { value: "Design", label: "Design" },
+      ],
+    },
+    { name: "designation", label: "Designation", type: "text" },
+    {
+      name: "payslipComponent",
+      label: "Payslip Component",
+      type: "select",
+      options: [
+        { value: "Default", label: "Default" },
+        { value: "Intern", label: "Intern" },
+      ],
+    },
+    {
+      name: "taxRegime",
+      label: "Tax Regime",
+      type: "select",
+      options: [
+        { value: "Old", label: "Old" },
+        { value: "New", label: "New" },
+      ],
+    },
+    {
+      name: "holidayGroup",
+      label: "Holiday Group",
+      type: "select",
+      options: [{ value: "National Holidays", label: "National Holidays" }],
+    },
+    { name: "role", label: "Role", type: "text" },
+    { name: "reportingManager", label: "Reporting Manager", type: "text" },
+    { name: "workWeek", label: "Work Pattern", type: "text" },
+    { name: "ctcAnnual", label: "Yearly CTC", type: "number" },
+    { name: "rentalCity", label: "Rental City", type: "text" },
+    { name: "joiningDate", label: "Joining Date", type: "date" },
+    { name: "leavingDate", label: "Leaving Date", type: "date" },
+  ];
+
+  const bankDetailsFields: FormField[] = [
+    {
+      name: "bankName",
+      label: "Bank Name",
       type: "text",
       required: true,
       spanFull: true,
     },
     {
-      name: "password",
-      label: "Password",
-      type: "password",
-      placeholder: "Enter new password to update",
+      name: "branchName",
+      label: "Branch Name",
+      type: "text",
+      required: true,
       spanFull: true,
     },
     {
-      name: "confirmPassword",
-      label: "Confirm Password",
-      type: "password",
-      placeholder: "Confirm new password",
+      name: "accountName",
+      label: "Account Name",
+      type: "text",
+      required: true,
       spanFull: true,
     },
-    { name: "enabled", label: "Login Enabled", type: "switch", spanFull: true },
-    { name: "locked", label: "Account Locked", type: "switch", spanFull: true },
+    {
+      name: "accountType",
+      label: "Account Type",
+      type: "select",
+      required: true,
+      options: [
+        { value: "Saving", label: "Saving" },
+        { value: "Current", label: "Current" },
+      ],
+      spanFull: true,
+    },
+    {
+      name: "accountNum",
+      label: "Account No",
+      type: "text",
+      required: true,
+      spanFull: true,
+    },
+    {
+      name: "ifscCode",
+      label: "IFSC Code",
+      type: "text",
+      required: true,
+      spanFull: true,
+    },
   ];
 
+  let formProps: {
+    title: string;
+    fields: FormField[];
+    initialState: Record<string, any>;
+  } | null = null;
+
+  switch (editingSection) {
+    case "general":
+      formProps = {
+        title: "Edit General Info",
+        fields: generalInfoFields,
+        initialState: {
+          ...employeeData.general,
+          title: employeeData.general.name.title,
+          firstName: employeeData.general.name.first,
+          lastName: employeeData.general.name.last,
+          phoneNum: employeeData.general.phoneNum.num,
+        },
+      };
+      break;
+    case "professional":
+      formProps = {
+        title: "Edit Professional Info",
+        fields: professionalInfoFields,
+        initialState: employeeData.professional,
+      };
+      break;
+    case "bank_detail":
+      formProps = {
+        title: editingItemId ? "Edit Bank Details" : "Add Bank Details",
+        fields: bankDetailsFields,
+        initialState: employeeData.bankDetails ?? {},
+      };
+      break;
+  }
+
+  if (!formProps) {
+    return (
+      <div className="text-center p-6">
+        <h2 className="text-xl font-bold mb-4">Edit Not Available</h2>
+        <p>No edit form has been configured for this section.</p>
+        <button
+          onClick={onClose}
+          className="mt-4 px-4 py-2 bg-gray-200 rounded-md"
+        >
+          Close
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white h-full flex flex-col">
+      <div className="relative flex justify-center items-center p-6 border-b border-slate-200">
+        <h2 className="text-xl font-bold text-slate-800">{formProps.title}</h2>
+        <button
+          onClick={onClose}
+          className="absolute right-6 text-slate-400 hover:text-slate-600"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
+      <div className="flex-grow overflow-y-auto p-6">
+        <GenericForm
+          ref={formRef}
+          fields={formProps.fields}
+          initialState={formProps.initialState}
+          onSubmit={onSubmit}
+        />
+      </div>
+      <div className="flex items-center justify-center gap-4 p-6 border-t border-slate-200">
+        <button
+          type="button"
+          onClick={onClose}
+          className="py-2.5 px-8 font-semibold bg-slate-100 text-slate-700 rounded-md hover:bg-slate-200"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => formRef.current?.handleSubmit()}
+          className="py-2.5 px-8 font-semibold text-white bg-[#714CDD] rounded-md hover:bg-[#5f3dbb]"
+        >
+          Update
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// --- MAIN PAGE COMPONENT ---
+export default function EmployeeDetailPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { employeeCode } = useParams<{ employeeCode: string }>();
+  const location = useLocation();
+  const mainEmployeeId = (location.state as { mainEmployeeId?: string })
+    ?.mainEmployeeId;
+  console.log("Main Employee ID received from navigation:", mainEmployeeId);
+
+  const { currentEmployee, loading, error } = useSelector(
+    (state: RootState) => state.employees
+  );
+  const [currentSection, setCurrentSection] = useState<string>("general");
+  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (employeeCode) {
+      dispatch(fetchEmployeeDetails(employeeCode));
+    }
+  }, [dispatch, employeeCode]);
+
+  const handleEdit = (section: string, id: string | null | undefined) => {
+    setEditingSection(section);
+    setEditingItemId(id || null);
+  };
+
+  const handleFormSubmit = (data: Record<string, any>) => {
+    if (!currentEmployee) return;
+    const empCode = currentEmployee.general.empCode;
+
+    if (editingSection === "general") {
+      // Reconstruct nested name object for the API
+      const generalData = {
+        ...data,
+        name: {
+          title: data.title,
+          first: data.firstName,
+          last: data.lastName,
+        },
+        phoneNum: {
+          code: "+91", // Assuming a static code for now
+          num: data.phoneNum,
+        },
+      };
+      // Remove flat properties that are now nested
+      delete generalData.title;
+      delete generalData.firstName;
+      delete generalData.lastName;
+
+      dispatch(
+        updateGeneralInfo({ generalId: editingItemId, empCode, generalData })
+      );
+    } else if (editingSection === "professional") {
+      dispatch(
+        updateProfessionalInfo({
+          professionalId: editingItemId,
+          empCode,
+          professionalData: data,
+        })
+      );
+    } else if (editingSection === "bank_detail") {
+      if (editingItemId) {
+        dispatch(
+          updateBankDetails({
+            bankDetailId: editingItemId,
+            empCode,
+            bankData: data,
+          })
+        );
+      } else {
+        if (mainEmployeeId) {
+          dispatch(
+            addBankDetails({
+              employeeId: mainEmployeeId,
+              empCode,
+              bankData: data,
+            })
+          );
+        } else {
+          console.error(
+            "Main Employee ID is missing. Cannot add bank details."
+          );
+        }
+      }
+    }
+    // else if (editingSection === "general") { /* handle general update */ }
+
+    setEditingSection(null);
+    setEditingItemId(null);
+  };
+
   const renderSection = () => {
-    if (!employee) return null;
+    if (!currentEmployee) return null;
     switch (currentSection) {
       case "general":
         return (
           <GeneralInfo
-            data={employee}
-            onEditClick={() => setIsModalOpen(true)}
-            onLoginEditClick={() => setIsLoginModalOpen(true)}
+            data={currentEmployee}
+            onEdit={() => handleEdit("general", currentEmployee.general.id)}
+          />
+        );
+      case "professional":
+        return (
+          <ProfessionalInfo
+            data={currentEmployee}
+            onEdit={() =>
+              handleEdit("professional", currentEmployee.professional.id)
+            }
+          />
+        );
+      case "bank_detail":
+        return (
+          <BankDetailsSection
+            data={currentEmployee}
+            onEdit={() =>
+              handleEdit("bank_detail", currentEmployee.bankDetails?.id)
+            }
+          />
+        );
+      case "pf_esi_pt":
+        return (
+          <PlaceholderComponent
+            title="PF, ESI & PT"
+            onEdit={() => handleEdit("pf_esi_pt", currentEmployee.pf?.id)}
+          />
+        );
+      case "declaration":
+        return (
+          <PlaceholderComponent
+            title="Declaration"
+            onEdit={() => handleEdit("declaration", null)}
+          />
+        );
+      case "salary_distribution":
+        return (
+          <PlaceholderComponent
+            title="Salary Distribution"
+            onEdit={() => handleEdit("salary_distribution", null)}
+          />
+        );
+      case "payslips":
+        return (
+          <PlaceholderComponent
+            title="Payslips"
+            onEdit={() => handleEdit("payslips", null)}
+          />
+        );
+      case "attendance":
+        return (
+          <PlaceholderComponent
+            title="Attendance"
+            onEdit={() => handleEdit("attendance", null)}
+          />
+        );
+      case "loan_and_advances":
+        return (
+          <PlaceholderComponent
+            title="Loan and Advances"
+            onEdit={() =>
+              handleEdit("loan_and_advances", currentEmployee.loan?.id)
+            }
+          />
+        );
+      case "previous_job_details":
+        return (
+          <PlaceholderComponent
+            title="Previous Job Details"
+            onEdit={() => handleEdit("previous_job_details", null)}
+          />
+        );
+      case "employee_activities":
+        return (
+          <PlaceholderComponent
+            title="Employee Activities"
+            onEdit={() => handleEdit("employee_activities", null)}
+          />
+        );
+      case "projects":
+        return (
+          <PlaceholderComponent
+            title="Projects"
+            onEdit={() => handleEdit("projects", null)}
           />
         );
       default:
-        const item =
-          menuItems.find(
-            (m: string) =>
-              m.toLowerCase().replace(/, | & | /g, "_") === currentSection
-          ) || currentSection;
-        return <PlaceholderComponent title={String(item)} />;
+        return (
+          <GeneralInfo
+            data={currentEmployee}
+            onEdit={() => handleEdit("general", currentEmployee.general.id)}
+          />
+        );
     }
   };
 
   const getSectionTitle = () => {
     const item = menuItems.find(
-      (m: string) =>
-        m.toLowerCase().replace(/, | & | /g, "_") === currentSection
+      (m) => m.toLowerCase().replace(/, | & | /g, "_") === currentSection
     );
-    return item ? String(item) : "Details";
-  };
-
-  const getFormInitialState = () => {
-    if (!employee) return {};
-    const [firstName, ...lastName] = employee.name.split(" ");
-    return {
-      ...employee,
-      firstName: firstName || "",
-      lastName: lastName.join(" ") || "",
-    };
-  };
-
-  const getLoginFormInitialState = () => {
-    if (!employee) return {};
-    return {
-      username: employee.login.username,
-      password: "",
-      confirmPassword: "",
-      enabled: employee.login.enabled === "Enable",
-      locked: employee.login.locked === "Enable",
-    };
+    return item || "Details";
   };
 
   if (loading) {
@@ -1485,7 +823,15 @@ export default function EmployeeDetailPage() {
       </div>
     );
   }
-  if (!employee) {
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-slate-50 text-center">
+        <h1 className="text-2xl font-bold text-red-600">Failed to Load Data</h1>
+        <p className="text-md text-gray-600 mt-2">{error}</p>
+      </div>
+    );
+  }
+  if (!currentEmployee) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-50 text-center">
         <h1 className="text-2xl font-bold text-red-600">Employee Not Found</h1>
@@ -1496,13 +842,15 @@ export default function EmployeeDetailPage() {
     );
   }
 
+  const employeeName = `${currentEmployee.general.name.first} ${currentEmployee.general.name.last}`;
+
   return (
     <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{employee.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{employeeName}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Dashboard / Employee Setup / List / Detail /{" "}
+            Dashboard / Employee / Detail /{" "}
             <span className="text-[#741CDD] font-medium">
               {getSectionTitle()}
             </span>
@@ -1519,60 +867,28 @@ export default function EmployeeDetailPage() {
         </div>
       </div>
 
-      {/* General Info Modal */}
       <div
         className={`fixed inset-0 z-40 transition-opacity duration-300 ${
-          isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          editingSection ? "bg-black/50" : "pointer-events-none opacity-0"
         }`}
-      >
-        <div
-          className="absolute inset-0 bg-black bg-opacity-50"
-          onClick={() => setIsModalOpen(false)}
-        ></div>
-        <div
-          className={`fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
-            isModalOpen ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          {employee && (
-            <GenericForm
-              title="Edit General Info"
-              fields={employeeFormFields}
-              initialState={getFormInitialState()}
-              onSubmit={handleFormSubmit}
-              onCancel={() => setIsModalOpen(false)}
-              submitButtonText="Update Employee"
-            />
-          )}
-        </div>
-      </div>
-
-      {/* Login Details Modal */}
+      ></div>
       <div
-        className={`fixed inset-0 z-40 transition-opacity duration-300 ${
-          isLoginModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
+          editingSection ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div
-          className="absolute inset-0 bg-black bg-opacity-50"
-          onClick={() => setIsLoginModalOpen(false)}
-        ></div>
-        <div
-          className={`fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
-            isLoginModalOpen ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          {employee && (
-            <GenericForm
-              title={`Edit Login Details for ${employee.name}`}
-              fields={loginFormFields}
-              initialState={getLoginFormInitialState()}
-              onSubmit={handleLoginSubmit}
-              onCancel={() => setIsLoginModalOpen(false)}
-              submitButtonText="Update"
-            />
-          )}
-        </div>
+        {editingSection && currentEmployee && (
+          <EditModal
+            editingSection={editingSection}
+            editingItemId={editingItemId}
+            employeeData={currentEmployee}
+            onClose={() => {
+              setEditingSection(null);
+              setEditingItemId(null);
+            }}
+            onSubmit={handleFormSubmit}
+          />
+        )}
       </div>
     </div>
   );

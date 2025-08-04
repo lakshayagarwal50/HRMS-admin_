@@ -68,16 +68,22 @@ const AppRoutes = () => (
             /> //create payslip
           }
         />
-        <Route path="/employees/list/detail/:employeeCode" element={<EmployeeDetailPage />} />
+        <Route
+          path="/employees/list/detail/:employeeCode/:employeeId"
+          element={<EmployeeDetailPage />}
+        />
         <Route path="/employees/create" element={<CreateEmployeeForm />} />
         <Route path="/employees/create" element={<CreateEmployeeForm />} />
-        <Route path="/employees/upload" element={<UploadEmployee/>} />
+        <Route path="/employees/upload" element={<UploadEmployee />} />
 
         <Route path="/department" element={<DepartmentPage />} />
         <Route path="/designation" element={<DesignationPage />} />
         <Route path="/role" element={<RolePage />} />
-        <Route path="/working-patterns" element={<WorkingPatternsPage/>} />
-        <Route path="/organisation-setting" element={<OrganizationSettingsPage/>}/>
+        <Route path="/working-patterns" element={<WorkingPatternsPage />} />
+        <Route
+          path="/organisation-setting"
+          element={<OrganizationSettingsPage />}
+        />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />

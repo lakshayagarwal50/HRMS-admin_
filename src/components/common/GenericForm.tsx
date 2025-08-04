@@ -313,7 +313,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
 
   return (
     // The form is now designed to fit within a modal container
-    <div className="bg-white h-full flex flex-col ">
+    <div className="bg-white h-full flex flex-col  ">
       {/* Modal Header with Centered Title */}
       <div className="relative flex justify-center items-center p-6 border-b border-slate-200 ">
         <h2 className="text-xl font-bold text-slate-800">{title}</h2>
