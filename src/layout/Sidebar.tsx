@@ -1,6 +1,9 @@
+// src/layout/Sidebar.tsx
+
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
+import { useAppDispatch } from '../store/hooks'; // Import the typed dispatch hook
+import { logoutUser } from '../features/auth/authSlice'; // Import the logoutUser thunk
 import {
   Rocket,
   LayoutDashboard,
@@ -17,9 +20,8 @@ import {
   Menu,
   X,
 } from 'lucide-react';
-import { auth } from '../services/firebase/auth';
 
-// Define a more structured type for sub-menu items
+// Define types for menu items
 interface SubMenuItem {
   label: string;
   link: string;
@@ -28,11 +30,10 @@ interface SubMenuItem {
 interface MenuItem {
   label: string;
   icon: React.ComponentType<{ className?: string; size?: number }>;
-  subItems?: SubMenuItem[]; // Use the new type here
+  subItems?: SubMenuItem[];
   link?: string;
 }
 
-// Update the menuItems array with links for all sub-items
 const menuItems: MenuItem[] = [
     { label: 'Getting Started', icon: Rocket, link: '/getting-started' },
     { label: 'Dashboard', icon: LayoutDashboard, link: '/' },
@@ -103,33 +104,30 @@ const menuItems: MenuItem[] = [
     { label: 'Logout', icon: LogOut },
 ];
 
-
 const Sidebar: React.FC = () => {
   const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
   const navigate = useNavigate();
+  const dispatch = useAppDispatch(); // Use typed dispatch
 
   const toggleDropdown = (label: string) => {
-    // This allows only one dropdown to be open at a time
-    setOpenDropdowns(prev => ({ [label]: !prev[label] }));
+    setOpenDropdowns((prev) => ({ [label]: !prev[label] }));
   };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
-  
+
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      navigate('/login');
+      await dispatch(logoutUser()).unwrap(); // Dispatch the logoutUser thunk
+      navigate('/login'); // Redirect to login page after successful logout
     } catch (error) {
-      console.error("Error signing out: ", error);
+      console.error('Error logging out:', error);
     }
   };
 
   const handleLinkClick = () => {
-    // Close sidebar on mobile after a link is clicked
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false);
     }
@@ -145,11 +143,18 @@ const Sidebar: React.FC = () => {
         .sidebar-sublink.active { background-color: #ede9fe; color: #8A2BE2; font-weight: 500; }
       `}</style>
 
-      <button className="fixed top-4 left-4 z-50 lg:hidden p-2 bg-[#8A2BE2] text-white rounded-md" onClick={toggleSidebar}>
+      <button
+        className="fixed top-4 left-4 z-50 lg:hidden p-2 bg-[#8A2BE2] text-white rounded-md"
+        onClick={toggleSidebar}
+      >
         {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
-       <div className={`fixed top-0 left-0 w-72 bg-white shadow-xl h-screen transition-transform duration-300 transform z-40 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+      <div
+        className={`fixed top-0 left-0 w-72 bg-white shadow-xl h-screen transition-transform duration-300 transform z-40 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0`}
+      >
         <div className="p-4 text-center border-b border-[#8A2BE2]">
           <h1 className="text-3xl font-extrabold text-[#8A2BE2] tracking-tight">Appinventiv</h1>
         </div>
@@ -158,21 +163,44 @@ const Sidebar: React.FC = () => {
             {menuItems.map((item) => (
               <li key={item.label} className="mb-1">
                 {item.label === 'Logout' ? (
-                   <button onClick={handleLogout} className="flex items-center w-full p-3 rounded-lg transition-colors duration-200 text-red-600 hover:bg-red-50">
-                    <span className="icon-container rounded-md flex items-center justify-center mr-3"><item.icon size={20} /></span>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center w-full p-3 rounded-lg transition-colors duration-200 text-red-600 hover:bg-red-50"
+                  >
+                    <span className="icon-container rounded-md flex items-center justify-center mr-3">
+                      <item.icon size={20} />
+                    </span>
                     <span className="text-sm font-medium">{item.label}</span>
                   </button>
                 ) : item.subItems ? (
                   <>
-                    <button onClick={() => toggleDropdown(item.label)} className="flex items-center w-full p-3 text-gray-700 rounded-lg transition-colors duration-200 hover:bg-purple-100">
-                      <span className="icon-container rounded-md flex items-center justify-center mr-3"><item.icon size={20} /></span>
+                    <button
+                      onClick={() => toggleDropdown(item.label)}
+                      className="flex items-center w-full p-3 text-gray-700 rounded-lg transition-colors duration-200 hover:bg-purple-100"
+                    >
+                      <span className="icon-container rounded-md flex items-center justify-center mr-3">
+                        <item.icon size={20} />
+                      </span>
                       <span className="text-sm font-medium">{item.label}</span>
-                      <ChevronDown size={16} className={`ml-auto text-gray-500 transition-transform duration-200 ${openDropdowns[item.label] ? 'rotate-180' : ''}`} />
+                      <ChevronDown
+                        size={16}
+                        className={`ml-auto text-gray-500 transition-transform duration-200 ${
+                          openDropdowns[item.label] ? 'rotate-180' : ''
+                        }`}
+                      />
                     </button>
-                    <ul className={`pl-10 pr-2 text-sm overflow-hidden transition-all duration-300 ${openDropdowns[item.label] ? 'max-h-96' : 'max-h-0'}`}>
+                    <ul
+                      className={`pl-10 pr-2 text-sm overflow-hidden transition-all duration-300 ${
+                        openDropdowns[item.label] ? 'max-h-96' : 'max-h-0'
+                      }`}
+                    >
                       {item.subItems.map((subItem) => (
                         <li key={subItem.link}>
-                          <NavLink to={subItem.link} className="sidebar-sublink block p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-200" onClick={handleLinkClick}>
+                          <NavLink
+                            to={subItem.link}
+                            className="sidebar-sublink block p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                            onClick={handleLinkClick}
+                          >
                             {subItem.label}
                           </NavLink>
                         </li>
@@ -180,8 +208,14 @@ const Sidebar: React.FC = () => {
                     </ul>
                   </>
                 ) : (
-                  <NavLink to={item.link || '#'} className="sidebar-link flex items-center w-full p-3 rounded-lg transition-colors duration-200 text-gray-700 hover:bg-purple-100" onClick={handleLinkClick}>
-                    <span className="icon-container rounded-md flex items-center justify-center mr-3"><item.icon size={20} /></span>
+                  <NavLink
+                    to={item.link || '#'}
+                    className="sidebar-link flex items-center w-full p-3 rounded-lg transition-colors duration-200 text-gray-700 hover:bg-purple-100"
+                    onClick={handleLinkClick}
+                  >
+                    <span className="icon-container rounded-md flex items-center justify-center mr-3">
+                      <item.icon size={20} />
+                    </span>
                     <span className="text-sm font-medium">{item.label}</span>
                   </NavLink>
                 )}
@@ -191,7 +225,12 @@ const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {isSidebarOpen && <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-30 lg:hidden" onClick={toggleSidebar}></div>}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 bg-opacity-50 z-30 lg:hidden"
+          onClick={toggleSidebar}
+        ></div>
+      )}
     </>
   );
 };

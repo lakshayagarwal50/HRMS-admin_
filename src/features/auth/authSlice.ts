@@ -33,10 +33,11 @@
 // src/features/auth/authSlice.ts
 
 
+// src/features/auth/authSlice.ts
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { loginAPI } from '../../services/authService'; // Make sure you created this file in Step 1
-import type { LoginCredentials, User } from '../../types/auth'; // And this one too
+import { loginAPI, logoutAPI } from '../../services/authService';
+import type { LoginCredentials, User } from '../../types/auth';
 
 // Define the shape of our authentication state
 interface AuthState {
@@ -73,35 +74,50 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// Async thunk for logging out
+export const logoutUser = createAsyncThunk(
+  'auth/logout',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const token = state.auth.token;
+      if (!token) {
+        throw new Error('No token found');
+      }
+      const data = await logoutAPI(token);
+      // Clear localStorage on successful logout
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      return data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to logout. Please try again.';
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // Action to log the user out
-    logoutUser: (state) => {
-      state.user = null;
-      state.token = null;
-      state.isAuthenticated = false;
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-    },
     // Action to check auth status on app load
     checkAuthStatus: (state) => {
-        const token = localStorage.getItem('token');
-        const userString = localStorage.getItem('user');
-        // If token and user data exist in localStorage, we consider the user logged in
-        if (token && userString) {
-            state.isAuthenticated = true;
-            state.token = token;
-            state.user = JSON.parse(userString);
-        }
-        // This is to stop any initial loading spinners
-        state.isLoading = false; 
-    }
+      const token = localStorage.getItem('token');
+      const userString = localStorage.getItem('user');
+      // If token and user data exist in localStorage, we consider the user logged in
+      if (token && userString) {
+        state.isAuthenticated = true;
+        state.token = token;
+        state.user = JSON.parse(userString);
+      }
+      // This is to stop any initial loading spinners
+      state.isLoading = false;
+    },
   },
   // Handles the state changes based on the async thunk's lifecycle
   extraReducers: (builder) => {
     builder
+      // Login cases
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -116,9 +132,25 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      // Logout cases
+      .addCase(logoutUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.token = null;
+        state.error = null;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   },
 });
 
-export const { logoutUser, checkAuthStatus } = authSlice.actions;
+export const { checkAuthStatus } = authSlice.actions;
 export default authSlice.reducer;
