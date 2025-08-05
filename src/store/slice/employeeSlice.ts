@@ -193,4 +193,5 @@ export const {
   clearFilters,
 } = employeeSlice.actions;
 
+export const { setEmployees } = employeeSlice.actions;
 export default employeeSlice.reducer;

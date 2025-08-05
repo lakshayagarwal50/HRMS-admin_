@@ -52,9 +52,9 @@ const StatutoryCard: React.FC<StatutoryCardProps> = ({ statutoryData }) => {
           {statutoryData.map((item, index) => (
             <div key={index} className={`grid grid-cols-4 gap-4 py-2 text-sm ${index < statutoryData.length - 1 ? 'border-b border-gray-200' : ''}`}>
               <div>{item.month}</div>
-              <div>${item.employeePF.toLocaleString()}</div>
-              <div>${item.employerPF.toLocaleString()}</div>
-              <div>${item.pt.toLocaleString()}</div>
+              <div>₹{item.employeePF.toLocaleString()}</div>
+              <div>₹{item.employerPF.toLocaleString()}</div>
+              <div>₹{item.pt.toLocaleString()}</div>
             </div>
           ))}
         </div>

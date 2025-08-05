@@ -1,17 +1,20 @@
 // src/App.tsx
-import { Provider } from "react-redux";
-import AppRoutes from "./routes/AppRoutes";
-import { store } from "./store/store";
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import AppRoutes from './routes/AppRoutes';
+import { checkAuthStatus } from './features/auth/authSlice';
 
 function App() {
-  return (
-    <Provider store={store}>
-      <AppRoutes />
-    </Provider>
-  );
-  // return (
-  //   <h1 className='text-2xl'>App</h1>
-  // )
+  const dispatch = useDispatch();
+
+  // This useEffect will run only once when the application first loads.
+  useEffect(() => {
+    // We dispatch the action to check if a token and user exist in localStorage.
+    // If they do, our slice will update the state to be authenticated.
+    dispatch(checkAuthStatus());
+  }, [dispatch]);
+
+  return <AppRoutes />;
 }
 
 export default App;

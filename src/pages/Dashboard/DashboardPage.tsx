@@ -19,17 +19,17 @@ import { Users, FileText, Landmark, Wallet } from 'lucide-react';
 const summaryCards: SummaryCardData[] = [
   { icon: Users, iconColor: "text-[#ffb11b]", title: "Active Employees", value: "150" },
   { icon: FileText, iconColor: "text-[#3c00f2]", title: "Payslip Count", value: "1,200" },
-  { icon: Landmark, iconColor: "text-[#0ea5e9]", title: "Gross Paid 2024", value: "$5,000,000" },
-  { icon: Wallet, iconColor: "text-[#22c55e]", title: "Net Paid 2024", value: "$4,200,000" },
+  { icon: Landmark, iconColor: "text-[#0ea5e9]", title: "Gross Paid 2024", value: "₹5,000,000" },
+  { icon: Wallet, iconColor: "text-[#22c55e]", title: "Net Paid 2024", value: "₹4,200,000" },
 ];
 
 const notifications: Notification[] = [
-    { id: 1, name: "Jane Smith", requestedBy: "HR Team", time: "2025-07-25 10:30 AM", status: "Pending" },
-    { id: 2, name: "Michael Brown", requestedBy: "Payroll Dept", time: "2025-07-24 02:15 PM", status: "Pending" },
-    { id: 3, name: "Emily Davis", requestedBy: "Admin", time: "2025-07-23 09:00 AM", status: "Pending" },
-    { id: 4, name: "David Wilson", requestedBy: "HR Team", time: "2025-07-22 11:45 AM", status: "Pending" },
-    { id: 5, name: "Sarah Johnson", requestedBy: "Payroll Dept", time: "2025-07-21 03:20 PM", status: "Pending" },
-    { id: 6, name: "Anna Lee", requestedBy: "Admin", time: "2025-07-20 08:00 AM", status: "Pending" },
+    { id: 1, name: "Ayush Chauhan", requestedBy: "HR Team", time: "2025-07-25 10:30 AM", status: "Pending" },
+    { id: 2, name: "Deepak Kumar", requestedBy: "Payroll Dept", time: "2025-07-24 02:15 PM", status: "Pending" },
+    { id: 3, name: "Ritesh Tiwari", requestedBy: "Admin", time: "2025-07-23 09:00 AM", status: "Pending" },
+    { id: 4, name: "Kapil Sahu", requestedBy: "HR Team", time: "2025-07-22 11:45 AM", status: "Pending" },
+    { id: 5, name: "Anoop Chaudhary", requestedBy: "Payroll Dept", time: "2025-07-21 03:20 PM", status: "Pending" },
+    { id: 6, name: "Anurag Rajput", requestedBy: "Admin", time: "2025-07-20 08:00 AM", status: "Pending" },
 ];
 
 const currentEvents: Event[] = [

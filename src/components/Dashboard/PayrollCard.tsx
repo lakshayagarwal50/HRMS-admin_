@@ -60,8 +60,8 @@ const PayrollCard: React.FC<PayrollCardProps> = ({ payrollData }) => {
             <div key={index} className={`grid grid-cols-4 gap-4 py-2 text-sm ${index < payrollData.length - 1 ? 'border-b border-gray-200' : ''}`}>
               <div>{item.month}</div>
               <div className={item.status === 'Closed' ? 'text-green-600' : 'text-blue-600'}>{item.status}</div>
-              <div>${item.totalGross.toLocaleString()}</div>
-              <div>${item.totalNet.toLocaleString()}</div>
+              <div>₹{item.totalGross.toLocaleString()}</div>
+              <div>₹{item.totalNet.toLocaleString()}</div>
             </div>
           ))}
         </div>
