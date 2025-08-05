@@ -1,4 +1,4 @@
-// src/components/employee/sections/BankDetailsSection.tsx
+
 import React from "react";
 import type { EmployeeDetail } from "../../../../store/slice/employeeSlice";
 import {

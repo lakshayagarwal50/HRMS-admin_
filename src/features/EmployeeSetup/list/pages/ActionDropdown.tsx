@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MoreVertical } from "lucide-react";
-import { type Employee } from "../../../../types"; 
+import { type Employee } from "../../../../types";
 
 interface ActionDropdownProps {
   employee: Employee;

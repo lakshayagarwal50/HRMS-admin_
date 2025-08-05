@@ -11,6 +11,7 @@ import RolePage from "../pages/GettingStarted/Role/RolePage";
 import WorkingPatternsPage from "../pages/GettingStarted/WorkingPattern/WorkingPatternsPage";
 import OrganizationSettingsPage from "../pages/GettingStarted/OraganisationSetting/OrganizationSettingsPage";
 
+
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
 const GettingStarted = lazy(

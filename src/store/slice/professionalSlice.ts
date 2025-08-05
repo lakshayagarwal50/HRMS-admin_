@@ -2,8 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { fetchEmployeeDetails } from './employeeSlice';
 
-// NOTE: We assume the API endpoint for updating is PUT /employees/professional/{id}
-// Please adjust if your endpoint is different.
 
 interface ProfessionalInfoPayload {
   [key: string]: any;

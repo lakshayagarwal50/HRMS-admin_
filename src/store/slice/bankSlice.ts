@@ -4,7 +4,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { fetchEmployeeDetails } from './employeeSlice';
 
-// --- INTERFACES for Bank Details ---
+
 export interface BankDetails {
   id?: string;
   bankName: string | null;
@@ -33,7 +33,7 @@ const initialState: BankState = {
   error: null,
 };
 
-// --- ASYNC THUNKS ---
+
 
 // For POST (Creating new details)
 export const addBankDetails = createAsyncThunk<

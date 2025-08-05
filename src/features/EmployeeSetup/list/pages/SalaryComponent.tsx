@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
-// Assuming you have this helper for formula evaluation.
 import { evaluateFormula } from "../../../../utils/formulaEvaluator";
 
-// --- Type Definitions for API Response and UI State ---
+
 interface SalaryComponentItem {
   id: string;
   name: string;
   code: string;
   formula: string;
   defaultSelected: boolean;
-  selected: boolean; // Managed by frontend
-  grossAmount: number; // Calculated/Input by frontend
-  netPay: number; // Calculated by frontend
+  selected: boolean; 
+  grossAmount: number; 
+  netPay: number; 
 }
 
 interface InitialSalaryData {
@@ -25,13 +24,13 @@ interface InitialSalaryData {
   otherEarnings: SalaryComponentItem[];
 }
 
-// Props for the SalaryComponent content.
+
 interface SalaryComponentProps {
   employeeCode: string;
   employeeName: string;
   selectedMonth: string;
   selectedYear: string;
-  onClose: () => void; // A callback to request the parent to close the modal
+  onClose: () => void; 
 }
 
 const SalaryComponent: React.FC<SalaryComponentProps> = ({
@@ -41,29 +40,29 @@ const SalaryComponent: React.FC<SalaryComponentProps> = ({
   selectedYear,
   onClose,
 }) => {
-  // State for the main salary inputs and component lists
+  
   const [monthlyCTC, setMonthlyCTC] = useState<number | string>("");
   const [lossOfPayDays, setLossOfPayDays] = useState<number | string>(0);
   const [earnings, setEarnings] = useState<SalaryComponentItem[]>([]);
   const [statutories, setStatutories] = useState<SalaryComponentItem[]>([]);
   const [otherEarnings, setOtherEarnings] = useState<SalaryComponentItem[]>([]);
 
-  // State for calculated totals
+  
   const [totalGrossPay, setTotalGrossPay] = useState<number>(0);
   const [totalDeductions, setTotalDeductions] = useState<number>(0);
   const [netPayable, setNetPayable] = useState<number>(0);
 
-  // State for UI feedback (loading, error)
+  
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- API 1: Fetch Initial Salary Data (useEffect for data loading) ---
+  
   useEffect(() => {
     const fetchSalaryData = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        // --- MOCK API RESPONSE (REMOVE IN PRODUCTION) ---
+       
         const mockData: InitialSalaryData = {
           employeeCode,
           employeeName,
@@ -138,7 +137,7 @@ const SalaryComponent: React.FC<SalaryComponentProps> = ({
           ],
         };
         const data = mockData;
-        // --- End Mock API Response ---
+       
 
         setMonthlyCTC(data.monthlyCTC);
         setEarnings(
@@ -176,7 +175,7 @@ const SalaryComponent: React.FC<SalaryComponentProps> = ({
     fetchSalaryData();
   }, [employeeCode, employeeName, selectedMonth, selectedYear]);
 
-  // --- Calculation Logic ---
+  
   const calculatePayslip = useCallback(() => {
     let currentCTC = Number(monthlyCTC) || 0;
     const currentLossOfPayDays = Number(lossOfPayDays) || 0;
@@ -231,7 +230,7 @@ const SalaryComponent: React.FC<SalaryComponentProps> = ({
     }
   }, [monthlyCTC, lossOfPayDays, isLoading, calculatePayslip]);
 
-  // Handler for checkbox changes
+  
   const handleComponentCheckboxChange = (
     type: "earnings" | "statutories" | "otherEarnings",
     id: string,
@@ -247,7 +246,7 @@ const SalaryComponent: React.FC<SalaryComponentProps> = ({
     );
   };
 
-  // Handler for manual amount changes
+  
   const handleComponentAmountChange = (
     type: "earnings" | "statutories" | "otherEarnings",
     id: string,

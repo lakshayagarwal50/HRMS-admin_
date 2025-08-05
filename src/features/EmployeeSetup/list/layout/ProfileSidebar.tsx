@@ -1,7 +1,5 @@
 import React from "react";
 
-// The list of sections for the sidebar.
-// We export this so the parent page can use it for logic like setting the header title.
 export const menuItems: readonly string[] = [
   "GENERAL",
   "PROFESSIONAL",

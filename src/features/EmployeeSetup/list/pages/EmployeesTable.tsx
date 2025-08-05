@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -153,12 +152,12 @@ const EmployeesTable: React.FC = () => {
     if (!employeeForModal || !actionToConfirm) return;
     switch (actionToConfirm) {
       case "Delete":
-        dispatch(deleteEmployee(employeeForModal.id)); // <-- MODIFIED
+        dispatch(deleteEmployee(employeeForModal.id)); 
         break;
       case "Make Inactive":
         dispatch(
           updateEmployeeStatus({
-            id: employeeForModal.id, // <-- MODIFIED
+            id: employeeForModal.id,
             status: "Inactive",
           })
         );
@@ -166,13 +165,12 @@ const EmployeesTable: React.FC = () => {
       case "Make Active":
         dispatch(
           updateEmployeeStatus({
-            id: employeeForModal.id, // <-- MODIFIED
+            id: employeeForModal.id, 
             status: "Active",
           })
         );
         break;
       default:
-        // Handle any other actions if needed
         break;
     }
     setIsModalOpen(false);

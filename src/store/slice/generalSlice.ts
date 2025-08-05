@@ -2,12 +2,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { fetchEmployeeDetails } from './employeeSlice';
 
-// NOTE: We assume the API endpoint for updating is PUT /employees/general/{id}
-// Please adjust if your endpoint is different.
 
 interface GeneralInfoPayload {
-  // Define the properties that can be updated
-  // This should match the form data
+  
   [key: string]: any;
 }
 

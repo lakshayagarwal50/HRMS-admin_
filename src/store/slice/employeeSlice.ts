@@ -1,6 +1,3 @@
-
-
-
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import type { BankDetails } from './bankSlice';
@@ -39,12 +36,33 @@ export interface ProfessionalInfo {
   department: string;
 }
 
+export interface PaybackTerm {
+  installment: string;
+  date: string;
+  remaining: string;
+}
+
+export interface LoanDetails {
+  id: string;
+  amountReq: string;
+  amountApp?: string; 
+  reqDate: string;
+  paybackTerm?: PaybackTerm; 
+  note?: string;
+  staffNote?: string;
+  status: 'pending' | 'approved' | 'declined' | 'cancelled';
+  cancelReason?: string;
+  empName: string;
+  activity?: string[];
+  balance: string;
+}
+
 export interface EmployeeDetail {
-  general: GeneralInfo;
-  professional: ProfessionalInfo;
-  bankDetails: BankDetails | null;
-  pf: any | null;
-  loan: any | null;
+  pf(arg0: string, pf: any): void;
+  professional: any;
+  general: any;
+  bankDetails: any;
+  loan: LoanDetails[] | null; 
 }
 
 export interface EmployeeState {
@@ -95,27 +113,27 @@ export const fetchEmployeeDetails = createAsyncThunk(
   }
 );
 
-// --- NEW: deleteEmployee Async Thunk (Using ID) ---
+// deleteEmployee Async Thunk 
 export const deleteEmployee = createAsyncThunk<
-  string, // Returns the ID on success
-  string, // Accepts the ID as an argument
+  string, 
+  string, 
   { rejectValue: string }
 >(
   'employees/deleteEmployee',
   async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(`http://localhost:3000/employees/${id}`); // <-- CHANGED
-      return id; // <-- CHANGED
+      await axios.delete(`http://localhost:3000/employees/${id}`); 
+      return id; 
     } catch (error) {
       return rejectWithValue('Failed to delete employee');
     }
   }
 );
 
-// --- NEW: updateEmployeeStatus Async Thunk (Using ID) ---
+// updateEmployeeStatus Async Thunk
 export const updateEmployeeStatus = createAsyncThunk<
-  Employee, // Returns the updated employee object from the API
-  { id: string; status: string }, // <-- CHANGED
+  Employee, 
+  { id: string; status: string }, 
   { rejectValue: string }
 >(
   'employees/updateEmployeeStatus',
@@ -169,16 +187,16 @@ const employeeSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      // --- NEW: Cases for deleteEmployee (using ID) ---
+      // Cases for deleteEmployee
       .addCase(deleteEmployee.fulfilled, (state, action: PayloadAction<string>) => {
-        // action.payload is the ID that was passed to the thunk
+       
         state.employees = state.employees.filter(
           (emp) => emp.id !== action.payload
         );
       })
-      // --- NEW: Cases for updateEmployeeStatus (using ID) ---
+      // Cases for updateEmployeeStatus 
       .addCase(updateEmployeeStatus.fulfilled, (state, action: PayloadAction<Employee>) => {
-        // The payload from the API call contains the full updated employee object
+        
         console.log('Action fulfilled, payload:', action.payload); 
         const index = state.employees.findIndex(emp => emp.id === action.payload.id); // <-- CHANGED
         if (index !== -1) {
