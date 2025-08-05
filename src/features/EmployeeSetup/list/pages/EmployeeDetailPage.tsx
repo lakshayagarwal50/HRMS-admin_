@@ -915,6 +915,7 @@ import { PlaceholderComponent } from "../common/DetailItem";
 import GeneralInfo from "../common/GeneralInfo";
 import ProfessionalInfo from "../common/ProfessionalInfo";
 import BankDetailsSection from "../common/BankDetailsSection";
+import LoanAdvances from "../common/LoanAdvances";
 // Import the new generic form and its types
 import GenericForm, {
   type FormField,
@@ -960,6 +961,8 @@ export default function EmployeeDetailPage() {
           return currentEmployee.professional.id;
         case "bank_detail":
           return currentEmployee.bankDetails?.id;
+        case "loan_and_advances":
+          return currentEmployee.loan_and_advances?.id;
         default:
           return null;
       }
@@ -1017,6 +1020,8 @@ export default function EmployeeDetailPage() {
           );
         }
       }
+    } else if (editingSection === "loan_and_advances") {
+     
     }
 
     setEditingSection(null);
@@ -1083,8 +1088,8 @@ export default function EmployeeDetailPage() {
         );
       case "loan_and_advances":
         return (
-          <PlaceholderComponent
-            title="Loan and Advances"
+          <LoanAdvances
+            data="Loan and Advances"
             onEdit={() => handleEdit("loan_and_advances")}
           />
         );
@@ -1169,6 +1174,9 @@ export default function EmployeeDetailPage() {
         };
         break;
       // You can add more cases for other sections here if needed
+      case "loan_and_advances":
+        
+        break;
       default:
         return null;
     }
