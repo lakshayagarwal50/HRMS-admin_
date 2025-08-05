@@ -5,6 +5,7 @@ import authReducer from '../features/auth/authSlice';
 import employeeReducer from "./slice/employeeSlice"
 import departmentReducer from "./slice/departmentSlice"
 import designationReducer from './slice/designationSlice'; 
+import organizationReducer from './slice/organizationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     employee:employeeReducer,
     departments: departmentReducer,
     designations: designationReducer,
+    organizationSettings: organizationReducer,
   },
 });
 

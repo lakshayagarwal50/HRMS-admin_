@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import SidePanelForm from '../common/SidePanelForm';
 
 // --- Redux Imports ---
-import { addDesignation, type NewDesignation } from '../../store/slice/designationSlice'; // Adjust path
-import type { AppDispatch } from "../../store/store" // Adjust path
+import { addDesignation, type NewDesignation } from '../../store/slice/designationSlice';
+import { fetchDepartments } from '../../store/slice/departmentSlice'; // Import action to fetch departments
+import type { RootState, AppDispatch } from "../../store/store";
 
 // --- PROPS DEFINITION ---
 interface CreateDesignationProps {
@@ -12,7 +13,7 @@ interface CreateDesignationProps {
   onClose: () => void;
 }
 
-// --- REUSABLE FORM FIELD COMPONENTS ---
+// --- REUSABLE FORM FIELD COMPONENTS (Unchanged) ---
 const FormInput: React.FC<{
   label: string; value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -53,10 +54,29 @@ const FormSelect: React.FC<{
 // --- MAIN COMPONENT ---
 const CreateDesignation: React.FC<CreateDesignationProps> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
+
+  // 1. Get departments and their loading status from the Redux store
+  const { items: departments, status: departmentStatus } = useSelector((state: RootState) => state.departments);
+
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
-  const [department, setDepartment] = useState('Project management'); // Default value
+  const [department, setDepartment] = useState('');
+
+  // 2. Fetch departments if they haven't been loaded yet
+  useEffect(() => {
+    if (departmentStatus === 'idle') {
+      dispatch(fetchDepartments());
+    }
+  }, [departmentStatus, dispatch]);
+
+  // 3. Set the default selected department once the list is loaded
+  useEffect(() => {
+    if (departments.length > 0 && !department) {
+      setDepartment(departments[0].name);
+    }
+  }, [departments, department]);
+
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,19 +84,21 @@ const CreateDesignation: React.FC<CreateDesignationProps> = ({ isOpen, onClose }
       alert('Designation Name is required.');
       return;
     }
+    if (!department) {
+        alert('Please select a department.');
+        return;
+    }
 
-    // Construct the new designation object to be sent to the thunk
     const newDesignation: NewDesignation = {
       name: name,
       code: code,
       description: description,
       department: department,
-      status: 'active', // Default status for new designations
+      status: 'active',
     };
 
-    // Dispatch the action to add the new designation
     dispatch(addDesignation(newDesignation));
-    onClose(); // Close the panel after submission
+    onClose();
   };
 
   return (
@@ -91,11 +113,13 @@ const CreateDesignation: React.FC<CreateDesignationProps> = ({ isOpen, onClose }
         <FormInput label="Designation Name" value={name} onChange={(e) => setName(e.target.value)} required />
         <FormInput label="Code" value={code} onChange={(e) => setCode(e.target.value)} />
         <FormTextarea label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+        
+        {/* 4. The select dropdown is now populated dynamically */}
         <FormSelect label="Select Department" value={department} onChange={(e) => setDepartment(e.target.value)}>
-            <option>Project management</option>
-            <option>Marketing</option>
-            <option>Support team</option>
-            <option>Management</option>
+            {departmentStatus === 'loading' && <option disabled>Loading departments...</option>}
+            {departments.map(dep => (
+              <option key={dep.id} value={dep.name}>{dep.name}</option>
+            ))}
         </FormSelect>
       </div>
     </SidePanelForm>

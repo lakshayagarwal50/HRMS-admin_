@@ -4,7 +4,7 @@ import SidePanelForm from '../common/SidePanelForm';
 
 // --- Redux Imports ---
 import { updateDesignation, type Designation } from '../../store/slice/designationSlice';
-import { fetchDepartments, type Department } from '../../store/slice/departmentSlice'; // Import department slice
+import { fetchDepartments } from '../../store/slice/departmentSlice'; // Import department slice
 import type { RootState, AppDispatch } from '../../store/store';
 
 // --- PROPS DEFINITION ---
@@ -58,7 +58,7 @@ const FormSelect: React.FC<{
 const UpdateDesignation: React.FC<UpdateDesignationProps> = ({ isOpen, onClose, designationData }) => {
   const dispatch = useDispatch<AppDispatch>();
 
-  // Get departments from the Redux store
+  // 1. Get all departments and their loading status from the Redux store
   const { items: departments, status: departmentStatus } = useSelector((state: RootState) => state.departments);
 
   const [name, setName] = useState('');
@@ -102,9 +102,6 @@ const UpdateDesignation: React.FC<UpdateDesignationProps> = ({ isOpen, onClose, 
     onClose();
   };
 
-  // Filter for only active departments to show in the dropdown
-  const activeDepartments = departments.filter(dep => dep.status === 'active');
-
   return (
     <SidePanelForm
       isOpen={isOpen}
@@ -118,11 +115,11 @@ const UpdateDesignation: React.FC<UpdateDesignationProps> = ({ isOpen, onClose, 
         <FormInput label="Code" value={code} onChange={(e) => setCode(e.target.value)} />
         <FormTextarea label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
         
-        {/* Dynamically populated department dropdown */}
+        {/* 2. The dropdown now maps over the full 'departments' array */}
         <FormSelect label="Select Department" value={department} onChange={(e) => setDepartment(e.target.value)} required>
             <option value="" disabled>-- Select a department --</option>
             {departmentStatus === 'loading' && <option>Loading...</option>}
-            {activeDepartments.map((dep: Department) => (
+            {departments.map((dep) => (
               <option key={dep.id} value={dep.name}>
                 {dep.name}
               </option>
