@@ -75,7 +75,7 @@ export const fetchEmployees = createAsyncThunk(
   'employees/fetchEmployees',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('http://localhost:3000/employees');
+      const response = await axios.get('http://172.50.5.49:3000/employees');
       return response.data;
     } catch (error) {
       return rejectWithValue('Failed to fetch employees');
@@ -87,7 +87,7 @@ export const fetchEmployeeDetails = createAsyncThunk(
   'employees/fetchEmployeeDetails',
   async (employeeCode: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`http://localhost:3000/employees/all/${employeeCode}`);
+      const response = await axios.get(`http://172.50.5.49:3000/employees/all/${employeeCode}`);
       return response.data as EmployeeDetail;
     } catch (error) {
       return rejectWithValue('Failed to fetch employee details');
@@ -104,7 +104,7 @@ export const deleteEmployee = createAsyncThunk<
   'employees/deleteEmployee',
   async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(`http://localhost:3000/employees/${id}`); // <-- CHANGED
+      await axios.delete(`http://172.50.5.49:3000/employees/${id}`); // <-- CHANGED
       return id; // <-- CHANGED
     } catch (error) {
       return rejectWithValue('Failed to delete employee');
@@ -121,7 +121,7 @@ export const updateEmployeeStatus = createAsyncThunk<
   'employees/updateEmployeeStatus',
   async ({ id, status }, { rejectWithValue }) => {
     try {
-      const response = await axios.patch(`http://localhost:3000/employees/status/${id}`, { status }); // <-- CHANGED
+      const response = await axios.patch(`http://172.50.5.49:3000/status/${id}`, { status }); // <-- CHANGED
       return response.data;
     } catch (error) {
       return rejectWithValue('Failed to update employee status');
