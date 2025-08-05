@@ -6,9 +6,9 @@ import bankReducer from './slice/bankSlice';
 import generalReducer from './slice/generalSlice'; // 1. Import
 import professionalReducer from './slice/professionalSlice'; // 2. Import
 import departmentReducer from "./slice/departmentSlice"
-import designationReducer from "./slice/designationSlice"
-
-
+import designationReducer from './slice/designationSlice'; 
+import organizationReducer from './slice/organizationSlice';
+import  employeeDesignationReducer from './slice/employeeDesignationSlice';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -19,6 +19,8 @@ export const store = configureStore({
     employee:employeeReducer,
     departments: departmentReducer,
     designations: designationReducer,
+    organizationSettings: organizationReducer,
+    employeeDesignations: employeeDesignationReducer,
   },
 });
 

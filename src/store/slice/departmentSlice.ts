@@ -5,8 +5,9 @@ import axios from 'axios';
 const API_URL = 'http://172.50.5.116:3000/api/departments/';
 // WARNING: Storing tokens directly in code is insecure and will expire. 
 // This should be managed through an authentication context or a more secure mechanism.
-const FIREBASE_ID_TOKEN = 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ijk1MWRkZTkzMmViYWNkODhhZmIwMDM3YmZlZDhmNjJiMDdmMDg2NmIiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiU3VwZXJBZG1pbiIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9ocm1zLTI5M2FiIiwiYXVkIjoiaHJtcy0yOTNhYiIsImF1dGhfdGltZSI6MTc1NDI5OTE5MiwidXNlcl9pZCI6IlN0Vjd0RU1heUljZzVndnU1bTRtYjNVcUhTNzIiLCJzdWIiOiJTdFY3dEVNYXlJY2c1Z3Z1NW00bWIzVXFIUzcyIiwiaWF0IjoxNzU0Mjk5MTkyLCJleHAiOjE3NTQzMDI3OTIsImVtYWlsIjoiYWRtaW5Ac3VwZXJhZG1pbi5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZW1haWwiOlsiYWRtaW5Ac3VwZXJhZG1pbi5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.grNactzU7iYau-_MCKf3E2PZYHkmGR7wcNGn2s02ckE3LXriRy1_RX8cNPtSKXO7B1UO3bZRASpzDo6fPSlrLczkciTv9SXlouxIkBAKeOn4tmTAzl1Wo3HpbatwA8NBKQ8GCXwc7RA12ENhgPucoYs0YZCV4_PL-2vLV-AsuhgWU8DQxS4AA_jdVOcRC625zEo5FoJB54RKhBXttlKZQ_M3x8am0J7ZaR7l2LxWB2Lw1aLbeAbsFfXtFWrtu5-Xe_Fq2D0xdLk0io8TvHXrCj8kxufwCfOfXsRjKLcgzXJ0sMEH-iGw2TwfU8SHq0FQcW1MvT7kQSzClFSYYvfFxw';
-
+const getAuthToken = (): string | null => {
+  return localStorage.getItem('token'); // Make sure the key matches what you use in your auth logic
+};
 // --- TYPE DEFINITIONS ---
 export interface Department {
   id: string;
@@ -35,15 +36,17 @@ const initialState: DepartmentsState = {
 // --- ASYNC THUNKS ---
 
 export const fetchDepartments = createAsyncThunk('departments/fetchDepartments', async () => {
+   const token = getAuthToken();
   const response = await axios.get(API_URL, {
-    headers: { Authorization: `Bearer ${FIREBASE_ID_TOKEN}` },
+    headers: { Authorization: `Bearer ${token}` },
   });
   return response.data as Department[];
 });
 
 export const addDepartment = createAsyncThunk('departments/addDepartment', async (newDepartment: NewDepartment) => {
+    const token = getAuthToken();
     const response = await axios.post(API_URL, newDepartment, {
-      headers: { Authorization: `Bearer ${FIREBASE_ID_TOKEN}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
     const { id } = response.data;
     const createdDepartment: Department = {
@@ -57,9 +60,10 @@ export const addDepartment = createAsyncThunk('departments/addDepartment', async
 );
 
 export const updateDepartment = createAsyncThunk('departments/updateDepartment', async (department: Department) => {
+  const token = getAuthToken();
     const { id, ...data } = department;
     await axios.put(`${API_URL}${id}`, data, {
-      headers: { Authorization: `Bearer ${FIREBASE_ID_TOKEN}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
     return department;
   }
@@ -69,8 +73,9 @@ export const updateDepartment = createAsyncThunk('departments/updateDepartment',
  * DEACTIVATE: Uses the DELETE endpoint to mark a department as 'inactive'.
  */
 export const deactivateDepartment = createAsyncThunk('departments/deactivateDepartment', async (department: Department) => {
+    const token = getAuthToken();
     await axios.delete(`${API_URL}${department.id}`, {
-      headers: { Authorization: `Bearer ${FIREBASE_ID_TOKEN}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
     // Return a copy of the department with the status changed to 'inactive'
     return { ...department, status: 'inactive' as const };

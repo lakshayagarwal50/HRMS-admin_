@@ -1,12 +1,18 @@
-// src/store/slice/designationSlice.ts
-
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 
 // --- CONSTANTS ---
 const API_BASE_URL = 'http://172.50.5.116:3000/api/designations/';
-// WARNING: Storing tokens directly in code is insecure and will expire.
-const FIREBASE_ID_TOKEN = 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ijk1MWRkZTkzMmViYWNkODhhZmIwMDM3YmZlZDhmNjJiMDdmMDg2NmIiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiU3VwZXJBZG1pbiIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9ocm1zLTI5M2FiIiwiYXVkIjoiaHJtcy0yOTNhYiIsImF1dGhfdGltZSI6MTc1NDI5OTE5MiwidXNlcl9pZCI6IlN0Vjd0RU1heUljZzVndnU1bTRtYjNVcUhTNzIiLCJzdWIiOiJTdFY3dEVNYXlJY2c1Z3Z1NW00bWIzVXFIUzcyIiwiaWF0IjoxNzU0Mjk5MTkyLCJleHAiOjE3NTQzMDI3OTIsImVtYWlsIjoiYWRtaW5Ac3VwZXJhZG1pbi5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZW1haWwiOlsiYWRtaW5Ac3VwZXJhZG1pbi5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.grNactzU7iYau-_MCKf3E2PZYHkmGR7wcNGn2s02ckE3LXriRy1_RX8cNPtSKXO7B1UO3bZRASpzDo6fPSlrLczkciTv9SXlouxIkBAKeOn4tmTAzl1Wo3HpbatwA8NBKQ8GCXwc7RA12ENhgPucoYs0YZCV4_PL-2vLV-AsuhgWU8DQxS4AA_jdVOcRC625zEo5FoJB54RKhBXttlKZQ_M3x8am0J7ZaR7l2LxWB2Lw1aLbeAbsFfXtFWrtu5-Xe_Fq2D0xdLk0io8TvHXrCj8kxufwCfOfXsRjKLcgzXJ0sMEH-iGw2TwfU8SHq0FQcW1MvT7kQSzClFSYYvfFxw';
+
+// --- HELPER FUNCTION ---
+/**
+ * Retrieves the Firebase ID token from local storage.
+ * @returns {string | null} The token or null if not found.
+ */
+const getAuthToken = (): string | null => {
+  return localStorage.getItem('token'); // Make sure the key matches what you use in your auth logic
+};
+
 
 // --- TYPE DEFINITIONS ---
 export interface Designation {
@@ -40,13 +46,20 @@ const initialState: DesignationsState = {
  * Fetches all designations from the API.
  */
 export const fetchDesignations = createAsyncThunk('designations/fetchDesignations', async (_, { rejectWithValue }) => {
+  const token = getAuthToken();
+  if (!token) {
+    return rejectWithValue('Authentication token not found.');
+  }
   try {
     const response = await axios.get(`${API_BASE_URL}get`, {
-      headers: { Authorization: `Bearer ${FIREBASE_ID_TOKEN}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
     return response.data as Designation[];
-  } catch (error: any) {
-    return rejectWithValue(error.response?.data?.message || 'Failed to fetch designations');
+  } catch (error: unknown) {
+    if (isAxiosError(error)) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch designations');
+    }
+    return rejectWithValue('An unknown error occurred');
   }
 });
 
@@ -54,6 +67,10 @@ export const fetchDesignations = createAsyncThunk('designations/fetchDesignation
  * Adds a new designation via the API.
  */
 export const addDesignation = createAsyncThunk('designations/addDesignation', async (newDesignation: NewDesignation, { rejectWithValue }) => {
+    const token = getAuthToken();
+    if (!token) {
+      return rejectWithValue('Authentication token not found.');
+    }
     const apiRequestBody = {
       designationName: newDesignation.name,
       code: newDesignation.code,
@@ -63,7 +80,7 @@ export const addDesignation = createAsyncThunk('designations/addDesignation', as
     };
     try {
       const response = await axios.post(`${API_BASE_URL}create`, apiRequestBody, {
-        headers: { Authorization: `Bearer ${FIREBASE_ID_TOKEN}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const createdDesignation: Designation = {
         ...newDesignation,
@@ -72,8 +89,11 @@ export const addDesignation = createAsyncThunk('designations/addDesignation', as
         createdAt: new Date().toISOString(),
       };
       return createdDesignation;
-    } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to add designation');
+    } catch (error: unknown) {
+        if (isAxiosError(error)) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to add designation');
+        }
+        return rejectWithValue('An unknown error occurred');
     }
   }
 );
@@ -82,27 +102,31 @@ export const addDesignation = createAsyncThunk('designations/addDesignation', as
  * Updates an existing designation, including its status.
  */
 export const updateDesignation = createAsyncThunk('designations/updateDesignation', async (designation: Designation, { rejectWithValue }) => {
+    const token = getAuthToken();
+    if (!token) {
+      return rejectWithValue('Authentication token not found.');
+    }
     try {
-      // Destructure all fields that need to be sent, including status
       const { id, name, code, description, department, status } = designation;
       
-      // Create the request body for the API
       const apiRequestBody = {
         designationName: name,
         code,
         description,
         department,
-        status, // FIX: Include status in the request body
+        status,
       };
 
       await axios.put(`${API_BASE_URL}update/${id}`, apiRequestBody, {
-        headers: { Authorization: `Bearer ${FIREBASE_ID_TOKEN}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       
-      // Return the full designation object to update the state
       return designation;
-    } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to update designation');
+    } catch (error: unknown) {
+        if (isAxiosError(error)) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to update designation');
+        }
+        return rejectWithValue('An unknown error occurred');
     }
   }
 );
@@ -115,8 +139,6 @@ const designationSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // --- Handle all API call states (pending, fulfilled, rejected) for robustness ---
-
       // Fetch Designations
       .addCase(fetchDesignations.pending, (state) => {
         state.status = 'loading';
@@ -147,7 +169,6 @@ const designationSlice = createSlice({
 
       // Update Designation
       .addCase(updateDesignation.pending, (state) => {
-        // You could set a specific loading state for updates if needed
         state.status = 'loading';
         state.error = null;
       })

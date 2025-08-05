@@ -45,7 +45,7 @@ export const addBankDetails = createAsyncThunk<
   async ({ employeeId, empCode, bankData }, { dispatch, rejectWithValue }) => {
     try {
       const response = await axios.post(
-        `http://localhost:3000/employees/bank/${employeeId}`,
+        `http://172.50.5.49:3000/employees/bank/${employeeId}`,
         bankData
       );
       dispatch(fetchEmployeeDetails(empCode));

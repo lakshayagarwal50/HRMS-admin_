@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { MoreHorizontal, ChevronRight, Plus, X as AlertIcon, Columns } from 'lucide-react';
+import { MoreHorizontal, ChevronRight, Plus, X as AlertIcon } from 'lucide-react';
 
 // --- Component Imports ---
 

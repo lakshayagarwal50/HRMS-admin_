@@ -139,7 +139,7 @@ export const updateEmployeeStatus = createAsyncThunk<
   'employees/updateEmployeeStatus',
   async ({ id, status }, { rejectWithValue }) => {
     try {
-      const response = await axios.patch(`http://localhost:3000/employees/status/${id}`, { status }); // <-- CHANGED
+      const response = await axios.patch(`http://localhost:3000/status/${id}`, { status }); // <-- CHANGED
       return response.data;
     } catch (error) {
       return rejectWithValue('Failed to update employee status');
