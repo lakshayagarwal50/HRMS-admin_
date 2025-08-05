@@ -1,0 +1,66 @@
+import React, { useState, useRef, useEffect } from "react";
+import { MoreVertical } from "lucide-react";
+import { type Employee } from "../../../../types"; 
+
+interface ActionDropdownProps {
+  employee: Employee;
+  onAction: (actionName: string, employee: Employee) => void;
+}
+
+const ActionDropdown: React.FC<ActionDropdownProps> = ({
+  employee,
+  onAction,
+}) => {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const actions = [
+    "View Details",
+    "Create Payslip",
+    employee.status === "Active" ? "Make Inactive" : "Make Active",
+    "Delete",
+    employee.status === "Inactive" ? "Re-invite" : "Invite",
+  ];
+
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="p-2 rounded-full hover:bg-gray-100"
+      >
+        <MoreVertical size={16} />
+      </button>
+      {open && (
+        <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg focus:outline-none flex flex-col">
+          {actions.map((action, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                setOpen(false);
+                onAction(action, employee);
+              }}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:bg-[#f5f5f5]"
+            >
+              {action}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ActionDropdown;
