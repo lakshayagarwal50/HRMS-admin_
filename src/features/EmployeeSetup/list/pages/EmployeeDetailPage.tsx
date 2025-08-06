@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 
+import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
 import type { AppDispatch, RootState } from "../../../../store/store";
 import { fetchEmployeeDetails } from "../../../../store/slice/employeeSlice";
@@ -23,7 +23,6 @@ import {
   type EditLoanPayload,
 } from "../../../../store/slice/loanSlice";
 
-
 import ProfileSidebar, { menuItems } from "../layout/ProfileSidebar";
 import { PlaceholderComponent } from "../common/DetailItem";
 import GeneralInfo from "../common/GeneralInfo";
@@ -37,7 +36,6 @@ import GenericForm, {
 import LoanDetailModal from "../common/LoanDetailModal";
 import LoanConfirmationModal from "../common/LoanConfirmationModal";
 import AddLoanModal from "../common/AddLoanModal";
-
 
 const generalInfoFields: FormField[] = [
   {
@@ -287,7 +285,6 @@ const addLoanRequestFields: FormField[] = [
   },
 ];
 
-
 const editLoanFields: FormField[] = [
   {
     name: "amountApp",
@@ -307,8 +304,6 @@ const editLoanFields: FormField[] = [
 ];
 
 // --- MAIN PAGE COMPONENT ---
-
-
 
 export default function EmployeeDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -343,6 +338,13 @@ export default function EmployeeDetailPage() {
     setIsAddModalOpen(true);
   };
 
+  const getSectionTitle = () => {
+    const item = menuItems.find(
+      (m: string) =>
+        m.toLowerCase().replace(/, | & | /g, "_") === currentSection
+    );
+    return item || "General Info"; // Provide a sensible default
+  };
   const handleEdit = (section: string, itemToEdit?: any) => {
     setEditingSection(section);
     if (section === "loan_and_advances" && itemToEdit) {
@@ -414,7 +416,6 @@ export default function EmployeeDetailPage() {
       }
     } else if (editingSection === "loan_and_advances") {
       if (editingLoan && mainEmployeeId && employeeCode) {
-        
         const editPayload: EditLoanPayload = {
           loanId: editingLoan.id,
           amountApp: data.amountApp,
@@ -422,7 +423,7 @@ export default function EmployeeDetailPage() {
         };
         dispatch(
           editLoan({
-            employeeId: mainEmployeeId, 
+            employeeId: mainEmployeeId,
             employeeCode: employeeCode,
             payload: editPayload,
           })
@@ -634,13 +635,13 @@ export default function EmployeeDetailPage() {
     }
   };
 
-  const getSectionTitle = () => {
-    const item = menuItems.find(
-      (m: string) =>
-        m.toLowerCase().replace(/, | & | /g, "_") === currentSection
-    );
-    return item || "Details";
-  };
+  // const getSectionTitle = () => {
+  //   const item = menuItems.find(
+  //     (m: string) =>
+  //       m.toLowerCase().replace(/, | & | /g, "_") === currentSection
+  //   );
+  //   return item || "Details";
+  // };
 
   const renderEditModal = () => {
     if (!editingSection || !currentEmployee) return null;
@@ -690,9 +691,8 @@ export default function EmployeeDetailPage() {
         if (!editingLoan) return null;
         formProps = {
           title: "Edit Loan Request",
-          fields: editLoanFields, 
+          fields: editLoanFields,
           initialState: {
-            
             amountApp: editingLoan.amountApp || editingLoan.amountReq,
             staffNote: editingLoan.staffNote || "",
           },
@@ -859,8 +859,25 @@ export default function EmployeeDetailPage() {
       <div className="max-w-7xl mx-auto">
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">{employeeName}</h1>
+          {/* 3. Replaced static breadcrumbs with the new dynamic structure */}
           <p className="text-sm text-gray-500 mt-1">
-            Dashboard / Employee / Detail /{" "}
+            <Link to="/dashboard" className="hover:text-[#741CDD]">
+              Dashboard
+            </Link>
+            <span className="mx-2">/</span>
+            {/* Note: Linking Employee Setup to the list page as it's a more common UX pattern. */}
+            <Link to="/dashboard" className="hover:text-[#741CDD]">
+              Employee Setup
+            </Link>
+            <span className="mx-2">/</span>
+            <Link to="/employees/list" className="hover:text-[#741CDD]">
+              List
+            </Link>
+            <span className="mx-2">/</span>
+            <Link to={`/employees/list`} className="hover:text-[#741CDD]">
+              Detail
+            </Link>
+            <span className="mx-2">/</span>
             <span className="text-[#741CDD] font-medium">
               {getSectionTitle()}
             </span>
@@ -884,10 +901,10 @@ export default function EmployeeDetailPage() {
   );
 }
 
-const getSectionTitle = () => {
-  const item = menuItems.find(
-    (m: string) =>
-      m.toLowerCase().replace(/, | & | /g, "_") === "currentSection"
-  );
-  return item || "Details";
-};
+// const getSectionTitle = () => {
+//   const item = menuItems.find(
+//     (m: string) =>
+//       m.toLowerCase().replace(/, | & | /g, "_") === "currentSection"
+//   );
+//   return item || "Details";
+// };
