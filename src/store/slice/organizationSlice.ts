@@ -1,15 +1,15 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import axios, { isAxiosError } from 'axios';
 
-// --- CONSTANTS ---
+
 const API_BASE_URL = 'http://172.50.5.116:3000/api/organization-settings/';
 
-// --- HELPER FUNCTION ---
+
 const getAuthToken = (): string | null => {
-  return localStorage.getItem('token'); // Make sure the key matches what you use
+  return localStorage.getItem('token'); 
 };
 
-// --- TYPE DEFINITIONS ---
+
 export interface OrganizationSettings {
   id?: string;
   companyName: string;
@@ -79,7 +79,7 @@ export const updateOrganizationSettings = createAsyncThunk('organizationSettings
   }
 });
 
-// --- SLICE DEFINITION ---
+
 const organizationSlice = createSlice({
   name: 'organizationSettings',
   initialState,

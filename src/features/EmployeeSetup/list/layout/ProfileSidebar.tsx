@@ -15,7 +15,7 @@ export const menuItems: readonly string[] = [
   "PROJECTS",
 ];
 
-// Type definition for the ProfileSidebar component's props
+
 export interface ProfileSidebarProps {
   onSectionChange: (sectionKey: string) => void;
   activeItem: string;
@@ -26,8 +26,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   activeItem,
 }) => {
   const handleItemClick = (item: string) => {
-    // Fix: Check if onSectionChange is a valid function before calling it.
-    // This prevents the "onSectionChange is not a function" error if the prop isn't passed.
+   
     if (typeof onSectionChange === "function") {
       onSectionChange(item.toLowerCase().replace(/, | & | /g, "_"));
     }

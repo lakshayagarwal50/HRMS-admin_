@@ -1,8 +1,7 @@
-// src/routes/AppRoutes.tsx
+
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
-// import AuthLayout from '../components/layout/AuthLayout';
 import AdminLayout from "../layout/AdminLayout";
 import AuthLayout from "../layout/AuthLayout";
 import DepartmentPage from "../pages/GettingStarted/Department/DepartmentPage";

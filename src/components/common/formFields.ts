@@ -1,4 +1,4 @@
-// src/components/employee/forms/formFields.ts
+
 import type { FormField } from "./GenericForm";
 
 export const generalInfoFields: FormField[] = [

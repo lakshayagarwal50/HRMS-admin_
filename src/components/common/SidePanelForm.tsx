@@ -1,7 +1,7 @@
 import React, { useEffect, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 
-// Define the props for the generic side panel
+
 interface SidePanelFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,7 +19,7 @@ const SidePanelForm: React.FC<SidePanelFormProps> = ({
   onSubmit,
   submitText = 'Submit',
 }) => {
-  // Effect to handle the 'Escape' key press to close the panel
+  
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -32,7 +32,7 @@ const SidePanelForm: React.FC<SidePanelFormProps> = ({
 
   return (
     <>
-      {/* Overlay: Dims the background content when the panel is open */}
+      
       <div
         className={`fixed inset-0 bg-black/60 bg-opacity-50 z-40 transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -40,14 +40,14 @@ const SidePanelForm: React.FC<SidePanelFormProps> = ({
         onClick={onClose}
       ></div>
 
-      {/* Side Panel Container */}
+      
       <div
         className={`fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <form onSubmit={onSubmit} className="h-full flex flex-col">
-          {/* Panel Header */}
+          
           <div className="flex justify-between items-center p-4 border-b">
             <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
             <button
