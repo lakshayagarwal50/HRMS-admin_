@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import SidePanelForm from "../common/SidePanelForm" // Adjust path if needed
+import { useDispatch } from 'react-redux';
+import SidePanelForm from '../common/SidePanelForm'; // Adjust path if needed
+
+// --- Redux Imports ---
+import { addWorkingPattern, type NewWorkingPattern } from '../../store/slice/workingPatternsSlice'; // Adjust path
+import type { AppDispatch } from '../../store/store'; // Adjust path
 
 // --- PROPS DEFINITION ---
 interface CreateWorkingPatternProps {
   isOpen: boolean;
   onClose: () => void;
-  // onSubmit: (data: any) => void;
 }
 
 // --- HELPER COMPONENTS ---
@@ -40,6 +44,7 @@ const WeekRow: React.FC<{ weekName: string; checkedDays: boolean[]; onToggle: (d
 
 // --- MAIN COMPONENT ---
 const CreateWorkingPattern: React.FC<CreateWorkingPatternProps> = ({ isOpen, onClose }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [week1, setWeek1] = useState([false, true, true, true, true, true, false]);
@@ -61,8 +66,11 @@ const CreateWorkingPattern: React.FC<CreateWorkingPatternProps> = ({ isOpen, onC
       alert('Pattern Name is required.');
       return;
     }
-    const formData = { name, code, week1, week2, week3, week4 };
-    console.log('Submitting Working Pattern:', formData);
+    
+    const newPattern: NewWorkingPattern = { name, code, week1, week2, week3, week4 };
+    
+    // Dispatch the Redux action to add the new pattern
+    dispatch(addWorkingPattern(newPattern));
     onClose();
   };
 

@@ -10,6 +10,9 @@ import DesignationPage from "../pages/GettingStarted/Designation.tsx/Designation
 import RolePage from "../pages/GettingStarted/Role/RolePage";
 import WorkingPatternsPage from "../pages/GettingStarted/WorkingPattern/WorkingPatternsPage";
 import OrganizationSettingsPage from "../pages/GettingStarted/OraganisationSetting/OrganizationSettingsPage";
+import WebCheckinSettingsPage from "../pages/GettingStarted/WebCheckinSettings/WebCheckinSettingsPage";
+import LocationPage from "../pages/GettingStarted/Location/LocationPage";
+import HolidayConfigurationPage from "../pages/GettingStarted/HolidayConfiguration/HolidayConfigurationPage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
@@ -80,10 +83,10 @@ const AppRoutes = () => (
         <Route path="/designation" element={<DesignationPage />} />
         <Route path="/role" element={<RolePage />} />
         <Route path="/working-patterns" element={<WorkingPatternsPage />} />
-        <Route
-          path="/organisation-setting"
-          element={<OrganizationSettingsPage />}
-        />
+        <Route path="/organisation-setting" element={<OrganizationSettingsPage />}/>
+        <Route path="/web-checkin-setting" element={<WebCheckinSettingsPage/>}/>
+        <Route path="/location" element={<LocationPage/>}/>
+        <Route path="/holiday-configuration" element={<HolidayConfigurationPage />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />

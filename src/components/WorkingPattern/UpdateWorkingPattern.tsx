@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import SidePanelForm from '../common/SidePanelForm'; // Adjust path if needed
 
-// --- TYPE DEFINITION ---
-interface WorkingPattern {
-  id: number;
-  code: string;
-  name: string;
-  week1: boolean[];
-  week2: boolean[];
-  week3: boolean[];
-  week4: boolean[];
-}
+// --- Redux Imports ---
+import { updateWorkingPattern, type WorkingPattern } from '../../store/slice/workingPatternsSlice'; // Adjust path
+import type { AppDispatch } from '../../store/store'; // Adjust path
 
 // --- PROPS DEFINITION ---
 interface UpdateWorkingPatternProps {
@@ -51,6 +45,9 @@ const WeekRow: React.FC<{ weekName: string; checkedDays: boolean[]; onToggle: (d
 
 // --- MAIN COMPONENT ---
 const UpdateWorkingPattern: React.FC<UpdateWorkingPatternProps> = ({ isOpen, onClose, patternData }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  
+  // Local state for the form fields
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [week1, setWeek1] = useState<boolean[]>([]);
@@ -58,6 +55,8 @@ const UpdateWorkingPattern: React.FC<UpdateWorkingPatternProps> = ({ isOpen, onC
   const [week3, setWeek3] = useState<boolean[]>([]);
   const [week4, setWeek4] = useState<boolean[]>([]);
 
+  // This effect runs when the `patternData` prop changes (i.e., when the user clicks "Edit")
+  // It populates the form with the data of the selected pattern.
   useEffect(() => {
     if (patternData) {
       setName(patternData.name);
@@ -72,20 +71,46 @@ const UpdateWorkingPattern: React.FC<UpdateWorkingPatternProps> = ({ isOpen, onC
   const handleToggle = (week: number, dayIndex: number) => {
     const setters = [setWeek1, setWeek2, setWeek3, setWeek4];
     const weeks = [week1, week2, week3, week4];
-    const newWeek = [...weeks[week-1]];
+    const newWeek = [...weeks[week - 1]];
     newWeek[dayIndex] = !newWeek[dayIndex];
-    setters[week-1](newWeek);
+    setters[week - 1](newWeek);
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = { ...patternData, name, code, week1, week2, week3, week4 };
-    console.log('Updating Working Pattern:', formData);
+    if (!patternData) {
+      alert("No pattern data to update.");
+      return;
+    }
+    if (!name.trim()) {
+      alert('Pattern Name is required.');
+      return;
+    }
+
+    // Construct the updated pattern object
+    const updatedPattern: WorkingPattern = {
+      ...patternData,
+      name,
+      code,
+      week1,
+      week2,
+      week3,
+      week4,
+    };
+    
+    // Dispatch the Redux action to update the pattern
+    dispatch(updateWorkingPattern(updatedPattern));
     onClose();
   };
 
   return (
-    <SidePanelForm isOpen={isOpen} onClose={onClose} title="Update Working Pattern" onSubmit={handleFormSubmit} submitText="Update">
+    <SidePanelForm
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Update Working Pattern"
+      onSubmit={handleFormSubmit}
+      submitText="Update"
+    >
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
           <FormInput label="Name" value={name} onChange={(e) => setName(e.target.value)} required />

@@ -27,17 +27,17 @@ interface CardItem {
 const cardItems: CardItem[] = [
   { label: 'Working Patterns', icon: Clock , link: '/working-patterns' },
   { label: 'Payslip Components', icon: FileText },
-  { label: 'Location', icon: MapPin },
+  { label: 'Location', icon: MapPin , link: '/location'},
   // This item has the link we will use for navigation
   { label: 'Department', icon: GitBranch , link: '/department'},
   { label: 'Designation', icon: UserCheck , link: '/designation'},
   { label: 'Role', icon: Tag , link: "/role"},
-  { label: 'Holiday Configuration', icon: Settings },
+  { label: 'Holiday Configuration', icon: Settings, link: '/holiday-configuration'},
   { label: 'Holiday Calendar', icon: Calendar },
   { label: 'Organisation Setting', icon: Building , link: '/organisation-setting'},
   { label: 'Sequence Number', icon: ListOrdered },
   { label: 'Payroll Configuration', icon: CreditCard },
-  { label: 'Web Checkin Setting', icon: Globe },
+  { label: 'Web Checkin Setting', icon: Globe , link: '/web-checkin-setting'},
 ];
 
 const GettingStartedPge: React.FC = () => {
