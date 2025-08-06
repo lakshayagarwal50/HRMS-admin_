@@ -8,7 +8,10 @@ import professionalReducer from './slice/professionalSlice'; // 2. Import
 import departmentReducer from "./slice/departmentSlice"
 import designationReducer from './slice/designationSlice'; 
 import organizationReducer from './slice/organizationSlice';
-import  employeeDesignationReducer from './slice/employeeDesignationSlice';
+import workingPatternsReducer from "./slice/workingPatternsSlice"
+import locationsReducer from './slice/locationSlice';
+import holidayConfigurationReducer from './slice/holidayconfigurationSlice';
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -20,7 +23,9 @@ export const store = configureStore({
     departments: departmentReducer,
     designations: designationReducer,
     organizationSettings: organizationReducer,
-    employeeDesignations: employeeDesignationReducer,
+    workingPatterns: workingPatternsReducer,
+    locations: locationsReducer,
+    holidayConfigurations: holidayConfigurationReducer,
   },
 });
 
