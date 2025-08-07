@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Plus, MoreHorizontal, ChevronRight, X as AlertIcon } from 'lucide-react';
+import { Plus, MoreHorizontal, ChevronRight, X as AlertIcon, RefreshCw, ServerCrash } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // --- Redux Imports ---
-import { fetchDesignations, updateDesignation, type Designation } from '../../../store/slice/designationSlice'; // Adjust path if needed
-import type { RootState, AppDispatch } from '../../../store/store'; // Adjust path if needed
+import { fetchDesignations, updateDesignation, type Designation } from '../../../store/slice/designationSlice';
+import type { RootState, AppDispatch } from '../../../store/store';
 
 // --- Component Imports ---
 import Table, { type Column } from "../../../components/common/Table"; 
@@ -14,6 +15,44 @@ import AlertModal from '../../../components/Modal/AlertModal';
 
 // --- TYPE DEFINITION for display data ---
 type DesignationDisplay = Designation & { s_no: number };
+
+// --- UI State Components ---
+const TableSkeleton: React.FC = () => (
+    <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
+        <div className="space-y-3">
+            {[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-gray-200 rounded-md w-full"></div>)}
+        </div>
+    </div>
+);
+
+const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ onRetry, error }) => (
+    <div className="text-center py-10 px-4 bg-red-50 border border-red-200 rounded-lg">
+        <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
+        <h3 className="mt-2 text-lg font-semibold text-red-800">Failed to Load Data</h3>
+        <p className="mt-1 text-sm text-red-600">{error || 'An unknown error occurred.'}</p>
+        <div className="mt-6">
+            <button type="button" onClick={onRetry} className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                <RefreshCw className="-ml-1 mr-2 h-5 w-5" />
+                Try Again
+            </button>
+        </div>
+    </div>
+);
+
+const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
+    <div className="text-center py-10 px-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <h3 className="mt-2 text-lg font-semibold text-gray-800">No Designations Found</h3>
+        <p className="mt-1 text-sm text-gray-600">
+            Get started by adding a new designation.
+        </p>
+        <div className="mt-6">
+            <button type="button" onClick={onAddNew} className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
+                <Plus size={20} className="-ml-1 mr-2" />
+                Add New Designation
+            </button>
+        </div>
+    </div>
+);
 
 // --- MAIN COMPONENT ---
 const DesignationPage: React.FC = () => {
@@ -41,17 +80,17 @@ const DesignationPage: React.FC = () => {
     }
   }, [status, dispatch]);
 
-  const handleEditClick = (designation: Designation) => {
+  const handleEditClick = useCallback((designation: Designation) => {
     setEditingDesignation(designation);
     setActiveDropdown(null);
-  };
+  }, []);
 
-  const handleStatusChangeClick = (designation: Designation, newStatus: 'active' | 'inactive') => {
+  const handleStatusChangeClick = useCallback((designation: Designation, newStatus: 'active' | 'inactive') => {
     setAlertData({ isOpen: true, designation, actionType: newStatus });
     setActiveDropdown(null);
-  };
+  }, []);
 
-  const handleConfirmAction = () => {
+  const handleConfirmAction = useCallback(() => {
     if (!alertData.designation || !alertData.actionType) return;
 
     const designationToUpdate = {
@@ -60,21 +99,14 @@ const DesignationPage: React.FC = () => {
     };
 
     dispatch(updateDesignation(designationToUpdate));
-
     setAlertData({ isOpen: false, designation: null, actionType: null });
-  };
+  }, [alertData, dispatch]);
 
-  const tableData: DesignationDisplay[] = designations.map((item, index) => ({
-    ...item,
-    s_no: index + 1,
-  }));
-
-  const columns: Column<DesignationDisplay>[] = [
+  const columns = useMemo<Column<DesignationDisplay>[]>(() => [
     { key: 's_no', header: 'S.No' },
     { 
       key: 'name', 
       header: 'Name',
-      // FIX: Add a custom render function to handle missing names
       render: (row) => row.name ? row.name : <span className="text-gray-400 italic">(No Name)</span>
     },
     { key: 'code', header: 'Code' },
@@ -110,7 +142,7 @@ const DesignationPage: React.FC = () => {
         </div>
       ),
     },
-  ];
+  ], [activeDropdown, handleEditClick, handleStatusChangeClick]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -122,15 +154,40 @@ const DesignationPage: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const renderContent = () => {
+    if ((status === 'loading' || status === 'idle') && designations.length === 0) {
+        return <TableSkeleton />;
+    }
+
+    if (status === 'failed' && designations.length === 0) {
+        return <ErrorState onRetry={() => dispatch(fetchDesignations())} error={error} />;
+    }
+
+    if (status === 'succeeded' && designations.length === 0) {
+        return <EmptyState onAddNew={() => setCreatePanelOpen(true)} />;
+    }
+    
+    const tableData = designations.map((item, index) => ({ ...item, s_no: index + 1 }));
+
+    return (
+        <Table
+            columns={columns}
+            data={tableData}
+            showSearch={true}
+            searchPlaceholder="Search by name or code"
+        />
+    );
+  };
+
   return (
     <div className="w-full bg-white p-4 sm:p-6 lg:p-8 rounded-lg shadow-md">
       <header className="mb-6">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <h1 className="text-2xl font-bold text-gray-900">Designations</h1>
           <nav aria-label="Breadcrumb" className="flex items-center text-sm text-gray-500">
-            <a href="/dashboard" className="hover:text-gray-700">Dashboard</a>
+            <Link to="/dashboard" className="hover:text-gray-700">Dashboard</Link>
             <ChevronRight className="w-4 h-4 mx-1" />
-            <a href="/getting-started" className="hover:text-gray-700">Getting Started</a>
+            <Link to="/getting-started" className="hover:text-gray-700">Getting Started</Link>
             <ChevronRight className="w-4 h-4 mx-1" />
             <span className="font-medium text-gray-800">Designations</span>
           </nav>
@@ -148,15 +205,7 @@ const DesignationPage: React.FC = () => {
             </button>
         </div>
         
-        {status === 'loading' && <div className="text-center p-4">Loading...</div>}
-        {status === 'failed' && <div className="text-center p-4 text-red-500">Error: {error}</div>}
-        {status === 'succeeded' && (
-          <Table
-            columns={columns}
-            data={tableData}
-            searchPlaceholder="Search by name or code"
-          />
-        )}
+        {renderContent()}
       </main>
       
       <CreateDesignation isOpen={isCreatePanelOpen} onClose={() => setCreatePanelOpen(false)} /> 
