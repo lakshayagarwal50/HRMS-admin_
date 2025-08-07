@@ -1,18 +1,23 @@
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import { fetchEmployeeDetails } from './employeeSlice';
 
-// NOTE: We assume the API endpoint for updating is PUT /employees/general/{id}
-// Please adjust if your endpoint is different.
+
+const API_BASE_URL = 'http://172.50.5.49:3000/employees';
+
+
+const getAuthToken = (): string | null => {
+  return localStorage.getItem('token'); // Ensure the key matches your auth logic
+};
+
 
 interface GeneralInfoPayload {
-  // Define the properties that can be updated
-  // This should match the form data
   [key: string]: any;
 }
 
 interface ApiResponse {
-    message: string;
+  message: string;
 }
 
 interface GeneralState {
@@ -25,6 +30,7 @@ const initialState: GeneralState = {
   error: null,
 };
 
+
 export const updateGeneralInfo = createAsyncThunk<
   ApiResponse,
   { generalId: string; empCode: string; generalData: GeneralInfoPayload },
@@ -32,16 +38,24 @@ export const updateGeneralInfo = createAsyncThunk<
 >(
   'general/updateDetails',
   async ({ generalId, empCode, generalData }, { dispatch, rejectWithValue }) => {
+    const token = getAuthToken();
+    if (!token) {
+      return rejectWithValue('Authentication token not found.');
+    }
+
     try {
       const response = await axios.patch(
-        `http://localhost:3000/employees/general/${generalId}`,
-        generalData
+        `${API_BASE_URL}/general/${generalId}`,
+        generalData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       // On success, refresh all employee data
       dispatch(fetchEmployeeDetails(empCode));
       return response.data as ApiResponse;
-    } catch (error) {
-       if (axios.isAxiosError(error) && error.response) {
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
         return rejectWithValue(error.response.data?.message || 'Failed to update general info.');
       }
       return rejectWithValue('An unknown error occurred.');
@@ -49,15 +63,24 @@ export const updateGeneralInfo = createAsyncThunk<
   }
 );
 
+
 const generalSlice = createSlice({
   name: 'general',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(updateGeneralInfo.pending, (state) => { state.submitting = true; state.error = null; })
-      .addCase(updateGeneralInfo.fulfilled, (state) => { state.submitting = false; })
-      .addCase(updateGeneralInfo.rejected, (state, action) => { state.submitting = false; state.error = action.payload as string; });
+      .addCase(updateGeneralInfo.pending, (state) => {
+        state.submitting = true;
+        state.error = null;
+      })
+      .addCase(updateGeneralInfo.fulfilled, (state) => {
+        state.submitting = false;
+      })
+      .addCase(updateGeneralInfo.rejected, (state, action) => {
+        state.submitting = false;
+        state.error = action.payload as string;
+      });
   },
 });
 

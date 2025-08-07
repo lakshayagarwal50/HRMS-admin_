@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Table, { type Column } from "../../../../components/common/Table";
 import Modal from "../../../../components/common/NotificationModal";
 import {
@@ -153,12 +152,12 @@ const EmployeesTable: React.FC = () => {
     if (!employeeForModal || !actionToConfirm) return;
     switch (actionToConfirm) {
       case "Delete":
-        dispatch(deleteEmployee(employeeForModal.id)); // <-- MODIFIED
+        dispatch(deleteEmployee(employeeForModal.id));
         break;
       case "Make Inactive":
         dispatch(
           updateEmployeeStatus({
-            id: employeeForModal.id, // <-- MODIFIED
+            id: employeeForModal.id,
             status: "Inactive",
           })
         );
@@ -166,13 +165,12 @@ const EmployeesTable: React.FC = () => {
       case "Make Active":
         dispatch(
           updateEmployeeStatus({
-            id: employeeForModal.id, // <-- MODIFIED
+            id: employeeForModal.id,
             status: "Active",
           })
         );
         break;
       default:
-        // Handle any other actions if needed
         break;
     }
     setIsModalOpen(false);
@@ -252,6 +250,21 @@ const EmployeesTable: React.FC = () => {
 
   return (
     <div className="px-4 py-6 w-full">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-gray-800">Employees</h1>
+        <div className="text-sm font-medium">
+          <Link to="/dashboard" className="text-gray-500 hover:text-[#741CDD]">
+            Dashboard
+          </Link>
+          <span className="text-gray-500 mx-2">/</span>
+          <Link to="/dashboard" className="text-gray-500 hover:text-[#741CDD]">
+            Employee Setup
+          </Link>
+          <span className="text-gray-500 mx-2">/</span>
+          <span className="text-gray-700">List</span>
+        </div>
+      </div>
+
       <div className="bg-white shadow-lg rounded-lg p-4 md:p-6">
         <div className="flex justify-between items-center flex-wrap mb-4">
           <button className="bg-[#741CDD] hover:bg-[#5b14a9] text-white px-4 py-2 text-sm rounded transition duration-200">

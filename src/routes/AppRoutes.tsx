@@ -1,8 +1,7 @@
-// src/routes/AppRoutes.tsx
+
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
-// import AuthLayout from '../components/layout/AuthLayout';
 import AdminLayout from "../layout/AdminLayout";
 import AuthLayout from "../layout/AuthLayout";
 import DepartmentPage from "../pages/GettingStarted/Department/DepartmentPage";
@@ -16,6 +15,7 @@ import HolidayConfigurationPage from "../pages/GettingStarted/HolidayConfigurati
 import LeaveSetupPage from "../pages/LeaveConfiguration/LeaveSetupPage";
 import CommingSoon from "../components/NotFound/CommingSoon";
 import HolidayCalendarPage from "../pages/GettingStarted/HolidayCalendar/HolidayCalenderPage";
+
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));

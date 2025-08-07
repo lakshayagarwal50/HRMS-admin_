@@ -1,4 +1,4 @@
-// src/components/employee/forms/formFields.ts
+
 import type { FormField } from "./GenericForm";
 
 export const generalInfoFields: FormField[] = [
@@ -152,6 +152,73 @@ export const bankDetailsFields: FormField[] = [
     name: "ifscCode",
     label: "IFSC Code",
     type: "text",
+    required: true,
+    spanFull: true,
+  },
+];
+
+
+
+export const loanInfoFields: FormField[] = [
+  {
+    name: "empName",
+    label: "Employee Name",
+    type: "text",
+    required: true,
+    placeholder: "Employee Name",
+    spanFull: true,
+  },
+  {
+    name: "amountReq",
+    label: "Requested Amount",
+    type: "number",
+    required: true,
+    placeholder: "e.g., 500000",
+    spanFull: true,
+  },
+  {
+    name: "note",
+    label: "Note",
+    type: "textarea",
+    required: true,
+    spanFull: true,
+    placeholder: "Need for home",
+  },
+  {
+    name: "staffNote",
+    label: "Staff Note",
+    type: "textarea",
+    required: true,
+    spanFull: true,
+    placeholder: "Urgent requirement",
+  },
+];
+
+
+
+export const approveLoanFields: FormField[] = [
+  { name: "loanAmount", label: "Loan Amount", type: "number", required: true },
+  {
+    name: "installments",
+    label: "Installments",
+    type: "number",
+    required: true,
+  },
+  {
+    name: "paymentReleaseMonth",
+    label: "Payment Release Month",
+    type: "date",
+    required: true,
+  },
+  { name: "staffNote", label: "Staff Note", type: "textarea", spanFull: true },
+];
+
+// --- NEW: Form fields for the decline modal ---
+export const declineLoanFields: FormField[] = [
+  {
+    name: "cancelReason",
+    label: "Cancel Reason",
+    type: "textarea",
     required: true,
     spanFull: true,
   },

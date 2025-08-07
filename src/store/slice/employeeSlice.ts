@@ -1,27 +1,30 @@
-
-
-
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import type { BankDetails } from './bankSlice';
-
 import type { Employee } from '../../types';
+
+
+const API_BASE_URL = 'http://172.50.5.49:3000/employees';
+
+const getAuthToken = (): string | null => {
+  return localStorage.getItem('token'); 
+};
 
 
 export interface FilterState {
   startDate: string;
   endDate: string;
   department: string;
-  designation:string;
+  designation: string;
   location: string;
 }
 
 export interface GeneralInfo {
   status: string;
   empCode: string;
-  name: { first: string; title: string; last: string; };
+  name: { first: string; title: string; last: string };
   id: string;
-  phoneNum: { code: string; num: string; };
+  phoneNum: { code: string; num: string };
   primaryEmail: string;
   gender: string;
 }
@@ -39,12 +42,33 @@ export interface ProfessionalInfo {
   department: string;
 }
 
+export interface PaybackTerm {
+  installment: string;
+  date: string;
+  remaining: string;
+}
+
+export interface LoanDetails {
+  id: string;
+  amountReq: string;
+  amountApp?: string;
+  reqDate: string;
+  paybackTerm?: PaybackTerm;
+  note?: string;
+  staffNote?: string;
+  status: 'pending' | 'approved' | 'declined' | 'cancelled';
+  cancelReason?: string;
+  empName: string;
+  activity?: string[];
+  balance: string;
+}
+
 export interface EmployeeDetail {
-  general: GeneralInfo;
-  professional: ProfessionalInfo;
-  bankDetails: BankDetails | null;
-  pf: any | null;
-  loan: any | null;
+  pf(arg0: string, pf: any): void;
+  professional: any;
+  general: any;
+  bankDetails: any;
+  loan: LoanDetails[] | null;
 }
 
 export interface EmployeeState {
@@ -69,62 +93,107 @@ export const initialState: EmployeeState = {
   error: null,
 };
 
-// --- ASYNC THUNKS (Unchanged) ---
 
-export const fetchEmployees = createAsyncThunk(
+export const fetchEmployees = createAsyncThunk<
+  Employee[],
+  void,
+  { rejectValue: string }
+>(
   'employees/fetchEmployees',
   async (_, { rejectWithValue }) => {
+    const token = getAuthToken();
+    if (!token) {
+      return rejectWithValue('Authentication token not found.');
+    }
+
     try {
-      const response = await axios.get('http://172.50.5.49:3000/employees');
-      return response.data;
-    } catch (error) {
-      return rejectWithValue('Failed to fetch employees');
+      const response = await axios.get(`${API_BASE_URL}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data as Employee[];
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to fetch employees');
+      }
+      return rejectWithValue('An unknown error occurred.');
     }
   }
 );
 
-export const fetchEmployeeDetails = createAsyncThunk(
+export const fetchEmployeeDetails = createAsyncThunk<
+  EmployeeDetail,
+  string,
+  { rejectValue: string }
+>(
   'employees/fetchEmployeeDetails',
   async (employeeCode: string, { rejectWithValue }) => {
+    const token = getAuthToken();
+    if (!token) {
+      return rejectWithValue('Authentication token not found.');
+    }
+
     try {
-      const response = await axios.get(`http://172.50.5.49:3000/employees/all/${employeeCode}`);
+      const response = await axios.get(`${API_BASE_URL}/all/${employeeCode}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       return response.data as EmployeeDetail;
-    } catch (error) {
-      return rejectWithValue('Failed to fetch employee details');
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to fetch employee details');
+      }
+      return rejectWithValue('An unknown error occurred.');
     }
   }
 );
 
-// --- NEW: deleteEmployee Async Thunk (Using ID) ---
 export const deleteEmployee = createAsyncThunk<
-  string, // Returns the ID on success
-  string, // Accepts the ID as an argument
+  string,
+  string,
   { rejectValue: string }
 >(
   'employees/deleteEmployee',
   async (id, { rejectWithValue }) => {
+    const token = getAuthToken();
+    if (!token) {
+      return rejectWithValue('Authentication token not found.');
+    }
+
     try {
-      await axios.delete(`http://172.50.5.49:3000/employees/${id}`); // <-- CHANGED
-      return id; // <-- CHANGED
-    } catch (error) {
-      return rejectWithValue('Failed to delete employee');
+      await axios.delete(`${API_BASE_URL}/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return id;
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to delete employee');
+      }
+      return rejectWithValue('An unknown error occurred.');
     }
   }
 );
 
-// --- NEW: updateEmployeeStatus Async Thunk (Using ID) ---
 export const updateEmployeeStatus = createAsyncThunk<
-  Employee, // Returns the updated employee object from the API
-  { id: string; status: string }, // <-- CHANGED
+  Employee,
+  { id: string; status: string },
   { rejectValue: string }
 >(
   'employees/updateEmployeeStatus',
   async ({ id, status }, { rejectWithValue }) => {
+    const token = getAuthToken();
+    if (!token) {
+      return rejectWithValue('Authentication token not found.');
+    }
+
     try {
-      const response = await axios.patch(`http://172.50.5.49:3000/status/${id}`, { status }); // <-- CHANGED
-      return response.data;
-    } catch (error) {
-      return rejectWithValue('Failed to update employee status');
+      const response = await axios.patch(`${API_BASE_URL}/status/${id}`, { status }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data as Employee;
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to update employee status');
+      }
+      return rejectWithValue('An unknown error occurred.');
     }
   }
 );
@@ -150,7 +219,10 @@ const employeeSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Cases for fetchEmployees
-      .addCase(fetchEmployees.pending, (state) => { state.loading = true; state.error = null; })
+      .addCase(fetchEmployees.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchEmployees.fulfilled, (state, action: PayloadAction<Employee[]>) => {
         state.loading = false;
         state.employees = action.payload;
@@ -160,7 +232,11 @@ const employeeSlice = createSlice({
         state.error = action.payload as string;
       })
       // Cases for fetchEmployeeDetails
-      .addCase(fetchEmployeeDetails.pending, (state) => { state.loading = true; state.error = null; state.currentEmployee = null; })
+      .addCase(fetchEmployeeDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.currentEmployee = null;
+      })
       .addCase(fetchEmployeeDetails.fulfilled, (state, action: PayloadAction<EmployeeDetail>) => {
         state.loading = false;
         state.currentEmployee = action.payload;
@@ -169,18 +245,16 @@ const employeeSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      // --- NEW: Cases for deleteEmployee (using ID) ---
+      // Cases for deleteEmployee
       .addCase(deleteEmployee.fulfilled, (state, action: PayloadAction<string>) => {
-        // action.payload is the ID that was passed to the thunk
         state.employees = state.employees.filter(
           (emp) => emp.id !== action.payload
         );
       })
-      // --- NEW: Cases for updateEmployeeStatus (using ID) ---
+      // Cases for updateEmployeeStatus
       .addCase(updateEmployeeStatus.fulfilled, (state, action: PayloadAction<Employee>) => {
-        // The payload from the API call contains the full updated employee object
-        console.log('Action fulfilled, payload:', action.payload); 
-        const index = state.employees.findIndex(emp => emp.id === action.payload.id); // <-- CHANGED
+        console.log('Action fulfilled, payload:', action.payload);
+        const index = state.employees.findIndex(emp => emp.id === action.payload.id);
         if (index !== -1) {
           state.employees[index] = action.payload;
         }
@@ -193,5 +267,4 @@ export const {
   clearFilters,
 } = employeeSlice.actions;
 
-export const { setEmployees } = employeeSlice.actions;
 export default employeeSlice.reducer;

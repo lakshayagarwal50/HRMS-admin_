@@ -1,4 +1,4 @@
-// src/components/employee/sections/GeneralInfo.tsx
+
 import React from "react";
 import type { EmployeeDetail } from "../../../../store/slice/employeeSlice";
 import {

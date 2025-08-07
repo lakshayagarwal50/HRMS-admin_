@@ -1,16 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import { fetchEmployeeDetails } from './employeeSlice';
 
-// NOTE: We assume the API endpoint for updating is PUT /employees/professional/{id}
-// Please adjust if your endpoint is different.
+
+const API_BASE_URL = 'http://172.50.5.49:3000/employees';
+
+const getAuthToken = (): string | null => {
+  return localStorage.getItem('token'); // Ensure the key matches your auth logic
+};
+
 
 interface ProfessionalInfoPayload {
   [key: string]: any;
 }
 
 interface ApiResponse {
-    message: string;
+  message: string;
 }
 
 interface ProfessionalState {
@@ -23,6 +28,7 @@ const initialState: ProfessionalState = {
   error: null,
 };
 
+
 export const updateProfessionalInfo = createAsyncThunk<
   ApiResponse,
   { professionalId: string; empCode: string; professionalData: ProfessionalInfoPayload },
@@ -30,15 +36,23 @@ export const updateProfessionalInfo = createAsyncThunk<
 >(
   'professional/updateDetails',
   async ({ professionalId, empCode, professionalData }, { dispatch, rejectWithValue }) => {
+    const token = getAuthToken();
+    if (!token) {
+      return rejectWithValue('Authentication token not found.');
+    }
+
     try {
       const response = await axios.patch(
-        `http://localhost:3000/employees/professional/${professionalId}`,
-        professionalData
+        `${API_BASE_URL}/professional/${professionalId}`,
+        professionalData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       dispatch(fetchEmployeeDetails(empCode));
       return response.data as ApiResponse;
-    } catch (error) {
-       if (axios.isAxiosError(error) && error.response) {
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
         return rejectWithValue(error.response.data?.message || 'Failed to update professional info.');
       }
       return rejectWithValue('An unknown error occurred.');
@@ -46,15 +60,24 @@ export const updateProfessionalInfo = createAsyncThunk<
   }
 );
 
+
 const professionalSlice = createSlice({
   name: 'professional',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(updateProfessionalInfo.pending, (state) => { state.submitting = true; state.error = null; })
-      .addCase(updateProfessionalInfo.fulfilled, (state) => { state.submitting = false; })
-      .addCase(updateProfessionalInfo.rejected, (state, action) => { state.submitting = false; state.error = action.payload as string; });
+      .addCase(updateProfessionalInfo.pending, (state) => {
+        state.submitting = true;
+        state.error = null;
+      })
+      .addCase(updateProfessionalInfo.fulfilled, (state) => {
+        state.submitting = false;
+      })
+      .addCase(updateProfessionalInfo.rejected, (state, action) => {
+        state.submitting = false;
+        state.error = action.payload as string;
+      });
   },
 });
 

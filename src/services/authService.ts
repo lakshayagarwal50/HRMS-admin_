@@ -4,7 +4,7 @@ import axios from 'axios';
 import type { LoginCredentials, AuthResponse } from '../types/auth'; // We will define these types next
 
 // const API_URL = 'http://localhost:3000/api';
-const API_URL = 'http://172.50.5.116:3000/api';
+const API_URL = 'http://172.50.5.49:3000/api';
 
 /**
  * @description Sends a POST request to the login endpoint.
