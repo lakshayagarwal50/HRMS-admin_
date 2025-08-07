@@ -1,6 +1,6 @@
 // features/projects/list/pages/ActionDropdown.tsx
 import React, { useState } from "react";
-import type { Project } from "../../../../types";
+import type { Project } from "../../../../types/project";
 
 interface ActionDropdownProps {
   project: Project;
