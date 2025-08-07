@@ -1,40 +1,59 @@
-// features/projects/list/pages/ActionDropdown.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { MoreVertical } from "lucide-react";
 import type { Project } from "../../../../types/project";
 
 interface ActionDropdownProps {
   project: Project;
-  onAction: (action: string, project: Project) => void;
-  options: string[];
+  onAction: (actionName: string, project: Project) => void;
 }
 
 const ActionDropdown: React.FC<ActionDropdownProps> = ({
   project,
   onAction,
-  options,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const actions = [
+    "View Details",
+    "Edit",
+    project.status === "Active" ? "Make Inactive" : "Make Active",
+    "Delete",
+  ];
 
   return (
-    <div className="relative">
+    <div className="relative inline-block text-left" ref={dropdownRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="px-2 py-1 text-sm text-gray-600 hover:text-[#741CDD] focus:outline-none"
+        onClick={() => setOpen((prev) => !prev)}
+        className="p-2 rounded-full hover:bg-gray-100"
       >
-        Actions
+        <MoreVertical size={16} />
       </button>
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-          {options.map((option) => (
+      {open && (
+        <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg focus:outline-none flex flex-col">
+          {actions.map((action, index) => (
             <button
-              key={option}
+              key={index}
               onClick={() => {
-                onAction(option, project);
-                setIsOpen(false);
+                setOpen(false);
+                onAction(action, project);
               }}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
-              {option}
+              {action}
             </button>
           ))}
         </div>

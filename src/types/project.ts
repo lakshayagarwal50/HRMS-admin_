@@ -18,7 +18,7 @@ export interface ProjectResource {
   designation: string;
   allocatedHours: number;
   allocatedFrom: string;
-  allocatedtill: string;
+  allocatedTill: string;
   hoursLogged: number;
   experience: number;
   isDeleted: boolean;

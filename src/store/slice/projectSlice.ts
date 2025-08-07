@@ -285,13 +285,318 @@
 // export const { setFilters, clearFilters, clearError } = projectSlice.actions;
 // export default projectSlice.reducer;
 
-
 // store/slice/projectSlice.ts
-import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-import * as projectApi from "../../features/Projects/api/projectapi";
-import type { Project, ProjectResource, ProjectFilters } from "../../types/project";
 
-// Define interfaces for state and API responses
+// import {
+//   createSlice,
+//   createAsyncThunk,
+//   type PayloadAction,
+// } from "@reduxjs/toolkit";
+// import * as projectApi from "../../features/Projects/api/projectapi";
+// import type {
+//   Project,
+//   ProjectResource,
+//   ProjectFilters,
+// } from "../../types/project";
+
+// // Define interfaces for state and API responses
+// interface ProjectState {
+//   projects: Project[];
+//   currentProject: Project | null;
+//   loading: boolean;
+//   error: string | null;
+//   filters: ProjectFilters;
+// }
+
+// interface ErrorResponse {
+//   message: string;
+// }
+
+// // Initial state
+// const initialState: ProjectState = {
+//   projects: [],
+//   currentProject: null,
+//   loading: false,
+//   error: null,
+//   filters: {
+//     status: "All",
+//     billingType: "All",
+//     startDate: "",
+//     endDate: "",
+//     searchTerm: "",
+//   },
+// };
+
+// // Async thunks for API calls
+// export const fetchProjects = createAsyncThunk<
+//   Project[],
+//   void,
+//   { rejectValue: ErrorResponse }
+// >("project/fetchProjects", async (_, { rejectWithValue }) => {
+//   try {
+//     return await projectApi.fetchProjectsApi();
+//   } catch (error) {
+//     return rejectWithValue(error as ErrorResponse);
+//   }
+// });
+
+// export const fetchProjectById = createAsyncThunk<
+//   Project,
+//   string,
+//   { rejectValue: ErrorResponse }
+// >("project/fetchProjectById", async (id, { rejectWithValue }) => {
+//   try {
+//     return await projectApi.fetchProjectByIdApi(id);
+//   } catch (error) {
+//     return rejectWithValue(error as ErrorResponse);
+//   }
+// });
+
+// export const createProject = createAsyncThunk<
+//   Project,
+//   Omit<Project, "id" | "teamMember" | "isDeleted" | "resources">,
+//   { rejectValue: ErrorResponse }
+// >("project/createProject", async (projectData, { rejectWithValue }) => {
+//   try {
+//     const response = await projectApi.createProjectApi(projectData);
+//     return response.project;
+//   } catch (error) {
+//     return rejectWithValue(error as ErrorResponse);
+//   }
+// });
+
+// export const allocateEmployeeToProject = createAsyncThunk<
+//   { allocationId: string },
+//   { projectId: string; resource: Omit<ProjectResource, "id"> },
+//   { rejectValue: ErrorResponse }
+// >(
+//   "project/allocateEmployeeToProject",
+//   async ({ projectId, resource }, { rejectWithValue }) => {
+//     try {
+//       return await projectApi.allocateEmployeeToProjectApi(projectId, resource);
+//     } catch (error) {
+//       return rejectWithValue(error as ErrorResponse);
+//     }
+//   }
+// );
+
+// export const updateProject = createAsyncThunk<
+//   { projectId: string; updatedFields: Partial<Project> },
+//   { id: string; data: Partial<Project> },
+//   { rejectValue: ErrorResponse }
+// >("project/updateProject", async ({ id, data }, { rejectWithValue }) => {
+//   try {
+//     await projectApi.updateProjectApi(id, data);
+//     return { projectId: id, updatedFields: data };
+//   } catch (error) {
+//     return rejectWithValue(error as ErrorResponse);
+//   }
+// });
+
+// export const updateResourceAllocation = createAsyncThunk<
+//   { resourceId: string; updatedFields: Partial<ProjectResource> },
+//   { resourceId: string; data: Partial<ProjectResource> },
+//   { rejectValue: ErrorResponse }
+// >(
+//   "project/updateResourceAllocation",
+//   async ({ resourceId, data }, { rejectWithValue }) => {
+//     try {
+//       const response = await projectApi.updateResourceAllocationApi(
+//         resourceId,
+//         data
+//       );
+//       return response;
+//     } catch (error) {
+//       return rejectWithValue(error as ErrorResponse);
+//     }
+//   }
+// );
+
+// export const deleteProject = createAsyncThunk<
+//   { projectId: string },
+//   string,
+//   { rejectValue: ErrorResponse }
+// >("project/deleteProject", async (id, { rejectWithValue }) => {
+//   try {
+//     return await projectApi.deleteProjectApi(id);
+//   } catch (error) {
+//     return rejectWithValue(error as ErrorResponse);
+//   }
+// });
+
+// // Create slice
+// const projectSlice = createSlice({
+//   name: "project",
+//   initialState,
+//   reducers: {
+//     setFilters: (state, action: PayloadAction<Partial<ProjectFilters>>) => {
+//       state.filters = { ...state.filters, ...action.payload };
+//     },
+//     clearFilters: (state) => {
+//       state.filters = initialState.filters;
+//     },
+//     clearError: (state) => {
+//       state.error = null;
+//     },
+//   },
+//   extraReducers: (builder) => {
+//     // Fetch all projects
+//     builder
+//       .addCase(fetchProjects.pending, (state) => {
+//         state.loading = true;
+//         state.error = null;
+//       })
+//       .addCase(fetchProjects.fulfilled, (state, action) => {
+//         state.loading = false;
+//         state.projects = action.payload;
+//       })
+//       .addCase(fetchProjects.rejected, (state, action) => {
+//         state.loading = false;
+//         state.error = action.payload?.message || "Failed to fetch projects";
+//       });
+
+//     // Fetch single project
+//     builder
+//       .addCase(fetchProjectById.pending, (state) => {
+//         state.loading = true;
+//         state.error = null;
+//         state.currentProject = null;
+//       })
+//       .addCase(fetchProjectById.fulfilled, (state, action) => {
+//         state.loading = false;
+//         state.currentProject = action.payload;
+//       })
+//       .addCase(fetchProjectById.rejected, (state, action) => {
+//         state.loading = false;
+//         state.error = action.payload?.message || "Failed to fetch project";
+//         state.currentProject = null;
+//       });
+
+//     // Create project
+//     builder
+//       .addCase(createProject.pending, (state) => {
+//         state.loading = true;
+//         state.error = null;
+//       })
+//       .addCase(createProject.fulfilled, (state, action) => {
+//         state.loading = false;
+//         state.projects.push(action.payload);
+//       })
+//       .addCase(createProject.rejected, (state, action) => {
+//         state.loading = false;
+//         state.error = action.payload?.message || "Failed to create project";
+//       });
+
+//     // Allocate employee to project
+//     builder
+//       .addCase(allocateEmployeeToProject.pending, (state) => {
+//         state.loading = true;
+//         state.error = null;
+//       })
+//       .addCase(allocateEmployeeToProject.fulfilled, (state, action) => {
+//         state.loading = false;
+//         if (
+//           state.currentProject &&
+//           state.currentProject.id === action.meta.arg.projectId
+//         ) {
+//           state.currentProject.resources?.push({
+//             ...action.meta.arg.resource,
+//             id: action.payload.allocationId,
+//           } as ProjectResource);
+//         }
+//       })
+//       .addCase(allocateEmployeeToProject.rejected, (state, action) => {
+//         state.loading = false;
+//         state.error = action.payload?.message || "Failed to allocate employee";
+//       });
+
+//     // Update project
+//     builder
+//       .addCase(updateProject.pending, (state) => {
+//         state.loading = true;
+//         state.error = null;
+//       })
+//       .addCase(updateProject.fulfilled, (state, action) => {
+//         state.loading = false;
+//         state.projects = state.projects.map((project) =>
+//           project.id === action.payload.projectId
+//             ? { ...project, ...action.payload.updatedFields }
+//             : project
+//         );
+//         if (
+//           state.currentProject &&
+//           state.currentProject.id === action.payload.projectId
+//         ) {
+//           state.currentProject = {
+//             ...state.currentProject,
+//             ...action.payload.updatedFields,
+//           };
+//         }
+//       })
+//       .addCase(updateProject.rejected, (state, action) => {
+//         state.loading = false;
+//         state.error = action.payload?.message || "Failed to update project";
+//       });
+
+//     // Update resource allocation
+//     builder
+//       .addCase(updateResourceAllocation.pending, (state) => {
+//         state.loading = true;
+//         state.error = null;
+//       })
+//       .addCase(updateResourceAllocation.fulfilled, (state, action) => {
+//         state.loading = false;
+//         if (state.currentProject && state.currentProject.resources) {
+//           state.currentProject.resources = state.currentProject.resources.map(
+//             (resource) =>
+//               resource.id === action.payload.resourceId
+//                 ? { ...resource, ...action.payload.updatedFields }
+//                 : resource
+//           );
+//         }
+//       })
+//       .addCase(updateResourceAllocation.rejected, (state, action) => {
+//         state.loading = false;
+//         state.error =
+//           action.payload?.message || "Failed to update resource allocation";
+//       });
+
+//     // Delete project
+//     builder
+//       .addCase(deleteProject.pending, (state) => {
+//         state.loading = true;
+//         state.error = null;
+//       })
+//       .addCase(deleteProject.fulfilled, (state, action) => {
+//         state.loading = false;
+//         state.projects = state.projects.filter(
+//           (project) => project.id !== action.payload.projectId
+//         );
+//       })
+//       .addCase(deleteProject.rejected, (state, action) => {
+//         state.loading = false;
+//         state.error = action.payload?.message || "Failed to delete project";
+//       });
+//   },
+// });
+
+// export const { setFilters, clearFilters, clearError } = projectSlice.actions;
+// export default projectSlice.reducer;
+
+
+import {
+  createSlice,
+  createAsyncThunk,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
+import * as projectApi from "../../features/Projects/api/projectapi";
+import type {
+  Project,
+  ProjectResource,
+  ProjectFilters,
+} from "../../types/project";
+
+// ### Interfaces ###
 interface ProjectState {
   projects: Project[];
   currentProject: Project | null;
@@ -304,7 +609,7 @@ interface ErrorResponse {
   message: string;
 }
 
-// Initial state
+// ### Initial State ###
 const initialState: ProjectState = {
   projects: [],
   currentProject: null,
@@ -319,7 +624,8 @@ const initialState: ProjectState = {
   },
 };
 
-// Async thunks for API calls
+// ### Async Thunks ###
+
 export const fetchProjects = createAsyncThunk<
   Project[],
   void,
@@ -357,18 +663,6 @@ export const createProject = createAsyncThunk<
   }
 });
 
-export const allocateEmployeeToProject = createAsyncThunk<
-  { allocationId: string },
-  { projectId: string; resource: Omit<ProjectResource, "id"> },
-  { rejectValue: ErrorResponse }
->("project/allocateEmployeeToProject", async ({ projectId, resource }, { rejectWithValue }) => {
-  try {
-    return await projectApi.allocateEmployeeToProjectApi(projectId, resource);
-  } catch (error) {
-    return rejectWithValue(error as ErrorResponse);
-  }
-});
-
 export const updateProject = createAsyncThunk<
   { projectId: string; updatedFields: Partial<Project> },
   { id: string; data: Partial<Project> },
@@ -377,19 +671,6 @@ export const updateProject = createAsyncThunk<
   try {
     await projectApi.updateProjectApi(id, data);
     return { projectId: id, updatedFields: data };
-  } catch (error) {
-    return rejectWithValue(error as ErrorResponse);
-  }
-});
-
-export const updateResourceAllocation = createAsyncThunk<
-  { resourceId: string; updatedFields: Partial<ProjectResource> },
-  { resourceId: string; data: Partial<ProjectResource> },
-  { rejectValue: ErrorResponse }
->("project/updateResourceAllocation", async ({ resourceId, data }, { rejectWithValue }) => {
-  try {
-    const response = await projectApi.updateResourceAllocationApi(resourceId, data);
-    return response;
   } catch (error) {
     return rejectWithValue(error as ErrorResponse);
   }
@@ -407,7 +688,56 @@ export const deleteProject = createAsyncThunk<
   }
 });
 
-// Create slice
+export const allocateEmployeeToProject = createAsyncThunk<
+  { allocationId: string },
+  { projectId: string; resource: Omit<ProjectResource, "id"> },
+  { rejectValue: ErrorResponse }
+>(
+  "project/allocateEmployeeToProject",
+  async ({ projectId, resource }, { rejectWithValue }) => {
+    try {
+      return await projectApi.allocateEmployeeToProjectApi(projectId, resource);
+    } catch (error) {
+      return rejectWithValue(error as ErrorResponse);
+    }
+  }
+);
+
+export const updateResourceAllocation = createAsyncThunk<
+  { resourceId: string; updatedFields: Partial<ProjectResource> },
+  { resourceId: string; data: Partial<ProjectResource> },
+  { rejectValue: ErrorResponse }
+>(
+  "project/updateResourceAllocation",
+  async ({ resourceId, data }, { rejectWithValue }) => {
+    try {
+      const response = await projectApi.updateResourceAllocationApi(
+        resourceId,
+        data
+      );
+      return response;
+    } catch (error) {
+      return rejectWithValue(error as ErrorResponse);
+    }
+  }
+);
+
+export const releaseResource = createAsyncThunk<
+  { resourceId: string },
+  string,
+  { rejectValue: ErrorResponse }
+>("project/releaseResource", async (resourceId, { rejectWithValue }) => {
+  try {
+    await projectApi.updateResourceAllocationApi(resourceId, {
+      isDeleted: true,
+    });
+    return { resourceId };
+  } catch (error) {
+    return rejectWithValue(error as ErrorResponse);
+  }
+});
+
+// ### Slice Definition ###
 const projectSlice = createSlice({
   name: "project",
   initialState,
@@ -459,7 +789,6 @@ const projectSlice = createSlice({
     builder
       .addCase(createProject.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(createProject.fulfilled, (state, action) => {
         state.loading = false;
@@ -470,31 +799,10 @@ const projectSlice = createSlice({
         state.error = action.payload?.message || "Failed to create project";
       });
 
-    // Allocate employee to project
-    builder
-      .addCase(allocateEmployeeToProject.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(allocateEmployeeToProject.fulfilled, (state, action) => {
-        state.loading = false;
-        if (state.currentProject && state.currentProject.id === action.meta.arg.projectId) {
-            state.currentProject.resources?.push({
-                ...action.meta.arg.resource,
-                id: action.payload.allocationId,
-            } as ProjectResource);
-        }
-      })
-      .addCase(allocateEmployeeToProject.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload?.message || "Failed to allocate employee";
-      });
-
     // Update project
     builder
       .addCase(updateProject.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(updateProject.fulfilled, (state, action) => {
         state.loading = false;
@@ -503,8 +811,14 @@ const projectSlice = createSlice({
             ? { ...project, ...action.payload.updatedFields }
             : project
         );
-        if (state.currentProject && state.currentProject.id === action.payload.projectId) {
-            state.currentProject = { ...state.currentProject, ...action.payload.updatedFields };
+        if (
+          state.currentProject &&
+          state.currentProject.id === action.payload.projectId
+        ) {
+          state.currentProject = {
+            ...state.currentProject,
+            ...action.payload.updatedFields,
+          };
         }
       })
       .addCase(updateProject.rejected, (state, action) => {
@@ -512,32 +826,10 @@ const projectSlice = createSlice({
         state.error = action.payload?.message || "Failed to update project";
       });
 
-    // Update resource allocation
-    builder
-      .addCase(updateResourceAllocation.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateResourceAllocation.fulfilled, (state, action) => {
-        state.loading = false;
-        if (state.currentProject && state.currentProject.resources) {
-            state.currentProject.resources = state.currentProject.resources.map(resource =>
-                resource.id === action.payload.resourceId
-                    ? { ...resource, ...action.payload.updatedFields }
-                    : resource
-            );
-        }
-      })
-      .addCase(updateResourceAllocation.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload?.message || "Failed to update resource allocation";
-      });
-
     // Delete project
     builder
       .addCase(deleteProject.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(deleteProject.fulfilled, (state, action) => {
         state.loading = false;
@@ -548,6 +840,53 @@ const projectSlice = createSlice({
       .addCase(deleteProject.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || "Failed to delete project";
+      });
+
+    // Allocate employee
+    builder
+      .addCase(allocateEmployeeToProject.fulfilled, (state, action) => {
+        if (
+          state.currentProject &&
+          state.currentProject.id === action.meta.arg.projectId
+        ) {
+          state.currentProject.resources?.push({
+            ...action.meta.arg.resource,
+            id: action.payload.allocationId,
+          });
+        }
+      })
+      .addCase(allocateEmployeeToProject.rejected, (state, action) => {
+        state.error = action.payload?.message || "Failed to allocate employee";
+      });
+
+    // Update resource allocation
+    builder
+      .addCase(updateResourceAllocation.fulfilled, (state, action) => {
+        if (state.currentProject?.resources) {
+          state.currentProject.resources = state.currentProject.resources.map(
+            (resource) =>
+              resource.id === action.payload.resourceId
+                ? { ...resource, ...action.payload.updatedFields }
+                : resource
+          );
+        }
+      })
+      .addCase(updateResourceAllocation.rejected, (state, action) => {
+        state.error =
+          action.payload?.message || "Failed to update resource allocation";
+      });
+
+    // Release resource (soft delete)
+    builder
+      .addCase(releaseResource.fulfilled, (state, action) => {
+        if (state.currentProject?.resources) {
+          state.currentProject.resources = state.currentProject.resources.filter(
+            (resource) => resource.id !== action.payload.resourceId
+          );
+        }
+      })
+      .addCase(releaseResource.rejected, (state, action) => {
+        state.error = action.payload?.message || "Failed to release resource";
       });
   },
 });

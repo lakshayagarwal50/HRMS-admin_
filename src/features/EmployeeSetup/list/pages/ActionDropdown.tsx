@@ -52,7 +52,7 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
                 setOpen(false);
                 onAction(action, employee);
               }}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:bg-[#f5f5f5]"
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
               {action}
             </button>
