@@ -12,6 +12,7 @@ import AlertModal from '../../../components/Modal/AlertModal';
 import { fetchDepartments, updateDepartment, deactivateDepartment, type Department } from '../../../store/slice/departmentSlice';
 import type { RootState, AppDispatch } from '../../../store/store';
 import Table, { type Column } from "../../../components/common/Table"; 
+import { Link } from 'react-router-dom';
 
 // This type extends the core Department type with client-side properties for display
 type DepartmentDisplay = Department & { s_no: number };
@@ -147,7 +148,9 @@ const DepartmentPage: React.FC = () => {
                 Dashboard
               </a>
               <ChevronRight className="w-4 h-4 mx-1" />
-              <span>Getting Started</span>
+             <Link to="/getting-started" className="hover:text-gray-700">
+                Getting Started
+              </Link>
               <ChevronRight className="w-4 h-4 mx-1" />
               <span className="font-medium text-gray-800">Department</span>
             </nav>

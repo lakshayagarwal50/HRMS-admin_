@@ -13,6 +13,7 @@ import OrganizationSettingsPage from "../pages/GettingStarted/OraganisationSetti
 import WebCheckinSettingsPage from "../pages/GettingStarted/WebCheckinSettings/WebCheckinSettingsPage";
 import LocationPage from "../pages/GettingStarted/Location/LocationPage";
 import HolidayConfigurationPage from "../pages/GettingStarted/HolidayConfiguration/HolidayConfigurationPage";
+import LeaveSetupPage from "../pages/LeaveConfiguration/LeaveSetupPage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
@@ -87,6 +88,7 @@ const AppRoutes = () => (
         <Route path="/web-checkin-setting" element={<WebCheckinSettingsPage/>}/>
         <Route path="/location" element={<LocationPage/>}/>
         <Route path="/holiday-configuration" element={<HolidayConfigurationPage />} />
+        <Route path="/leave/setup" element={<LeaveSetupPage />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />
