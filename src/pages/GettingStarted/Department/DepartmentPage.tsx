@@ -1,23 +1,62 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { MoreHorizontal, ChevronRight, Plus, X as AlertIcon } from 'lucide-react';
-
-// --- Component Imports ---
-
-import CreateDepartment from "../../../components/GettingStarted/CreateDepartment";
-import UpdateDepartment from '../../../components/GettingStarted/UpdateDepartment';
-import AlertModal from '../../../components/Modal/AlertModal';
+import { MoreHorizontal, ChevronRight, Plus, X as AlertIcon, RefreshCw, ServerCrash } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // --- Redux Imports ---
 import { fetchDepartments, updateDepartment, deactivateDepartment, type Department } from '../../../store/slice/departmentSlice';
 import type { RootState, AppDispatch } from '../../../store/store';
-import Table, { type Column } from "../../../components/common/Table"; 
 
-// This type extends the core Department type with client-side properties for display
+// --- Component Imports ---
+import Table, { type Column } from "../../../components/common/Table"; 
+import CreateDepartment from "../../../components/GettingStarted/CreateDepartment";
+import UpdateDepartment from '../../../components/GettingStarted/UpdateDepartment';
+import AlertModal from '../../../components/Modal/AlertModal';
+
+// --- TYPE DEFINITION for display data ---
 type DepartmentDisplay = Department & { s_no: number };
 
+// --- UI State Components ---
+const TableSkeleton: React.FC = () => (
+    <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
+        <div className="space-y-3">
+            {[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-gray-200 rounded-md w-full"></div>)}
+        </div>
+    </div>
+);
+
+const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ onRetry, error }) => (
+    <div className="text-center py-10 px-4 bg-red-50 border border-red-200 rounded-lg">
+        <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
+        <h3 className="mt-2 text-lg font-semibold text-red-800">Failed to Load Data</h3>
+        <p className="mt-1 text-sm text-red-600">{error || 'An unknown error occurred.'}</p>
+        <div className="mt-6">
+            <button type="button" onClick={onRetry} className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                <RefreshCw className="-ml-1 mr-2 h-5 w-5" />
+                Try Again
+            </button>
+        </div>
+    </div>
+);
+
+const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
+    <div className="text-center py-10 px-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <h3 className="mt-2 text-lg font-semibold text-gray-800">No Departments Found</h3>
+        <p className="mt-1 text-sm text-gray-600">
+            Get started by adding a new department.
+        </p>
+        <div className="mt-6">
+            <button type="button" onClick={onAddNew} className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
+                <Plus size={20} className="-ml-1 mr-2" />
+                Add New Department
+            </button>
+        </div>
+    </div>
+);
+
+
+// --- MAIN PAGE COMPONENT ---
 const DepartmentPage: React.FC = () => {
-  // --- Use hooks to get state and the dispatch function ---
   const dispatch = useDispatch<AppDispatch>();
   const {
     items: departments,
@@ -30,7 +69,6 @@ const DepartmentPage: React.FC = () => {
   const [isCreatePanelOpen, setCreatePanelOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   
-  // Updated alert state to handle both active and inactive actions
   const [alertData, setAlertData] = useState<{
     isOpen: boolean;
     department: Department | null;
@@ -41,42 +79,28 @@ const DepartmentPage: React.FC = () => {
     actionType: null,
   });
 
-  // Fetch data on initial component mount
   useEffect(() => {
     if (departmentStatus === 'idle') {
       dispatch(fetchDepartments());
     }
   }, [departmentStatus, dispatch]);
 
-  const toggleDropdown = (id: string) => {
-    setActiveDropdown(activeDropdown === id ? null : id);
-  };
-
   const handleEditClick = (department: Department) => {
     setEditingDepartment(department);
     setActiveDropdown(null);
   };
 
-  // Handler to open the modal for making a department inactive
-  const handleInactiveClick = (department: Department) => {
-    setAlertData({ isOpen: true, department, actionType: 'inactive' });
+  const handleStatusChangeClick = (department: Department, newStatus: 'active' | 'inactive') => {
+    setAlertData({ isOpen: true, department, actionType: newStatus });
     setActiveDropdown(null);
   };
 
-  // Handler to open the modal for making a department active
-  const handleActiveClick = (department: Department) => {
-    setAlertData({ isOpen: true, department, actionType: 'active' });
-    setActiveDropdown(null);
-  };
-
-  // Single confirmation handler that dispatches the correct action
   const handleConfirmAction = () => {
-    if (!alertData.department) return;
+    if (!alertData.department || !alertData.actionType) return;
 
     if (alertData.actionType === 'inactive') {
       dispatch(deactivateDepartment(alertData.department));
-    } else if (alertData.actionType === 'active') {
-      // Use the existing updateDepartment thunk to change status back to active
+    } else {
       const departmentToUpdate = { ...alertData.department, status: 'active' as const };
       dispatch(updateDepartment(departmentToUpdate));
     }
@@ -84,7 +108,6 @@ const DepartmentPage: React.FC = () => {
     setAlertData({ isOpen: false, department: null, actionType: null });
   };
 
-  // Effect to close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -94,11 +117,6 @@ const DepartmentPage: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const tableData: DepartmentDisplay[] = departments.map((dep, index) => ({
-    ...dep,
-    s_no: index + 1,
-  }));
 
   const columns: Column<DepartmentDisplay>[] = [
     { key: 's_no', header: 'S.No' },
@@ -114,17 +132,16 @@ const DepartmentPage: React.FC = () => {
     { key: 'action', header: 'Action',
       render: (row) => (
         <div className="relative">
-          <button onClick={() => toggleDropdown(row.id)} className="text-gray-500 hover:text-[#8A2BE2] p-1 rounded-full">
+          <button onClick={() => setActiveDropdown(activeDropdown === row.id ? null : row.id)} className="text-gray-500 hover:text-[#8A2BE2] p-1 rounded-full">
             <MoreHorizontal size={20} />
           </button>
           {activeDropdown === row.id && (
             <div ref={dropdownRef} className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-20">
               <a href="#" onClick={(e) => { e.preventDefault(); handleEditClick(row); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
-              {/* Conditionally render Active/Inactive link */}
               {row.status === 'active' ? (
-                <a href="#" onClick={(e) => { e.preventDefault(); handleInactiveClick(row); }} className="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100">Inactive</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handleStatusChangeClick(row, 'inactive'); }} className="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100">Inactive</a>
               ) : (
-                <a href="#" onClick={(e) => { e.preventDefault(); handleActiveClick(row); }} className="block px-4 py-2 text-sm text-green-700 hover:bg-gray-100">Active</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handleStatusChangeClick(row, 'active'); }} className="block px-4 py-2 text-sm text-green-700 hover:bg-gray-100">Active</a>
               )}
             </div>
           )}
@@ -133,21 +150,45 @@ const DepartmentPage: React.FC = () => {
     },
   ];
 
+  const renderContent = () => {
+    if ((departmentStatus === 'loading' || departmentStatus === 'idle') && departments.length === 0) {
+      return <TableSkeleton />;
+    }
+
+    if (departmentStatus === 'failed' && departments.length === 0) {
+      return <ErrorState onRetry={() => dispatch(fetchDepartments())} error={error} />;
+    }
+
+    if (departmentStatus === 'succeeded' && departments.length === 0) {
+      return <EmptyState onAddNew={() => setCreatePanelOpen(true)} />;
+    }
+    
+    const tableData = departments.map((dep, index) => ({ ...dep, s_no: index + 1 }));
+
+    return (
+      <Table
+        columns={columns}
+        data={tableData}
+        showSearch={true}
+        searchPlaceholder="Search Departments..."
+      />
+    );
+  };
+
   return (
     <div className="bg-gray-50 min-h-full p-4 sm:p-6 lg:p-8">
       <header className="mb-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Department</h1>
-            <nav
-              aria-label="Breadcrumb"
-              className="mt-1 flex items-center text-sm text-gray-500"
-            >
-              <a href="/dashboard" className="hover:text-gray-700">
+            <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
+              <Link to="/dashboard" className="hover:text-gray-700">
                 Dashboard
-              </a>
+              </Link>
               <ChevronRight className="w-4 h-4 mx-1" />
-              <span>Getting Started</span>
+             <Link to="/getting-started" className="hover:text-gray-700">
+                Getting Started
+              </Link>
               <ChevronRight className="w-4 h-4 mx-1" />
               <span className="font-medium text-gray-800">Department</span>
             </nav>
@@ -159,28 +200,15 @@ const DepartmentPage: React.FC = () => {
         </div>
       </header>
       <main>
-        {departmentStatus === 'loading' && <div className="text-center p-4">Loading departments...</div>}
-        {departmentStatus === 'failed' && <div className="text-center p-4 text-red-500">Error: {error}</div>}
-        {departmentStatus === 'succeeded' && (
-          <Table
-            columns={columns}
-            data={tableData}
-            showSearch={true}
-            searchPlaceholder="Search Departments..."
-          />
-        )}
+        {renderContent()}
       </main>
       
-      {/* Side Panels and Modals */}
       <CreateDepartment isOpen={isCreatePanelOpen} onClose={() => setCreatePanelOpen(false)} />
-      
       <UpdateDepartment 
         isOpen={!!editingDepartment} 
         onClose={() => setEditingDepartment(null)} 
         departmentData={editingDepartment} 
       />
-      
-      {/* AlertModal is now dynamic based on the action type */}
       <AlertModal
         isOpen={alertData.isOpen}
         onClose={() => setAlertData({ isOpen: false, department: null, actionType: null })}

@@ -1,157 +1,55 @@
-// import React, { useState } from 'react';
-// import { Image } from 'lucide-react';
-
-// // Define the shape of the form data
-// interface OrgSettingsData {
-//   companyName: string;
-//   email: string;
-//   fullName: string;
-//   contactNumber: string;
-//   website: string;
-//   serviceTaxNumber: string;
-//   pan: string;
-//   adharNumber: string;
-//   gstin: string;
-//   addressLine1: string;
-//   addressLine2: string;
-//   state: string;
-//   zipCode: string;
-// }
-
-// // Initial data based on the screenshot
-// const initialData: OrgSettingsData = {
-//   companyName:'Appinventiv',
-//   email: '',
-//   fullName: '',
-//   contactNumber: '',
-//   website: '',
-//   serviceTaxNumber: '',
-//   pan: '',
-//   adharNumber: '',
-//   gstin: '',
-//   addressLine1: '',
-//   addressLine2: '',
-//   state: '',
-//   zipCode: '',
-// };
-
-// // A reusable input component for this form, now with a placeholder prop
-// const FormInput: React.FC<{ 
-//   label: string; 
-//   value: string; 
-//   name: keyof OrgSettingsData; 
-//   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-//   placeholder?: string; 
-// }> = ({ label, value, name, onChange, placeholder }) => (
-//   <div>
-//     <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
-//       {label}
-//     </label>
-//     <input
-//       type="text"
-//       id={name}
-//       name={name}
-//       value={value}
-//       onChange={onChange}
-//       placeholder={placeholder}
-//       className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 transition"
-//     />
-//   </div>
-// );
-
-// const OrganizationSettingsPage: React.FC = () => {
-//   const [formData, setFormData] = useState(initialData);
-
-//   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-//     const { name, value } = e.target;
-//     setFormData(prev => ({ ...prev, [name]: value }));
-//   };
-
-//   return (
-//     <div className="w-full">
-//       {/* Page Header */}
-//       <header className="bg-white shadow-sm mb-8">
-//         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-//           <h1 className="text-2xl font-bold text-gray-900">Organization Settings</h1>
-//           <nav aria-label="Breadcrumb" className="mt-1">
-//             <ol className="flex items-center space-x-2 text-sm">
-//               <li><a href="/dashboard" className="text-gray-500 hover:text-gray-700">Dashboard</a></li>
-//               <li><span className="text-gray-500">/</span></li>
-//               <li><a href="/getting-started" className="text-gray-500 hover:text-gray-700">Getting Started</a></li>
-//               <li><span className="text-gray-500">/</span></li>
-//               <li><span className="text-gray-900 font-medium">Organization Settings</span></li>
-//             </ol>
-//           </nav>
-//         </div>
-//       </header>
-
-//       {/* Main Form Content */}
-//       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-//         <div className="bg-white p-8 rounded-lg shadow-md">
-//           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-//             {/* Logo Section */}
-//             <div className="md:col-span-1">
-//               <h3 className="text-sm font-medium text-gray-700 mb-1">Logo</h3>
-//               <div className="w-40 h-40 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-//                 <Image className="text-gray-400" size={48} />
-//               </div>
-//             </div>
-
-//             {/* Form Fields Section */}
-//             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-//               <div>
-//                 <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
-//                 <select id="companyName" name="companyName" value={formData.companyName} onChange={handleChange} className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 transition">
-//                   <option>Appinventiv</option>
-//                   <option>Another Company</option>
-//                 </select>
-//               </div>
-//               <FormInput label="Email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter email address" />
-//               <FormInput label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Enter full name" />
-//               <FormInput label="Contact Number" name="contactNumber" value={formData.contactNumber} onChange={handleChange} placeholder="Enter contact number" />
-//               <FormInput label="Website" name="website" value={formData.website} onChange={handleChange} placeholder="https://example.com" />
-//               <FormInput label="Service Tax Number" name="serviceTaxNumber" value={formData.serviceTaxNumber} onChange={handleChange} placeholder="Enter service tax number" />
-//               <FormInput label="P.A.N." name="pan" value={formData.pan} onChange={handleChange} placeholder="Enter P.A.N. number" />
-//               <FormInput label="Adhar Number" name="adharNumber" value={formData.adharNumber} onChange={handleChange} placeholder="Enter Adhar number" />
-//               <FormInput label="GSTIN" name="gstin" value={formData.gstin} onChange={handleChange} placeholder="Enter GSTIN" />
-//               <FormInput label="Address Line1" name="addressLine1" value={formData.addressLine1} onChange={handleChange} placeholder="Enter address line 1" />
-//               <FormInput label="Address Line2" name="addressLine2" value={formData.addressLine2} onChange={handleChange} placeholder="Enter address line 2" />
-//               <FormInput label="State" name="state" value={formData.state} onChange={handleChange} placeholder="Enter state" />
-//               <FormInput label="Zip Code" name="zipCode" value={formData.zipCode} onChange={handleChange} placeholder="Enter zip code" />
-//             </div>
-//           </div>
-          
-//           {/* Action Buttons */}
-//           <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end space-x-4">
-//             <button type="button" className="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 transition-colors">
-//               Cancel
-//             </button>
-//             <button type="submit" className="px-6 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 shadow-md transition-all">
-//               Save Changes
-//             </button>
-//           </div>
-//         </div>
-//       </main>
-//     </div>
-//   );
-// };
-
-// export default OrganizationSettingsPage;
-
-
-import React, { useState, useEffect, type ChangeEvent } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Image, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback, type ChangeEvent } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Image, X, RefreshCw, ServerCrash, Upload } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 // --- Redux Imports ---
 import {
   fetchOrganizationSettings,
   updateOrganizationSettings,
   type OrganizationSettings,
-} from '../../../store/slice/organizationSlice'; // Adjust path as needed
-import type { AppDispatch, RootState } from '../../../store/store'; // Adjust path as needed
+} from '../../../store/slice/organizationSlice'; // Adjust path
+import type { RootState, AppDispatch } from '../../../store/store'; // Adjust path
 
-// --- Reusable Form Input Component ---
+// --- UI State Components ---
+const FormSkeleton: React.FC = () => (
+    <div className="w-full bg-white p-8 rounded-lg shadow-md animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-1">
+                <div className="h-6 bg-gray-200 rounded w-1/4 mb-2"></div>
+                <div className="w-40 h-40 bg-gray-200 rounded-lg"></div>
+            </div>
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[...Array(12)].map((_, i) => (
+                    <div key={i}>
+                        <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
+                        <div className="h-10 bg-gray-200 rounded-md w-full"></div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
+const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ onRetry, error }) => (
+  <div className="text-center py-10 px-4 bg-red-50 border border-red-200 rounded-lg">
+    <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
+    <h3 className="mt-2 text-lg font-semibold text-red-800">Failed to Load Settings</h3>
+    <p className="mt-1 text-sm text-red-600">{error || 'An unknown error occurred.'}</p>
+    <div className="mt-6">
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700"
+      >
+        <RefreshCw className="-ml-1 mr-2 h-5 w-5" />
+        Try Again
+      </button>
+    </div>
+  </div>
+);
+
+// --- Reusable Input Component ---
 const FormInput: React.FC<{
   label: string;
   name: keyof OrganizationSettings;
@@ -167,7 +65,7 @@ const FormInput: React.FC<{
       type="text"
       id={name}
       name={name}
-      value={value}
+      value={value || ''}
       onChange={onChange}
       placeholder={placeholder}
       className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 transition"
@@ -178,84 +76,131 @@ const FormInput: React.FC<{
 // --- Main Page Component ---
 const OrganizationSettingsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { data: orgData, status, error } = useSelector((state: RootState) => state.organizationSettings);
-
-  // Local state for form fields, initialized from Redux store
+  const navigate = useNavigate(); // Hook for navigation
+  const { data: settings, status, error } = useSelector((state: RootState) => state.organizationSettings);
+  
   const [formData, setFormData] = useState<OrganizationSettings | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch initial data when the component mounts
   useEffect(() => {
-    dispatch(fetchOrganizationSettings());
-  }, [dispatch]);
-
-  // Populate local form state when data is fetched from Redux
-  useEffect(() => {
-    if (orgData) {
-      setFormData(orgData);
-      if (orgData.logoUrl) {
-        setLogoPreview(orgData.logoUrl);
-      }
+    if (status === 'idle') {
+      dispatch(fetchOrganizationSettings());
     }
-  }, [orgData]);
+  }, [status, dispatch]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  useEffect(() => {
+    if (settings) {
+      setFormData(settings);
+      setLogoPreview(settings.logoUrl || null);
+    }
+  }, [settings]);
+
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (formData) {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
+    setFormData(prev => (prev ? { ...prev, [name]: value } : null));
+  }, []);
 
-  const handleLogoChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
+  const handleLogoChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setLogoPreview(result);
+        setFormData(prev => (prev ? { ...prev, logoUrl: result } : null));
+      };
+      reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleCancel = useCallback(() => {
+    navigate('/getting-started'); // Navigate to the getting started page
+  }, [navigate]);
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (formData) {
-      // In a real app, you would handle the file upload first,
-      // get the URL, and then update the settings.
-      // For now, we'll just log it and dispatch the text data.
-      console.log("Logo file to upload:", logoFile);
       dispatch(updateOrganizationSettings(formData));
     }
-  };
-  
-  // Show a loading spinner while fetching data
-  if (status === 'loading' && !formData) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <Loader2 className="animate-spin text-purple-600" size={48} />
-      </div>
-    );
-  }
+  }, [formData, dispatch]);
 
-  // Show an error message if fetching fails
-  if (status === 'failed') {
-    return <div className="text-red-500 p-8">Error: {error}</div>;
-  }
-  
-  // Render nothing if formData is not yet available
-  if (!formData) {
-      return null;
-  }
+  const renderContent = () => {
+    if ((status === 'loading' || status === 'idle') && !formData) {
+      return <FormSkeleton />;
+    }
+
+    if (status === 'failed' && !formData) {
+      return <ErrorState onRetry={() => dispatch(fetchOrganizationSettings())} error={error} />;
+    }
+
+    if (!formData) {
+      return null; // Should not happen if logic is correct, but a safe fallback
+    }
+
+    return (
+      <form onSubmit={handleSubmit}>
+        <div className="bg-white p-8 rounded-lg shadow-md">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-1">
+              <h3 className="text-sm font-medium text-gray-700 mb-1">Logo</h3>
+              <div 
+                className="w-40 h-40 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer relative group"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input type="file" ref={fileInputRef} onChange={handleLogoChange} className="hidden" accept="image/*" />
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Company Logo" className="h-full w-full object-cover rounded-lg" />
+                ) : (
+                  <Image className="text-gray-400" size={48} />
+                )}
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-center justify-center transition-opacity rounded-lg">
+                  <Upload className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={32} />
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormInput label="Company Name" name="companyName" value={formData.companyName} onChange={handleChange} placeholder="Enter company name" />
+              <FormInput label="Email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter email address" />
+              <FormInput label="Contact Number" name="contactNumber" value={formData.contactNumber} onChange={handleChange} placeholder="Enter contact number" />
+              <FormInput label="Website" name="website" value={formData.website} onChange={handleChange} placeholder="https://example.com" />
+              <FormInput label="Service Tax Number" name="serviceTaxNumber" value={formData.serviceTaxNumber} onChange={handleChange} placeholder="Enter service tax number" />
+              <FormInput label="P.A.N." name="pan" value={formData.pan} onChange={handleChange} placeholder="Enter P.A.N. number" />
+              <FormInput label="Aadhaar Number" name="aadhaarNumber" value={formData.aadhaarNumber} onChange={handleChange} placeholder="Enter Aadhaar number" />
+              <FormInput label="GSTIN" name="gstin" value={formData.gstin} onChange={handleChange} placeholder="Enter GSTIN" />
+              <FormInput label="Address Line 1" name="addressLine1" value={formData.addressLine1} onChange={handleChange} placeholder="Enter address line 1" />
+              <FormInput label="Address Line 2" name="addressLine2" value={formData.addressLine2} onChange={handleChange} placeholder="Enter address line 2" />
+              <FormInput label="State" name="state" value={formData.state} onChange={handleChange} placeholder="Enter state" />
+              <FormInput label="Zip Code" name="zipCode" value={formData.zipCode} onChange={handleChange} placeholder="Enter zip code" />
+            </div>
+          </div>
+          
+          <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end space-x-4">
+            <button type="button" onClick={handleCancel} className="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 transition-colors flex items-center">
+              <X size={18} className="mr-2" />
+              Cancel
+            </button>
+            <button type="submit" disabled={status === 'loading'} className="px-6 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 shadow-md transition-all flex items-center disabled:bg-purple-400 disabled:cursor-not-allowed">
+              {status === 'loading' && <RefreshCw className="animate-spin mr-2" size={16} />}
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </form>
+    );
+  };
 
   return (
     <div className="w-full">
-      {/* Page Header */}
       <header className="bg-white shadow-sm mb-8">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl font-bold text-gray-900">Organization Settings</h1>
           <nav aria-label="Breadcrumb" className="mt-1">
             <ol className="flex items-center space-x-2 text-sm">
-              <li><a href="/dashboard" className="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+              <li><Link to="/dashboard" className="text-gray-500 hover:text-gray-700">Dashboard</Link></li>
               <li><span className="text-gray-500">/</span></li>
-              <li><a href="/getting-started" className="text-gray-500 hover:text-gray-700">Getting Started</a></li>
+              <li><Link to="/getting-started" className="text-gray-500 hover:text-gray-700">Getting Started</Link></li>
               <li><span className="text-gray-500">/</span></li>
               <li><span className="text-gray-900 font-medium">Organization Settings</span></li>
             </ol>
@@ -263,71 +208,11 @@ const OrganizationSettingsPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Form Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <form onSubmit={handleSubmit}>
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Logo Section */}
-              <div className="md:col-span-1">
-                <h3 className="text-sm font-medium text-gray-700 mb-1">Logo</h3>
-                <label htmlFor="logo-upload" className="cursor-pointer">
-                  <div className="w-40 h-40 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 hover:border-purple-500 hover:text-purple-500 transition">
-                    {logoPreview ? (
-                      <img 
-                        src={logoPreview} 
-                        alt="Logo Preview" 
-                        className="w-full h-full object-cover rounded-lg" 
-                        // This onError handler will reset the preview if the image fails to load
-                        onError={() => setLogoPreview(null)} 
-                      />
-                    ) : (
-                      <Image size={48} />
-                    )}
-                  </div>
-                </label>
-                <input id="logo-upload" type="file" className="hidden" onChange={handleLogoChange} accept="image/*" />
-              </div>
-
-              {/* Form Fields Section */}
-              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
-                  <select id="companyName" name="companyName" value={formData.companyName} onChange={handleChange} className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 transition">
-                    <option>Appinventiv</option>
-                    <option>Another Company</option>
-                  </select>
-                </div>
-                <FormInput label="Email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter email address" />
-                <FormInput label="Contact Number" name="contactNumber" value={formData.contactNumber} onChange={handleChange} placeholder="Enter contact number" />
-                <FormInput label="Website" name="website" value={formData.website} onChange={handleChange} placeholder="https://example.com" />
-                <FormInput label="Service Tax Number" name="serviceTaxNumber" value={formData.serviceTaxNumber} onChange={handleChange} placeholder="Enter service tax number" />
-                <FormInput label="P.A.N." name="pan" value={formData.pan} onChange={handleChange} placeholder="Enter P.A.N. number" />
-                <FormInput label="Aadhaar Number" name="aadhaarNumber" value={formData.aadhaarNumber} onChange={handleChange} placeholder="Enter Aadhaar number" />
-                <FormInput label="GSTIN" name="gstin" value={formData.gstin} onChange={handleChange} placeholder="Enter GSTIN" />
-                <FormInput label="Address Line 1" name="addressLine1" value={formData.addressLine1} onChange={handleChange} placeholder="Enter address line 1" />
-                <FormInput label="Address Line 2" name="addressLine2" value={formData.addressLine2} onChange={handleChange} placeholder="Enter address line 2" />
-                <FormInput label="State" name="state" value={formData.state} onChange={handleChange} placeholder="Enter state" />
-                <FormInput label="Zip Code" name="zipCode" value={formData.zipCode} onChange={handleChange} placeholder="Enter zip code" />
-              </div>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end space-x-4">
-              <button type="button" className="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" disabled={status === 'loading'} className="px-6 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 shadow-md transition-all flex items-center disabled:bg-gray-400">
-                {status === 'loading' && <Loader2 className="animate-spin mr-2" size={16} />}
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </form>
+        {renderContent()}
       </main>
     </div>
   );
 };
 
 export default OrganizationSettingsPage;
-

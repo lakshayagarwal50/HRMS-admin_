@@ -1,18 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Plus, MoreHorizontal } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { Plus, MoreHorizontal, RefreshCw, ServerCrash } from 'lucide-react';
 
 // --- Redux Imports ---
-// Assuming your store and slice are set up correctly
-import { type RootState, type AppDispatch } from '../../../store/store'; 
 import {
   fetchHolidayConfigurations,
   addHolidayConfiguration,
   updateHolidayConfiguration,
   deleteHolidayConfiguration,
   type HolidayConfiguration,
-  type NewHolidayConfiguration,
 } from '../../../store/slice/holidayconfigurationSlice'; 
+import type { RootState, AppDispatch } from '../../../store/store'; 
 
 // --- Component Imports ---
 import Table, { type Column } from "../../../components/common/Table"; 
@@ -22,24 +20,53 @@ import SidePanelForm from '../../../components/common/SidePanelForm';
 // --- TYPE DEFINITION for display data ---
 type HolidayConfigDisplay = HolidayConfiguration & { s_no: number };
 
-// --- Create Form Component (No changes needed here) ---
-const CreateHolidayConfiguration: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onAdd: (newConfig: NewHolidayConfiguration) => void;
-}> = ({ isOpen, onClose, onAdd }) => {
+// --- UI State Components ---
+const TableSkeleton: React.FC = () => (
+    <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
+        <div className="space-y-3">
+            {[...Array(4)].map((_, i) => <div key={i} className="h-12 bg-gray-200 rounded-md w-full"></div>)}
+        </div>
+    </div>
+);
+
+const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ onRetry, error }) => (
+    <div className="text-center py-10 px-4 bg-red-50 border border-red-200 rounded-lg">
+        <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
+        <h3 className="mt-2 text-lg font-semibold text-red-800">Failed to Load Data</h3>
+        <p className="mt-1 text-sm text-red-600">{error || 'An unknown error occurred.'}</p>
+        <div className="mt-6">
+            <button type="button" onClick={onRetry} className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                <RefreshCw className="-ml-1 mr-2 h-5 w-5" />
+                Try Again
+            </button>
+        </div>
+    </div>
+);
+
+const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
+    <div className="text-center py-10 px-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <h3 className="mt-2 text-lg font-semibold text-gray-800">No Configurations Found</h3>
+        <p className="mt-1 text-sm text-gray-600">Get started by adding a new holiday configuration.</p>
+        <div className="mt-6">
+            <button type="button" onClick={onAddNew} className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
+                <Plus size={20} className="-ml-1 mr-2" />
+                Add New Configuration
+            </button>
+        </div>
+    </div>
+);
+
+// --- Create Form Component ---
+const CreateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      alert('Name is required.');
-      return;
-    }
-    // The 'name' from the form is mapped to 'groupName' here
-    onAdd({ groupName: name, code, description });
+    if (!name.trim()) return alert('Name is required.');
+    dispatch(addHolidayConfiguration({ groupName: name, code, description }));
     onClose();
   };
 
@@ -71,13 +98,9 @@ const CreateHolidayConfiguration: React.FC<{
   );
 };
 
-// --- Update Form Component (No changes needed here) ---
-const UpdateHolidayConfiguration: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onUpdate: (updatedConfig: HolidayConfiguration) => void;
-  configData: HolidayConfiguration | null;
-}> = ({ isOpen, onClose, onUpdate, configData }) => {
+// --- Update Form Component ---
+const UpdateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => void; configData: HolidayConfiguration | null; }> = ({ isOpen, onClose, configData }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
@@ -92,11 +115,8 @@ const UpdateHolidayConfiguration: React.FC<{
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !configData) {
-      alert('Name is required.');
-      return;
-    }
-    onUpdate({ ...configData, groupName: name, code, description });
+    if (!name.trim() || !configData) return alert('Name is required.');
+    dispatch(updateHolidayConfiguration({ ...configData, groupName: name, code, description }));
     onClose();
   };
 
@@ -123,11 +143,9 @@ const UpdateHolidayConfiguration: React.FC<{
 
 // --- MAIN PAGE COMPONENT ---
 const HolidayConfigurationPage: React.FC = () => {
-  // --- Redux State ---
   const dispatch = useDispatch<AppDispatch>();
   const { items: holidayConfigs, status, error } = useSelector((state: RootState) => state.holidayConfigurations);
 
-  // --- Local UI State ---
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isCreatePanelOpen, setCreatePanelOpen] = useState(false);
@@ -137,48 +155,31 @@ const HolidayConfigurationPage: React.FC = () => {
     configId: null,
   });
 
-  // --- Fetch Data on Mount ---
   useEffect(() => {
     if (status === 'idle') {
       dispatch(fetchHolidayConfigurations());
     }
   }, [status, dispatch]);
 
-
-  // --- Handlers ---
-  const handleEditClick = (config: HolidayConfiguration) => {
+  const handleEditClick = useCallback((config: HolidayConfiguration) => {
     setEditingConfig(config);
     setActiveDropdown(null);
-  };
+  }, []);
 
-  const handleDeleteClick = (configId: string) => {
+  const handleDeleteClick = useCallback((configId: string) => {
     setDeleteAlert({ isOpen: true, configId });
     setActiveDropdown(null);
-  };
+  }, []);
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(() => {
     if (deleteAlert.configId) {
       dispatch(deleteHolidayConfiguration(deleteAlert.configId));
     }
     setDeleteAlert({ isOpen: false, configId: null });
-  };
+  }, [deleteAlert.configId, dispatch]);
 
-  const handleAddConfig = (newConfig: NewHolidayConfiguration) => {
-    dispatch(addHolidayConfiguration(newConfig));
-  };
-
-  const handleUpdateConfig = (updatedConfig: HolidayConfiguration) => {
-    dispatch(updateHolidayConfiguration(updatedConfig));
-  };
-
-
-  // --- Column Definitions ---
-  const columns: Column<HolidayConfigDisplay>[] = [
-    { 
-      key: 's_no', 
-      header: 'S.No',
-      className: 'w-16 text-center',
-    },
+  const columns = useMemo<Column<HolidayConfigDisplay>[]>(() => [
+    { key: 's_no', header: 'S.No', className: 'w-16 text-center' },
     { key: 'groupName', header: 'Group Name' },
     { key: 'code', header: 'Code' },
     { key: 'description', header: 'Description' },
@@ -187,7 +188,7 @@ const HolidayConfigurationPage: React.FC = () => {
       header: 'Action',
       render: (row) => (
         <div className="relative">
-          <button onClick={() => setActiveDropdown(activeDropdown === row.id ? null : row.id)} className="text-gray-500 hover:text-purple-600 p-1 rounded-full focus:outline-none">
+          <button onClick={() => setActiveDropdown(activeDropdown === row.id ? null : row.id)} className="text-gray-500 hover:text-purple-600 p-1 rounded-full">
             <MoreHorizontal size={20} />
           </button>
           {activeDropdown === row.id && (
@@ -199,9 +200,8 @@ const HolidayConfigurationPage: React.FC = () => {
         </div>
       ),
     },
-  ];
+  ], [activeDropdown, handleEditClick, handleDeleteClick]);
 
-  // Effect for closing dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -212,22 +212,31 @@ const HolidayConfigurationPage: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // --- Render Logic ---
-  let content;
+  const renderContent = () => {
+    if ((status === 'loading' || status === 'idle') && holidayConfigs.length === 0) {
+      return <TableSkeleton />;
+    }
 
-  if (status === 'loading') {
-    content = <div className="text-center p-8">Loading configurations...</div>;
-  } else if (status === 'succeeded') {
-    content = (
+    if (status === 'failed' && holidayConfigs.length === 0) {
+      return <ErrorState onRetry={() => dispatch(fetchHolidayConfigurations())} error={error} />;
+    }
+
+    if (status === 'succeeded' && holidayConfigs.length === 0) {
+      return <EmptyState onAddNew={() => setCreatePanelOpen(true)} />;
+    }
+
+    const tableData = holidayConfigs.map((item, index) => ({ ...item, s_no: index + 1 }));
+
+    return (
       <Table
         columns={columns}
-        data={holidayConfigs.map((item, index) => ({ ...item, s_no: index + 1 }))}
+        data={tableData}
         defaultItemsPerPage={4}
+        showSearch={true}
+        searchPlaceholder="Search Configurations..."
       />
     );
-  } else if (status === 'failed') {
-    content = <div className="text-center p-8 text-red-500">Error: {error}</div>;
-  }
+  };
 
   return (
     <div className="w-full bg-white p-6 rounded-lg shadow-md border border-blue-200">
@@ -248,19 +257,17 @@ const HolidayConfigurationPage: React.FC = () => {
       </header>
       
       <main>
-          {content}
+          {renderContent()}
       </main>
       
       <CreateHolidayConfiguration 
         isOpen={isCreatePanelOpen} 
         onClose={() => setCreatePanelOpen(false)}
-        onAdd={handleAddConfig}
       />
 
       <UpdateHolidayConfiguration
         isOpen={!!editingConfig}
         onClose={() => setEditingConfig(null)}
-        onUpdate={handleUpdateConfig}
         configData={editingConfig}
       />
 

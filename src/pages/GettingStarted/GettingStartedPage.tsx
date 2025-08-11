@@ -33,7 +33,7 @@ const cardItems: CardItem[] = [
   { label: 'Designation', icon: UserCheck , link: '/designation'},
   { label: 'Role', icon: Tag , link: "/role"},
   { label: 'Holiday Configuration', icon: Settings, link: '/holiday-configuration'},
-  { label: 'Holiday Calendar', icon: Calendar },
+  { label: 'Holiday Calendar', icon: Calendar ,link: '/holiday-calendar'},
   { label: 'Organisation Setting', icon: Building , link: '/organisation-setting'},
   { label: 'Sequence Number', icon: ListOrdered },
   { label: 'Payroll Configuration', icon: CreditCard },

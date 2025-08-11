@@ -12,6 +12,9 @@ import OrganizationSettingsPage from "../pages/GettingStarted/OraganisationSetti
 import WebCheckinSettingsPage from "../pages/GettingStarted/WebCheckinSettings/WebCheckinSettingsPage";
 import LocationPage from "../pages/GettingStarted/Location/LocationPage";
 import HolidayConfigurationPage from "../pages/GettingStarted/HolidayConfiguration/HolidayConfigurationPage";
+import LeaveSetupPage from "../pages/LeaveConfiguration/LeaveSetupPage";
+import CommingSoon from "../components/NotFound/CommingSoon";
+import HolidayCalendarPage from "../pages/GettingStarted/HolidayCalendar/HolidayCalenderPage";
 
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
@@ -87,6 +90,9 @@ const AppRoutes = () => (
         <Route path="/web-checkin-setting" element={<WebCheckinSettingsPage/>}/>
         <Route path="/location" element={<LocationPage/>}/>
         <Route path="/holiday-configuration" element={<HolidayConfigurationPage />} />
+        <Route path="/leave/setup" element={<LeaveSetupPage />} />
+        <Route path="/holiday-calendar" element={<HolidayCalendarPage />} />
+        <Route path="*" element={<CommingSoon />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />

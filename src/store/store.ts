@@ -11,6 +11,7 @@ import organizationReducer from './slice/organizationSlice';
 import workingPatternsReducer from "./slice/workingPatternsSlice"
 import locationsReducer from './slice/locationSlice';
 import holidayConfigurationReducer from './slice/holidayconfigurationSlice';
+import holidayCalendarReducer from './slice/holidayCalendarSlice';
 import  employeeDesignationReducer from './slice/employeeDesignationSlice';
 import previousJobReducer from './slice/previousJobSlice';
 
@@ -29,6 +30,7 @@ export const store = configureStore({
     workingPatterns: workingPatternsReducer,
     locations: locationsReducer,
     holidayConfigurations: holidayConfigurationReducer,
+    holidayCalendar: holidayCalendarReducer, 
     employeeDesignations: employeeDesignationReducer,
     previousJobs: previousJobReducer,
   },
