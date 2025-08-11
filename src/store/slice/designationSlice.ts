@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import axios, { isAxiosError } from 'axios';
 
 // --- CONSTANTS ---
-const API_BASE_URL = 'http://localhost:3000/api/designations/';
+const API_BASE_URL = 'http://172.50.5.49:3000/api/designations/';
 
 // --- HELPER FUNCTION ---
 /**

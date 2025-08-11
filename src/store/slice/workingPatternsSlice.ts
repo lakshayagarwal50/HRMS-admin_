@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadActio
 import axios, { isAxiosError } from 'axios';
 
 // --- CONSTANTS & HELPERS ---
-const API_BASE_URL = 'http://localhost:3000/api/working-patterns/';
+const API_BASE_URL = 'http://172.50.5.49:3000/api/working-patterns/';
 const getAuthToken = (): string | null => localStorage.getItem('token');
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
