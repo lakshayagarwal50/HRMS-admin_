@@ -4,7 +4,7 @@ import axios, { isAxiosError } from 'axios';
 import type { RootState } from '../store';
 
 // 🔧 API URL for designations
-const API_URL = 'http://172.50.5.116:3000/api/designations/get';
+const API_URL = 'http://localhost:3000/api/designations/get';
 
 // 🧩 Designation Type
 export interface Designation {
