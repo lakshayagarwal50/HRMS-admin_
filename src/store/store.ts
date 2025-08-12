@@ -13,6 +13,7 @@ import locationsReducer from './slice/locationSlice';
 import holidayConfigurationReducer from './slice/holidayconfigurationSlice';
 import holidayCalendarReducer from './slice/holidayCalendarSlice';
 import  employeeDesignationReducer from './slice/employeeDesignationSlice';
+import leaveSetupReducer from './slice/leaveSetupSlice'; 
 
 export const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ export const store = configureStore({
     holidayConfigurations: holidayConfigurationReducer,
     holidayCalendar: holidayCalendarReducer, 
     employeeDesignations: employeeDesignationReducer,
+    leaveSetups: leaveSetupReducer, 
   },
 });
 

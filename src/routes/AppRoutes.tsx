@@ -15,6 +15,7 @@ import HolidayConfigurationPage from "../pages/GettingStarted/HolidayConfigurati
 import LeaveSetupPage from "../pages/LeaveConfiguration/LeaveSetupPage";
 import CommingSoon from "../components/NotFound/CommingSoon";
 import HolidayCalendarPage from "../pages/GettingStarted/HolidayCalendar/HolidayCalenderPage";
+import EmployeeLeaveRequestPage from "../pages/LeaveConfiguration/EmployeeLeaveRequestPage";
 
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
@@ -91,6 +92,7 @@ const AppRoutes = () => (
         <Route path="/location" element={<LocationPage/>}/>
         <Route path="/holiday-configuration" element={<HolidayConfigurationPage />} />
         <Route path="/leave/setup" element={<LeaveSetupPage />} />
+        <Route path="/leave/request" element={<EmployeeLeaveRequestPage/>} />
         <Route path="/holiday-calendar" element={<HolidayCalendarPage />} />
         <Route path="*" element={<CommingSoon />} />
       </Route>
