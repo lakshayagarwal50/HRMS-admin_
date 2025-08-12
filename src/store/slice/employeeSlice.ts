@@ -64,6 +64,8 @@ export interface LoanDetails {
 }
 
 export interface EmployeeDetail {
+  project: never[];
+  previous: never[];
   pf(arg0: string, pf: any): void;
   professional: any;
   general: any;

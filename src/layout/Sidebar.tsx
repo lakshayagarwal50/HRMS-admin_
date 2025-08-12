@@ -82,7 +82,7 @@ const menuItems: MenuItem[] = [
       ] 
     },
     { label: 'DSR', icon: BarChart, link: '/dsr' },
-    { label: 'Project', icon: Briefcase, link: '/project' },
+    { label: 'Projects', icon: Briefcase, link: '/projects' },
     {
       label: 'Rating',
       icon: Star,

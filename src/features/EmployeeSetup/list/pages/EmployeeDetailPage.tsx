@@ -36,6 +36,15 @@ import GenericForm, {
 import LoanDetailModal from "../common/LoanDetailModal";
 import LoanConfirmationModal from "../common/LoanConfirmationModal";
 import AddLoanModal from "../common/AddLoanModal";
+import PreviousJobDetails from "../common/PreviousJobDetails";
+import ProjectsSection from "../common/ProjectsSection";
+import EmployeeActivities from "../common/EmployeeActivities";
+import {
+  addPreviousJob,
+  editPreviousJob,
+  type CreatePreviousJobPayload,
+  type PreviousJob, // Import the specific payload type
+} from "../../../../store/slice/previousJobSlice";
 
 const generalInfoFields: FormField[] = [
   {
@@ -430,7 +439,6 @@ export default function EmployeeDetailPage() {
         );
       }
     }
-
     setEditingSection(null);
     setEditingLoan(null);
   };
@@ -531,6 +539,37 @@ export default function EmployeeDetailPage() {
     setConfirmationAction(null);
   };
 
+  const handlePreviousJobSave = (
+    jobData: Partial<PreviousJob>,
+    jobId?: string
+  ) => {
+    // Ensure you have the necessary IDs. 'mainEmployeeId' is from location.state
+    if (!employeeCode || !mainEmployeeId) {
+      console.error("Cannot save job: Employee identifiers are missing.");
+      return;
+    }
+
+    if (jobId) {
+      // --- EDIT LOGIC ---
+      dispatch(
+        editPreviousJob({
+          empId: mainEmployeeId,
+          employeeCode,
+          payload: { jobId, ...jobData },
+        })
+      );
+    } else {
+      // --- ADD LOGIC ---
+      dispatch(
+        addPreviousJob({
+          empId: mainEmployeeId,
+          employeeCode,
+          jobData: jobData as CreatePreviousJobPayload,
+        })
+      );
+    }
+  };
+
   const renderSection = () => {
     if (!currentEmployee) return null;
     switch (currentSection) {
@@ -604,27 +643,19 @@ export default function EmployeeDetailPage() {
             onAddLoan={handleAddLoan} // <-- This is the crucial connection
           />
         );
+
       case "previous_job_details":
         return (
-          <PlaceholderComponent
-            title="Previous Job Details"
-            onEdit={() => handleEdit("previous_job_details", null)}
+          <PreviousJobDetails
+            data={currentEmployee}
+            onSave={handlePreviousJobSave}
           />
         );
       case "employee_activities":
-        return (
-          <PlaceholderComponent
-            title="Employee Activities"
-            onEdit={() => handleEdit("employee_activities", null)}
-          />
-        );
+        return <EmployeeActivities data={currentEmployee} />;
+
       case "projects":
-        return (
-          <PlaceholderComponent
-            title="Projects"
-            onEdit={() => handleEdit("projects", null)}
-          />
-        );
+        return <ProjectsSection data={currentEmployee} />;
       default:
         return (
           <GeneralInfo
@@ -634,14 +665,6 @@ export default function EmployeeDetailPage() {
         );
     }
   };
-
-  // const getSectionTitle = () => {
-  //   const item = menuItems.find(
-  //     (m: string) =>
-  //       m.toLowerCase().replace(/, | & | /g, "_") === currentSection
-  //   );
-  //   return item || "Details";
-  // };
 
   const renderEditModal = () => {
     if (!editingSection || !currentEmployee) return null;
@@ -900,11 +923,3 @@ export default function EmployeeDetailPage() {
     </div>
   );
 }
-
-// const getSectionTitle = () => {
-//   const item = menuItems.find(
-//     (m: string) =>
-//       m.toLowerCase().replace(/, | & | /g, "_") === "currentSection"
-//   );
-//   return item || "Details";
-// };

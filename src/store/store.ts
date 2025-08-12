@@ -15,6 +15,10 @@ import holidayCalendarReducer from './slice/holidayCalendarSlice';
 import  employeeDesignationReducer from './slice/employeeDesignationSlice';
 import leaveSetupReducer from './slice/leaveSetupSlice'; 
 
+import previousJobReducer from './slice/previousJobSlice';
+
+import projectReducer from './slice/projectSlice';
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -32,6 +36,8 @@ export const store = configureStore({
     holidayCalendar: holidayCalendarReducer, 
     employeeDesignations: employeeDesignationReducer,
     leaveSetups: leaveSetupReducer, 
+    previousJobs: previousJobReducer,
+    project: projectReducer,
   },
 });
 
