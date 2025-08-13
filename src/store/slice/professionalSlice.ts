@@ -3,7 +3,7 @@ import axios, { isAxiosError } from 'axios';
 import { fetchEmployeeDetails } from './employeeSlice';
 
 
-const API_BASE_URL = 'http://172.50.5.49:3000/employees';
+const API_BASE_URL = 'http://localhost:3000/employees';
 
 const getAuthToken = (): string | null => {
   return localStorage.getItem('token'); // Ensure the key matches your auth logic

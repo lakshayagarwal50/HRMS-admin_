@@ -14,6 +14,7 @@ import holidayConfigurationReducer from './slice/holidayconfigurationSlice';
 import holidayCalendarReducer from './slice/holidayCalendarSlice';
 import  employeeDesignationReducer from './slice/employeeDesignationSlice';
 import previousJobReducer from './slice/previousJobSlice';
+import loansReducer from './slice/loanAndAdvancesSlice';
 
 
 export const store = configureStore({
@@ -33,6 +34,7 @@ export const store = configureStore({
     holidayCalendar: holidayCalendarReducer, 
     employeeDesignations: employeeDesignationReducer,
     previousJobs: previousJobReducer,
+    loans: loansReducer,
   },
 });
 

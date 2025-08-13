@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
@@ -15,7 +14,6 @@ import HolidayConfigurationPage from "../pages/GettingStarted/HolidayConfigurati
 import LeaveSetupPage from "../pages/LeaveConfiguration/LeaveSetupPage";
 import CommingSoon from "../components/NotFound/CommingSoon";
 import HolidayCalendarPage from "../pages/GettingStarted/HolidayCalendar/HolidayCalenderPage";
-
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
@@ -37,6 +35,12 @@ const CreateEmployeeForm = lazy(
 );
 const UploadEmployee = lazy(
   () => import("../features/EmployeeSetup/Uploademployee/pages/Uploademployee")
+);
+const DisplayLoans = lazy(
+  () => import("../pages/LoanAndAdvances/displayLoans")
+);
+const LoanDetailPage = lazy(
+  () => import("../pages/LoanAndAdvances/displayLoanDetail")
 );
 const AppRoutes = () => (
   <Suspense
@@ -86,12 +90,27 @@ const AppRoutes = () => (
         <Route path="/designation" element={<DesignationPage />} />
         <Route path="/role" element={<RolePage />} />
         <Route path="/working-patterns" element={<WorkingPatternsPage />} />
-        <Route path="/organisation-setting" element={<OrganizationSettingsPage />}/>
-        <Route path="/web-checkin-setting" element={<WebCheckinSettingsPage/>}/>
-        <Route path="/location" element={<LocationPage/>}/>
-        <Route path="/holiday-configuration" element={<HolidayConfigurationPage />} />
+        <Route
+          path="/organisation-setting"
+          element={<OrganizationSettingsPage />}
+        />
+        <Route
+          path="/web-checkin-setting"
+          element={<WebCheckinSettingsPage />}
+        />
+        <Route path="/location" element={<LocationPage />} />
+        <Route
+          path="/holiday-configuration"
+          element={<HolidayConfigurationPage />}
+        />
         <Route path="/leave/setup" element={<LeaveSetupPage />} />
         <Route path="/holiday-calendar" element={<HolidayCalendarPage />} />
+        <Route path="/loanandandvance" element={<DisplayLoans />} />
+        <Route
+          path="/loanandandvance/list/detail/:id"
+          element={<LoanDetailPage />}
+        />
+
         <Route path="*" element={<CommingSoon />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
