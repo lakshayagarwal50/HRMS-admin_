@@ -14,6 +14,7 @@ import HolidayConfigurationPage from "../pages/GettingStarted/HolidayConfigurati
 import LeaveSetupPage from "../pages/LeaveConfiguration/LeaveSetupPage";
 import CommingSoon from "../components/NotFound/CommingSoon";
 import HolidayCalendarPage from "../pages/GettingStarted/HolidayCalendar/HolidayCalenderPage";
+import EmployeeLeaveRequestPage from "../pages/LeaveConfiguration/EmployeeLeaveRequestPage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
@@ -42,6 +43,14 @@ const DisplayLoans = lazy(
 const LoanDetailPage = lazy(
   () => import("../pages/LoanAndAdvances/displayLoanDetail")
 );
+
+const Projects = lazy(
+  () => import("../features/Projects/list/pages/ProjectList")
+);
+const ProjectsDetailsPage = lazy(
+  () => import("../features/Projects/Details/ProjectDetailPage")
+);
+
 const AppRoutes = () => (
   <Suspense
     fallback={
@@ -104,6 +113,7 @@ const AppRoutes = () => (
           element={<HolidayConfigurationPage />}
         />
         <Route path="/leave/setup" element={<LeaveSetupPage />} />
+        <Route path="/leave/request" element={<EmployeeLeaveRequestPage/>} />
         <Route path="/holiday-calendar" element={<HolidayCalendarPage />} />
         <Route path="/loanandandvance" element={<DisplayLoans />} />
         <Route
@@ -112,6 +122,9 @@ const AppRoutes = () => (
         />
 
         <Route path="*" element={<CommingSoon />} />
+        <Route path="/project" element={<Projects />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/detail/:id" element ={<ProjectsDetailsPage/>} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />

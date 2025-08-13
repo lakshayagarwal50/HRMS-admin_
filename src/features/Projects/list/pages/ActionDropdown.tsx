@@ -1,14 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MoreVertical } from "lucide-react";
-import { type Employee } from "../../../../types";
+import type { Project } from "../../../../types/project";
 
 interface ActionDropdownProps {
-  employee: Employee;
-  onAction: (actionName: string, employee: Employee) => void;
+  project: Project;
+  onAction: (actionName: string, project: Project) => void;
 }
 
 const ActionDropdown: React.FC<ActionDropdownProps> = ({
-  employee,
+  project,
   onAction,
 }) => {
   const [open, setOpen] = useState(false);
@@ -29,10 +29,9 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
 
   const actions = [
     "View Details",
-    "Create Payslip",
-    employee.status === "Active" ? "Make Inactive" : "Make Active",
+    "Edit",
+    project.status === "Active" ? "Make Inactive" : "Make Active",
     "Delete",
-    employee.status === "Inactive" ? "Re-invite" : "Invite",
   ];
 
   return (
@@ -50,7 +49,7 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
               key={index}
               onClick={() => {
                 setOpen(false);
-                onAction(action, employee);
+                onAction(action, project);
               }}
               className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >

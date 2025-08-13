@@ -259,10 +259,10 @@ import { fetchEmployeeDesignations, resetEmployeeDesignations } from '../../../.
 import { type RootState } from '../../../../store/store';
 import axios from 'axios';
 
-// 🔧 API URL for employee creation
+//  API URL for employee creation
 const EMPLOYEE_API_URL = 'http://172.50.5.49:3000/employees';
 
-// 🔧 Mock dropdown options (excluding department and designation)
+// Mock dropdown options (excluding department and designation)
 const dropdownOptions = {
   title: ['MR', 'MRS', 'MS'],
   gender: ['Male', 'Female', 'Other'],
@@ -275,7 +275,7 @@ const dropdownOptions = {
   holidayGroup: ['National Holidays', 'Regional Holidays']
 };
 
-// 🔤 Input Field Type
+//  Input Field Type
 type InputFieldProps = {
   label: string;
   type?: string;
@@ -288,7 +288,7 @@ type InputFieldProps = {
   disabled?: boolean;
 };
 
-// 🧩 Input Component
+// Input Component
 const InputField: React.FC<InputFieldProps> = ({
   label,
   type = 'text',
