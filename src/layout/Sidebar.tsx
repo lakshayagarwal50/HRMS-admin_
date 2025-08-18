@@ -87,9 +87,9 @@ const menuItems: MenuItem[] = [
       label: 'Rating',
       icon: Star,
       subItems: [
-        { label: 'Rating', link: '/rating/rate' },
+       
         { label: 'Record', link: '/rating/record' },
-        { label: 'Request', link: '/rating/request' },
+        { label: 'Employees Rating', link: '/rating/employees rating' },
         { label: 'Criteria & Scale', link: '/rating/criteria' },
       ],
     },
