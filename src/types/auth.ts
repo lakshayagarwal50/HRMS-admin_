@@ -5,7 +5,7 @@
  */
 export interface LoginCredentials {
   email: string;
-  password:string;
+  password: string;
 }
 
 /**
@@ -14,8 +14,17 @@ export interface LoginCredentials {
 export interface AuthResponse {
   message: string;
   uid: string;
+  displayName: string;
   role: string;
-  token: string;
+  accessToken: string;
+  refreshToken: string;
+}
+
+/**
+ * @description The shape of the response from the refresh token endpoint.
+ */
+export interface RefreshTokenResponse {
+  accessToken: string;
 }
 
 /**
@@ -24,13 +33,6 @@ export interface AuthResponse {
  */
 export interface User {
   uid: string;
+  displayName: string;
   role: string;
 }
-
-// NOTE: The full AuthState type is now defined directly inside `authSlice.ts`
-// for better co-location with its slice. It includes:
-// user: User | null;
-// token: string | null;
-// isAuthenticated: boolean;
-// isLoading: boolean;
-// error: string | null;
