@@ -16,6 +16,7 @@ import  employeeDesignationReducer from './slice/employeeDesignationSlice';
 import leaveSetupReducer from './slice/leaveSetupSlice'; 
 
 import previousJobReducer from './slice/previousJobSlice';
+import loansReducer from './slice/loanAndAdvancesSlice';
 
 import projectReducer from './slice/projectSlice';
 
@@ -37,6 +38,7 @@ export const store = configureStore({
     employeeDesignations: employeeDesignationReducer,
     leaveSetups: leaveSetupReducer, 
     previousJobs: previousJobReducer,
+    loans: loansReducer,
     project: projectReducer,
   },
 });

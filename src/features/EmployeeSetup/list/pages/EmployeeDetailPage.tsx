@@ -598,6 +598,7 @@ export default function EmployeeDetailPage() {
             }
           />
         );
+        
       case "pf_esi_pt":
         return (
           <PlaceholderComponent

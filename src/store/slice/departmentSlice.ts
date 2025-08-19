@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import axios from 'axios';
 
 // --- CONSTANTS ---
-const API_URL = 'http://172.50.5.49:3000/api/departments/';
+const API_URL = 'http://172.50.5.116:3000/api/departments/';
 // WARNING: Storing tokens directly in code is insecure and will expire. 
 // This should be managed through an authentication context or a more secure mechanism.
 const getAuthToken = (): string | null => {

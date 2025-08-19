@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
@@ -19,7 +18,6 @@ import EmployeeLeaveRequestPage from "../pages/LeaveConfiguration/EmployeeLeaveR
 import RecordPage from "../pages/Rating/RecordPage";
 import EmployeesRatingPage from "../pages/Rating/EmployeesRatingPage";
 import ViewRatingDetailPage from "../pages/Rating/ViewRatingDetailPage";
-
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
@@ -42,6 +40,14 @@ const CreateEmployeeForm = lazy(
 const UploadEmployee = lazy(
   () => import("../features/EmployeeSetup/Uploademployee/pages/Uploademployee")
 );
+const DisplayLoans = lazy(
+  () => import("../pages/LoanAndAdvances/displayLoans")
+);
+const LoanDetailPage = lazy(
+  () => import("../pages/LoanAndAdvances/displayLoanDetail")
+);
+const DisplayDSR = lazy(() => import("../pages/DSR/displayDSR"));
+const DSRDetailPage = lazy(() => import("../pages/DSR/displayDSRDetail"));
 
 const Projects = lazy(
   () => import("../features/Projects/list/pages/ProjectList")
@@ -98,16 +104,34 @@ const AppRoutes = () => (
         <Route path="/designation" element={<DesignationPage />} />
         <Route path="/role" element={<RolePage />} />
         <Route path="/working-patterns" element={<WorkingPatternsPage />} />
-        <Route path="/organisation-setting" element={<OrganizationSettingsPage />}/>
-        <Route path="/web-checkin-setting" element={<WebCheckinSettingsPage/>}/>
-        <Route path="/location" element={<LocationPage/>}/>
-        <Route path="/holiday-configuration" element={<HolidayConfigurationPage />} />
+        <Route
+          path="/organisation-setting"
+          element={<OrganizationSettingsPage />}
+        />
+        <Route
+          path="/web-checkin-setting"
+          element={<WebCheckinSettingsPage />}
+        />
+        <Route path="/location" element={<LocationPage />} />
+        <Route
+          path="/holiday-configuration"
+          element={<HolidayConfigurationPage />}
+        />
         <Route path="/leave/setup" element={<LeaveSetupPage />} />
-        <Route path="/leave/request" element={<EmployeeLeaveRequestPage/>} />
+        <Route path="/leave/request" element={<EmployeeLeaveRequestPage />} />
         <Route path="/holiday-calendar" element={<HolidayCalendarPage />} />
+        <Route path="/loanandandvance" element={<DisplayLoans />} />
+        <Route
+          path="/loanandandvance/list/detail/:id"
+          element={<LoanDetailPage />}
+        />
+        <Route path="/dsr" element={<DisplayDSR />} />
+        <Route path="/dsr/list/detail/:id" element={<DSRDetailPage />} />
+
         <Route path="*" element={<CommingSoon />} />
         <Route path="/project" element={<Projects />} />
         <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/detail/:id" element={<ProjectsDetailsPage />} />
         <Route path="/projects/detail/:id" element ={<ProjectsDetailsPage/>} />
         <Route path="/rating/record" element={<RecordPage />} />
         <Route path="/rating/employees rating" element={<EmployeesRatingPage />} />
