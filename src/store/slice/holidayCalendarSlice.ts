@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadActio
 import axios, { isAxiosError } from 'axios';
 
 // --- CONSTANTS & HELPERS ---
-const API_BASE_URL = 'http://localhost:3000/api/holidayCalendar/';
+const API_BASE_URL = 'http://172.50.5.116:3000/api/holidayCalendar/';
 const getAuthToken = (): string | null => localStorage.getItem('token'); // A better way to get tokens
 
 // --- TYPE DEFINITIONS ---

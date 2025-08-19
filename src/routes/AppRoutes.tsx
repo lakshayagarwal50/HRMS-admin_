@@ -43,6 +43,8 @@ const DisplayLoans = lazy(
 const LoanDetailPage = lazy(
   () => import("../pages/LoanAndAdvances/displayLoanDetail")
 );
+const DisplayDSR = lazy(() => import("../pages/DSR/displayDSR"));
+const DSRDetailPage = lazy(() => import("../pages/DSR/displayDSRDetail"));
 
 const Projects = lazy(
   () => import("../features/Projects/list/pages/ProjectList")
@@ -113,18 +115,20 @@ const AppRoutes = () => (
           element={<HolidayConfigurationPage />}
         />
         <Route path="/leave/setup" element={<LeaveSetupPage />} />
-        <Route path="/leave/request" element={<EmployeeLeaveRequestPage/>} />
+        <Route path="/leave/request" element={<EmployeeLeaveRequestPage />} />
         <Route path="/holiday-calendar" element={<HolidayCalendarPage />} />
         <Route path="/loanandandvance" element={<DisplayLoans />} />
         <Route
           path="/loanandandvance/list/detail/:id"
           element={<LoanDetailPage />}
         />
+        <Route path="/dsr" element={<DisplayDSR />} />
+        <Route path="/dsr/list/detail/:id" element={<DSRDetailPage />} />
 
         <Route path="*" element={<CommingSoon />} />
         <Route path="/project" element={<Projects />} />
         <Route path="/projects" element={<Projects />} />
-        <Route path="/projects/detail/:id" element ={<ProjectsDetailsPage/>} />
+        <Route path="/projects/detail/:id" element={<ProjectsDetailsPage />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />

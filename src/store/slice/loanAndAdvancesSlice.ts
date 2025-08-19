@@ -450,14 +450,17 @@ const initialState: LoansState = {
 
 // --- Helper Function for Data Transformation ---
 const transformApiLoan = (apiLoan: LoanAPIResponse): Loan => ({
-    id: apiLoan.id,
-    employeeName: apiLoan.name,
-    requestedAmount: `₹ ${Number(apiLoan.amountReq).toLocaleString('en-IN')}`,
-    status: (apiLoan.status.charAt(0).toUpperCase() + apiLoan.status.slice(1)) as Loan['status'],
-    approvedAmount: `₹ ${Number(apiLoan.amountApp).toLocaleString('en-IN')}`,
-    installments: apiLoan.installment,
-    balance: `₹ ${Number(apiLoan.balanced).toLocaleString('en-IN')}`,
-    requestDate: '25 Feb 2022', // Placeholder date, adjust if API provides it
+  id: apiLoan.id,
+  employeeName: apiLoan.name,
+  requestedAmount: `₹ ${Number(apiLoan.amountReq).toLocaleString('en-IN')}`,
+  status: (apiLoan.status.charAt(0).toUpperCase() + apiLoan.status.slice(1)) as Loan['status'],
+  approvedAmount: `₹ ${Number(apiLoan.amountApp).toLocaleString('en-IN')}`,
+  installments: apiLoan.installment,
+  balance: `₹ ${Number(apiLoan.balanced).toLocaleString('en-IN')}`,
+  requestDate: '25 Feb 2022',
+  note: '',
+  approvedBy: '',
+  staffNote: ''
 });
 
 
@@ -488,7 +491,7 @@ export const fetchLoans = createAsyncThunk(
         params.append('status', statuses.map(s => s.toLowerCase()).join(','));
       }
 
-      const response = await axios.get(`http://localhost:3000/loan?${params.toString()}`, {
+      const response = await axios.get(`http://172.50.5.116:3000/loan?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -526,7 +529,7 @@ export const updateLoan = createAsyncThunk(
 
       // The API call is made, but we don't need to process the response here.
       await axios.patch(
-        `http://localhost:3000/loan/${loanId}`,
+        `http://172.50.5.116:3000/loan/${loanId}`,
         { amountApp, staffNote },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -559,7 +562,7 @@ export const approveLoan = createAsyncThunk(
       if (!token) return rejectWithValue('Authentication token is missing');
 
       await axios.post(
-        `http://localhost:3000/approvedLoan/${loanId}`,
+        `http://172.50.5.116:3000/approvedLoan/${loanId}`,
         requestBody,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -587,7 +590,7 @@ export const cancelLoan = createAsyncThunk(
       if (!token) return rejectWithValue('Authentication token is missing');
       
       await axios.post(
-        `http://localhost:3000/cancelLoan/${loanId}`,
+        `http://172.50.5.116:3000/cancelLoan/${loanId}`,
         { cancelReason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
