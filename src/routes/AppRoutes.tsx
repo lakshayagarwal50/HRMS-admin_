@@ -58,6 +58,12 @@ const Projects = lazy(
 const ProjectsDetailsPage = lazy(
   () => import("../features/Projects/Details/ProjectDetailPage")
 );
+const AttendanceSummary = lazy (
+  () => import ("../features/Attendance/pages/AttendanceSummary")
+)
+const UploadAttendance = lazy (
+  () => import ("../features/Attendance/pages/UploadAttendance")
+)
 
 const AppRoutes = () => (
   <Suspense
@@ -142,9 +148,15 @@ const AppRoutes = () => (
           element={<EmployeesRatingPage />}
         />
         <Route path="/rating/detail/:id" element={<ViewRatingDetailPage />} />
-        <Route path="/payslip-components" element={<PayslipComponentsPage/>}/>
-        <Route path="/employee-salary-structures/${row.id}/components" element={<SalaryComponentPage/>}/>
-        <Route path="/sequence-number" element={<SequenceNumberPage/>}/>
+        <Route path="/payslip-components" element={<PayslipComponentsPage />} />
+        <Route
+          path="/employee-salary-structures/${row.id}/components"
+          element={<SalaryComponentPage />}
+        />
+        <Route path="/sequence-number" element={<SequenceNumberPage />} />
+        <Route path="/attendance/summary" element={< AttendanceSummary/>} />
+        <Route path="/attendance/upload" element={< UploadAttendance/>} />
+        
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />
