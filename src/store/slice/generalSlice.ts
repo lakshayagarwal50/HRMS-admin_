@@ -8,7 +8,7 @@ const API_BASE_URL = 'http://172.50.5.116:3000/employees';
 
 
 const getAuthToken = (): string | null => {
-  return localStorage.getItem('token'); // Ensure the key matches your auth logic
+  return localStorage.getItem('accessToken'); // Ensure the key matches your auth logic
 };
 
 

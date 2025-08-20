@@ -26,7 +26,7 @@ interface CardItem {
 
 const cardItems: CardItem[] = [
   { label: 'Working Patterns', icon: Clock , link: '/working-patterns' },
-  { label: 'Payslip Components', icon: FileText },
+  { label: 'Payslip Components', icon: FileText ,link:'/payslip-components'},
   { label: 'Location', icon: MapPin , link: '/location'},
   // This item has the link we will use for navigation
   { label: 'Department', icon: GitBranch , link: '/department'},
@@ -35,7 +35,7 @@ const cardItems: CardItem[] = [
   { label: 'Holiday Configuration', icon: Settings, link: '/holiday-configuration'},
   { label: 'Holiday Calendar', icon: Calendar ,link: '/holiday-calendar'},
   { label: 'Organisation Setting', icon: Building , link: '/organisation-setting'},
-  { label: 'Sequence Number', icon: ListOrdered },
+  { label: 'Sequence Number', icon: ListOrdered ,link: '/sequence-number'},
   { label: 'Payroll Configuration', icon: CreditCard },
   { label: 'Web Checkin Setting', icon: Globe , link: '/web-checkin-setting'},
 ];

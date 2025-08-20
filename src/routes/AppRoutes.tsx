@@ -18,6 +18,9 @@ import EmployeeLeaveRequestPage from "../pages/LeaveConfiguration/EmployeeLeaveR
 import RecordPage from "../pages/Rating/RecordPage";
 import EmployeesRatingPage from "../pages/Rating/EmployeesRatingPage";
 import ViewRatingDetailPage from "../pages/Rating/ViewRatingDetailPage";
+import PayslipComponentsPage from "../pages/GettingStarted/PayslipComponents/PayslipComponentsPage";
+import SalaryComponentPage from "../pages/GettingStarted/PayslipComponents/SalaryComponentPage";
+import SequenceNumberPage from "../pages/GettingStarted/SequenceNumber/SequenceNumberPage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
@@ -136,6 +139,9 @@ const AppRoutes = () => (
         <Route path="/rating/record" element={<RecordPage />} />
         <Route path="/rating/employees rating" element={<EmployeesRatingPage />} />
         <Route path="/rating/detail/:id" element={<ViewRatingDetailPage />} />
+        <Route path="/payslip-components" element={<PayslipComponentsPage/>}/>
+        <Route path="/employee-salary-structures/${row.id}/components" element={<SalaryComponentPage/>}/>
+        <Route path="/sequence-number" element={<SequenceNumberPage/>}/>
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />

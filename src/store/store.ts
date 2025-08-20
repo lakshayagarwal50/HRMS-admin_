@@ -19,6 +19,8 @@ import previousJobReducer from './slice/previousJobSlice';
 import loansReducer from './slice/loanAndAdvancesSlice';
 
 import projectReducer from './slice/projectSlice';
+import  webCheckinSettingsReducer from './slice/webCheckinSettingsSlice'
+import sequenceNumberReducer from './slice/sequenceNumberSlice';
 
 export const store = configureStore({
   reducer: {
@@ -40,6 +42,8 @@ export const store = configureStore({
     previousJobs: previousJobReducer,
     loans: loansReducer,
     project: projectReducer,
+     webCheckinSettings: webCheckinSettingsReducer,
+     sequenceNumbers: sequenceNumberReducer, 
   },
 });
 

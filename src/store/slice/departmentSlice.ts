@@ -6,7 +6,7 @@ const API_URL = 'http://172.50.5.116:3000/api/departments/';
 // WARNING: Storing tokens directly in code is insecure and will expire. 
 // This should be managed through an authentication context or a more secure mechanism.
 const getAuthToken = (): string | null => {
-  return localStorage.getItem('token'); // Make sure the key matches what you use in your auth logic
+  return localStorage.getItem('accessToken'); // Make sure the key matches what you use in your auth logic
 };
 // --- TYPE DEFINITIONS ---
 export interface Department {
