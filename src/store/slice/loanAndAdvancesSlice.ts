@@ -481,7 +481,7 @@ export const fetchLoans = createAsyncThunk(
     try {
       const { page = 1, limit = 10, startDate, endDate, statuses } = args;
       const state = getState() as RootState;
-      const token = state.auth.accessToken
+      const token = state.auth.accessToken;
       if (!token) return rejectWithValue('Authentication token is missing');
 
       const params = new URLSearchParams({ page: String(page), limit: String(limit) });
@@ -524,7 +524,7 @@ export const updateLoan = createAsyncThunk(
     try {
       const { loanId, amountApp, staffNote } = payload;
       const state = getState() as RootState;
-      const token = state.auth.accessToken
+      const token = state.auth.accessToken;
       if (!token) return rejectWithValue('Authentication token is missing');
 
       // The API call is made, but we don't need to process the response here.
@@ -558,7 +558,7 @@ export const approveLoan = createAsyncThunk(
     try {
       const { loanId, ...requestBody } = payload;
       const state = getState() as RootState;
-      const token = state.auth.accessToken
+      const token = state.auth.accessToken;
       if (!token) return rejectWithValue('Authentication token is missing');
 
       await axios.post(
@@ -586,7 +586,7 @@ export const cancelLoan = createAsyncThunk(
   async ({ loanId, cancelReason }: CancelLoanPayload, { getState, rejectWithValue }) => {
     try {
       const state = getState() as RootState;
-      const token = state.auth.accessToken
+      const token = state.auth.accessToken;
       if (!token) return rejectWithValue('Authentication token is missing');
       
       await axios.post(

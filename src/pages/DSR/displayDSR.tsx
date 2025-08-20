@@ -1,94 +1,24 @@
-import React, { useState, useEffect, useRef } from "react";
-import Table, { type Column } from "../../components/common/Table"; // Adjust path if needed
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import {
+  fetchAllDsrs,
+  type DsrEntry,
+  setDsrFilters,
+  clearDsrFilters,
+  approveDsr,
+  declineDsr,
+} from "../../store/slice/dsrSlice";
+import Table, { type Column } from "../../components/common/Table";
+import DsrDetailModal from "./common/DsrDetailModal";
+import DsrFilterSidebar from "./pages/DsrFilterSidebar";
 import { MoreHorizontal, Filter, Search } from "lucide-react";
-import DsrDetailModal from "./common/DsrDetailModal"; // Import the new modal component
+import { Link } from "react-router-dom";
 
-// Type definition for a DSR entry
-type DsrEntry = {
-  id: number;
-  employeeName: string;
-  employeeId: string;
-  email: string;
-  department: string;
-  designation: string;
-  date: string;
-  totalLoggedHours: string;
-  submissionStatus: "Submitted" | "Due";
-  approvalStatus: "Approved" | "Declined" | "Pending" | "Due - On Leave" | "-";
-  isHighlighted?: boolean;
-};
-
-// Mock data to populate the table
-const mockData: DsrEntry[] = [
-  {
-    id: 1,
-    employeeName: "Anooklyn Simmons",
-    employeeId: "PYT8461",
-    email: "debra.holt@example.com",
-    department: "Designer",
-    designation: "Designer",
-    date: "01 Sep 2022",
-    totalLoggedHours: "4hrs",
-    submissionStatus: "Submitted",
-    approvalStatus: "Approved",
-  },
-  {
-    id: 2,
-    employeeName: "Courtney Henry",
-    employeeId: "PYT8461",
-    email: "debra.holt@example.com",
-    department: "iOS Developer",
-    designation: "iOS Developer",
-    date: "02 Sep 2022",
-    totalLoggedHours: "4hrs",
-    submissionStatus: "Submitted",
-    approvalStatus: "Approved",
-  },
-  {
-    id: 3,
-    employeeName: "Kathryn Murphy",
-    employeeId: "PYT8461",
-    email: "debra.holt@example.com",
-    department: "Designer",
-    designation: "Designer",
-    date: "03 Sep 2022",
-    totalLoggedHours: "4hrs",
-    submissionStatus: "Submitted",
-    approvalStatus: "Approved",
-  },
-  {
-    id: 4,
-    employeeName: "Dianne Russell",
-    employeeId: "PHY8465",
-    email: "russel.dianne@pythru.com",
-    department: "iOS Developer",
-    designation: "iOS Developer",
-    date: "25 Sep 2022",
-    totalLoggedHours: "4.00",
-    submissionStatus: "Submitted",
-    approvalStatus: "Declined",
-    isHighlighted: true,
-  },
-  {
-    id: 5,
-    employeeName: "Leslia Alexander",
-    employeeId: "PYT8461",
-    email: "debra.holt@example.com",
-    department: "Team Lead",
-    designation: "Team Lead",
-    date: "19 Sep 2022",
-    totalLoggedHours: "4hrs",
-    submissionStatus: "Due",
-    approvalStatus: "Pending",
-  },
-];
-
-// Helper function to render styled status badges in the table
+// Helper function to render styled status badges
 const renderStatusBadge = (status: string) => {
   let baseClasses = "px-3 py-1 text-xs font-medium rounded-md";
   let statusClasses = "";
-
-  switch (status.toLowerCase()) {
+  switch (status?.toLowerCase()) {
     case "submitted":
     case "approved":
       statusClasses = "bg-green-100 text-green-700";
@@ -107,28 +37,58 @@ const renderStatusBadge = (status: string) => {
         </span>
       );
     default:
-      return <span>{status}</span>;
+      return <span>{status || "-"}</span>;
   }
   return <span className={`${baseClasses} ${statusClasses}`}>{status}</span>;
 };
 
-const DisplayDSR = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+const displayDSR = () => {
+  const dispatch = useAppDispatch();
+  const {
+    dsrList,
+    status,
+    error,
+    filters: reduxFilters,
+  } = useAppSelector((state) => state.dsr);
 
-  // State to manage the modal and its data
+  // Component state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDsr, setSelectedDsr] = useState<DsrEntry | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Filter data based on the search term
-  const filteredData = mockData.filter((row) =>
-    Object.values(row).some((value) =>
-      String(value).toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  // Fetch data on component mount
+  useEffect(() => {
+    dispatch(fetchAllDsrs());
+  }, [dispatch]);
 
-  // Effect to handle clicks outside the action menu to close it
+  // Client-side search on the data returned from the server
+  const filteredData = useMemo(() => {
+    return dsrList.filter((row) =>
+      Object.values(row).some((value) =>
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [dsrList, searchTerm]);
+
+  // Reset page to 1 when search term changes
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchTerm]);
+
+  // Paginate the filtered data for display
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredData.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredData, currentPage, itemsPerPage]);
+
+  // Close action menu on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -136,31 +96,50 @@ const DisplayDSR = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Function to handle opening the modal
+  // Handlers
   const handleViewDetails = (dsr: DsrEntry) => {
     setSelectedDsr(dsr);
     setIsModalOpen(true);
-    setOpenMenuId(null); // Close the action menu
+    setOpenMenuId(null);
   };
 
-  // Define the columns for the table
-  // Define the columns for the table
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newSize: number) => {
+    setItemsPerPage(newSize);
+    setCurrentPage(1);
+  };
+
+  const handleApplyFilters = (filters: DsrFilterState) => {
+    dispatch(setDsrFilters(filters));
+    dispatch(fetchAllDsrs());
+    setIsFilterOpen(false);
+  };
+
+  const handleClearFilters = () => {
+    dispatch(clearDsrFilters());
+    dispatch(fetchAllDsrs());
+  };
+
+  const handleApprove = async (dsr: DsrEntry) => {
+    await dispatch(approveDsr(dsr)).unwrap();
+    setIsModalOpen(false);
+  };
+
+  const handleDecline = async (dsr: DsrEntry, reason: string) => {
+    await dispatch(declineDsr({ dsr, reason })).unwrap();
+    setIsModalOpen(false);
+  };
+
+  // Table column definition
   const columns: Column<DsrEntry>[] = [
-    {
-      header: "Employee Name",
-      key: "employeeName",
-      render: (row) => (
-        <span className={row.isHighlighted ? "text-[#741CDD]" : ""}>
-          {row.employeeName}
-        </span>
-      ),
-    },
-    { header: "Employee ID", key: "employeeId" },
+    { header: "Employee Name", key: "employeeName" },
+    { header: "Employee ID", key: "empId" },
     { header: "Email", key: "email" },
     { header: "Department", key: "department" },
     { header: "Designation", key: "designation" },
@@ -173,8 +152,8 @@ const DisplayDSR = () => {
     },
     {
       header: "My approval Status",
-      key: "approvalStatus",
-      render: (row) => renderStatusBadge(row.approvalStatus),
+      key: "myApprovalStatus",
+      render: (row) => renderStatusBadge(row.myApprovalStatus),
     },
     {
       header: "Action",
@@ -208,13 +187,43 @@ const DisplayDSR = () => {
     },
   ];
 
+  // Conditional content rendering
+  const renderContent = () => {
+    if (status === "loading") {
+      return <div className="text-center p-8">Loading...</div>;
+    }
+    if (status === "failed") {
+      return <div className="text-center p-8 text-red-600">Error: {error}</div>;
+    }
+    return (
+      <Table<DsrEntry>
+        columns={columns}
+        data={paginatedData}
+        showSearch={false}
+        itemsPerPageOptions={[5, 10, 15, 20]}
+        totalItems={filteredData.length}
+        currentPage={currentPage}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+      />
+    );
+  };
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen font-sans">
-      <div className="mb-6">
-        <p className="text-sm text-gray-500">Dashboard / Employees DSR list</p>
-        <h1 className="text-2xl font-bold text-gray-800 mt-1">
-          Employees DSR list
-        </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">Employees DSR list</h1>
+        <p className="text-sm text-gray-500">
+          <Link
+            to="/dashboard"
+            className="hover:text-[#741CDD] transition-colors"
+          >
+            Dashboard
+          </Link>
+          <span className="mx-2">/</span>
+          <span>Employees DSR list</span>
+        </p>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -227,35 +236,41 @@ const DisplayDSR = () => {
               </span>
               <input
                 type="text"
-                placeholder="Search through employee name or code"
+                placeholder="Search by name, ID, email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="border rounded-md pl-8 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="border rounded-md pl-8 pr-3 py-1.5 text-sm w-80 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <button className="flex-shrink-0 p-2 rounded-md bg-[#741CDD] text-white hover:bg-purple-700">
+            <button
+              onClick={() => setIsFilterOpen(true)}
+              className="flex-shrink-0 p-2 rounded-md bg-[#741CDD] text-white hover:bg-purple-700"
+            >
               <Filter size={18} />
             </button>
           </div>
         </div>
 
-        <Table<DsrEntry>
-          columns={columns}
-          data={filteredData}
-          showSearch={false}
-          defaultItemsPerPage={10}
-          itemsPerPageOptions={[10, 20, 50]}
-        />
+        {renderContent()}
       </div>
 
-      {/* Render the modal component, controlled by state */}
+      <DsrFilterSidebar
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        initialFilters={reduxFilters}
+        onApply={handleApplyFilters}
+        onClear={handleClearFilters}
+      />
+
       <DsrDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         details={selectedDsr}
+        onApprove={handleApprove}
+        onDecline={handleDecline}
       />
     </div>
   );
 };
 
-export default DisplayDSR;
+export default displayDSR;
