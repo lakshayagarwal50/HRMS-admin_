@@ -3,7 +3,7 @@ import axios, { isAxiosError } from 'axios';
 
 // --- CONSTANTS & HELPERS ---
 const API_BASE_URL = 'http://172.50.5.116:3000/api/working-patterns/';
-const getAuthToken = (): string | null => localStorage.getItem('token');
+const getAuthToken = (): string | null => localStorage.getItem('accessToken');
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // --- TYPE DEFINITIONS ---
