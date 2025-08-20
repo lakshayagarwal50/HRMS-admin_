@@ -47,7 +47,7 @@ const LoanDetailPage = lazy(
   () => import("../pages/LoanAndAdvances/displayLoanDetail")
 );
 const DisplayDSR = lazy(() => import("../pages/DSR/displayDSR"));
-const DSRDetailPage = lazy(() => import("../pages/DSR/displayDSRDetail"));
+// const DSRDetailPage = lazy(() => import("../pages/DSR/displayDSRDetail"));
 
 const Projects = lazy(
   () => import("../features/Projects/list/pages/ProjectList")
@@ -126,15 +126,18 @@ const AppRoutes = () => (
           element={<LoanDetailPage />}
         />
         <Route path="/dsr" element={<DisplayDSR />} />
-        <Route path="/dsr/list/detail/:id" element={<DSRDetailPage />} />
+        {/* <Route path="/dsr/list/detail/:id" element={<DSRDetailPage />} /> */}
 
         <Route path="*" element={<CommingSoon />} />
         <Route path="/project" element={<Projects />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/detail/:id" element={<ProjectsDetailsPage />} />
-        <Route path="/projects/detail/:id" element ={<ProjectsDetailsPage/>} />
+        <Route path="/projects/detail/:id" element={<ProjectsDetailsPage />} />
         <Route path="/rating/record" element={<RecordPage />} />
-        <Route path="/rating/employees rating" element={<EmployeesRatingPage />} />
+        <Route
+          path="/rating/employees rating"
+          element={<EmployeesRatingPage />}
+        />
         <Route path="/rating/detail/:id" element={<ViewRatingDetailPage />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

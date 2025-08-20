@@ -19,6 +19,7 @@ import previousJobReducer from './slice/previousJobSlice';
 import loansReducer from './slice/loanAndAdvancesSlice';
 
 import projectReducer from './slice/projectSlice';
+import dsrReducer from './slice/dsrSlice'; 
 
 export const store = configureStore({
   reducer: {
@@ -40,6 +41,7 @@ export const store = configureStore({
     previousJobs: previousJobReducer,
     loans: loansReducer,
     project: projectReducer,
+    dsr: dsrReducer, 
   },
 });
 
