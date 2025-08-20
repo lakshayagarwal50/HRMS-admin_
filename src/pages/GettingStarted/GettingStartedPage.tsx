@@ -36,7 +36,7 @@ const cardItems: CardItem[] = [
   { label: 'Holiday Calendar', icon: Calendar ,link: '/holiday-calendar'},
   { label: 'Organisation Setting', icon: Building , link: '/organisation-setting'},
   { label: 'Sequence Number', icon: ListOrdered ,link: '/sequence-number'},
-  { label: 'Payroll Configuration', icon: CreditCard },
+  { label: 'Payroll Configuration', icon: CreditCard , link:"/payroll-configuration"},
   { label: 'Web Checkin Setting', icon: Globe , link: '/web-checkin-setting'},
 ];
 

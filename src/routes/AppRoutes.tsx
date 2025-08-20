@@ -21,6 +21,11 @@ import ViewRatingDetailPage from "../pages/Rating/ViewRatingDetailPage";
 import PayslipComponentsPage from "../pages/GettingStarted/PayslipComponents/PayslipComponentsPage";
 import SalaryComponentPage from "../pages/GettingStarted/PayslipComponents/SalaryComponentPage";
 import SequenceNumberPage from "../pages/GettingStarted/SequenceNumber/SequenceNumberPage";
+import EditSalaryComponentPage from "../pages/GettingStarted/PayslipComponents/EditSalaryComponentPage";
+import AddSalaryComponentPage from "../pages/GettingStarted/PayslipComponents/AddSalaryComponentPage";
+import PayrollConfigurationPage from "../pages/GettingStarted/PayrollConfigurationPage/PayrollConfigurationPage";
+import CreateRolePage from "../pages/GettingStarted/Role/CreateRolePage";
+import RatingCriteriaPage from "../pages/Rating/RatingCriteriaPage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
@@ -106,6 +111,7 @@ const AppRoutes = () => (
         <Route path="/department" element={<DepartmentPage />} />
         <Route path="/designation" element={<DesignationPage />} />
         <Route path="/role" element={<RolePage />} />
+        <Route path="/roles/add" element={<CreateRolePage />} />
         <Route path="/working-patterns" element={<WorkingPatternsPage />} />
         <Route
           path="/organisation-setting"
@@ -137,14 +143,15 @@ const AppRoutes = () => (
         <Route path="/projects/detail/:id" element={<ProjectsDetailsPage />} />
         <Route path="/projects/detail/:id" element={<ProjectsDetailsPage />} />
         <Route path="/rating/record" element={<RecordPage />} />
-        <Route
-          path="/rating/employees rating"
-          element={<EmployeesRatingPage />}
-        />
+        <Route path="/rating/employees rating" element={<EmployeesRatingPage />} />
         <Route path="/rating/detail/:id" element={<ViewRatingDetailPage />} />
+        <Route path="/rating/criteria" element={<RatingCriteriaPage/>} />
         <Route path="/payslip-components" element={<PayslipComponentsPage/>}/>
-        <Route path="/employee-salary-structures/${row.id}/components" element={<SalaryComponentPage/>}/>
+        <Route path="/employee-salary-structures/:structureId/components" element={<SalaryComponentPage />} />
+        <Route path="/salary-group/:groupName/edit-component/:componentId" element={<EditSalaryComponentPage />} />
+        <Route path="/salary-group/:groupName/add-component" element={<AddSalaryComponentPage />} />
         <Route path="/sequence-number" element={<SequenceNumberPage/>}/>
+        <Route path="/payroll-configuration" element={<PayrollConfigurationPage/>}/>
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />
