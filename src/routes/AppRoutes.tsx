@@ -63,11 +63,14 @@ const Projects = lazy(
 const ProjectsDetailsPage = lazy(
   () => import("../features/Projects/Details/ProjectDetailPage")
 );
-const AttendanceSummary = lazy (
-  () => import ("../features/Attendance/pages/AttendanceSummary")
-)
-const UploadAttendance = lazy (
-  () => import ("../features/Attendance/pages/UploadAttendance")
+const AttendanceSummary = lazy(
+  () => import("../features/Attendance/pages/AttendanceSummary")
+);
+const UploadAttendance = lazy(
+  () => import("../features/Attendance/pages/UploadAttendance")
+);
+const PayrollList = lazy(
+  ()=> import("../features/payroll/pages/PayrollList")
 )
 
 const AppRoutes = () => (
@@ -149,21 +152,41 @@ const AppRoutes = () => (
         <Route path="/projects/detail/:id" element={<ProjectsDetailsPage />} />
         <Route path="/projects/detail/:id" element={<ProjectsDetailsPage />} />
         <Route path="/rating/record" element={<RecordPage />} />
-        <Route path="/rating/employees rating" element={<EmployeesRatingPage />} />
+        <Route
+          path="/rating/employees rating"
+          element={<EmployeesRatingPage />}
+        />
         <Route path="/rating/detail/:id" element={<ViewRatingDetailPage />} />
-        <Route path="/rating/criteria" element={<RatingCriteriaPage/>} />
-        <Route path="/payslip-components" element={<PayslipComponentsPage/>}/>
-        <Route path="/employee-salary-structures/:structureId/components" element={<SalaryComponentPage />} />
-        <Route path="/employee-salary-structures/:structureId/components/:componentId" element={<EditSalaryComponentPage />}/>
-        <Route path="/employee-salary-structures/:structureId/add-component" element={<AddSalaryComponentPage />}/>
-        <Route path="/sequence-number" element={<SequenceNumberPage/>}/>
-        <Route path="/payroll-configuration" element={<PayrollConfigurationPage/>}/>
+        <Route path="/rating/criteria" element={<RatingCriteriaPage />} />
         <Route path="/payslip-components" element={<PayslipComponentsPage />} />
-        <Route path="/employee-salary-structures/${row.id}/components"element={<SalaryComponentPage />}/>
+        <Route
+          path="/employee-salary-structures/:structureId/components"
+          element={<SalaryComponentPage />}
+        />
+        <Route
+          path="/employee-salary-structures/:structureId/components/:componentId"
+          element={<EditSalaryComponentPage />}
+        />
+        <Route
+          path="/employee-salary-structures/:structureId/add-component"
+          element={<AddSalaryComponentPage />}
+        />
         <Route path="/sequence-number" element={<SequenceNumberPage />} />
-        <Route path="/attendance/summary" element={< AttendanceSummary/>} />
-        <Route path="/attendance/upload" element={< UploadAttendance/>} />
-    </Route>
+        <Route
+          path="/payroll-configuration"
+          element={<PayrollConfigurationPage />}
+        />
+        <Route path="/payslip-components" element={<PayslipComponentsPage />} />
+        <Route
+          path="/employee-salary-structures/${row.id}/components"
+          element={<SalaryComponentPage />}
+        />
+        <Route path="/sequence-number" element={<SequenceNumberPage />} />
+        <Route path="/attendance/summary" element={<AttendanceSummary />} />
+        <Route path="/attendance/upload" element={<UploadAttendance />} />
+        <Route path="/payroll/list" element={<PayrollList />} />
+        
+      </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />
     </Routes>
