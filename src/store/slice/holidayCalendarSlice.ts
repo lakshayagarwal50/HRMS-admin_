@@ -3,7 +3,7 @@ import axios, { isAxiosError } from 'axios';
 
 // --- CONSTANTS & HELPERS ---
 const API_BASE_URL = 'http://172.50.5.116:3000/api/holidayCalendar/';
-const getAuthToken = (): string | null => localStorage.getItem('token'); // A better way to get tokens
+const getAuthToken = (): string | null => localStorage.getItem('accessToken'); // A better way to get tokens
 
 // --- TYPE DEFINITIONS ---
 // This interface matches the structure of the data from your GET API

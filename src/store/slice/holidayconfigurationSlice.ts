@@ -4,7 +4,7 @@ import axios, { isAxiosError } from 'axios';
 // --- CONSTANTS & HELPERS ---
 // Note the typo in "holidayConfiguraion" to match your API endpoint
 const API_BASE_URL = 'http://172.50.5.116:3000/api/holidayConfiguraion/';
-const getAuthToken = (): string | null => localStorage.getItem('token'); // A better way to get tokens
+const getAuthToken = (): string | null => localStorage.getItem('accessToken'); // A better way to get tokens
 
 // --- TYPE DEFINITIONS ---
 // This interface matches the structure of the data from your GET API

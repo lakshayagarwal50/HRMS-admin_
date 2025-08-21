@@ -10,7 +10,7 @@ const API_BASE_URL = 'http://172.50.5.116:3000/api/designations/';
  * @returns {string | null} The token or null if not found.
  */
 const getAuthToken = (): string | null => {
-  return localStorage.getItem('token'); // Make sure the key matches what you use in your auth logic
+  return localStorage.getItem('accessToken'); // Make sure the key matches what you use in your auth logic
 };
 
 

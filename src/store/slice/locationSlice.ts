@@ -3,7 +3,7 @@ import axios, { isAxiosError } from 'axios';
 
 // --- CONSTANTS & HELPERS ---
 const API_BASE_URL = 'http://172.50.5.116:3000/api/locations/';
-const getAuthToken = (): string | null => localStorage.getItem('token');
+const getAuthToken = (): string | null => localStorage.getItem('accessToken');
 
 // --- TYPE DEFINITIONS ---
 // This is the shape of the data coming from the API

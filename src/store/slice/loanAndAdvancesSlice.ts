@@ -184,7 +184,7 @@
       
 //       // Get token from state
 //       const state = getState() as RootState;
-//       const token = state.auth.token;
+//       const token = state.auth.accessToken
 //       if (!token) {
 //         return rejectWithValue('Authentication token is missing');
 //       }
@@ -323,7 +323,7 @@
       
 //       // Get token from state - assuming you have an auth slice
 //       const state = getState() as RootState;
-//       const token = state.auth.token; // Make sure you have an auth slice with a token
+//       const token = state.auth.accessToken // Make sure you have an auth slice with a token
 //       if (!token) {
 //         return rejectWithValue('Authentication token is missing');
 //       }
