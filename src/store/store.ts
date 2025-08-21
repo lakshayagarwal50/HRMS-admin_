@@ -22,6 +22,10 @@ import projectReducer from './slice/projectSlice';
 import  webCheckinSettingsReducer from './slice/webCheckinSettingsSlice'
 import sequenceNumberReducer from './slice/sequenceNumberSlice';
 import dsrReducer from './slice/dsrSlice'; 
+import ratingScaleReducer from './slice/ratingScaleSlice';
+import ratingCriteriaReducer from './slice/ratingCriteriaSlice';
+import salaryStructureReducer from './slice/salaryStructureSlice'
+import salaryComponentReducer from './slice/salaryComponentSlice'; 
 
 export const store = configureStore({
   reducer: {
@@ -43,9 +47,14 @@ export const store = configureStore({
     previousJobs: previousJobReducer,
     loans: loansReducer,
     project: projectReducer,
-     webCheckinSettings: webCheckinSettingsReducer,
-     sequenceNumbers: sequenceNumberReducer, 
+    webCheckinSettings: webCheckinSettingsReducer,
+    sequenceNumbers: sequenceNumberReducer, 
     dsr: dsrReducer, 
+    ratingScale: ratingScaleReducer,
+    ratingCriteria: ratingCriteriaReducer, 
+    salaryStructures: salaryStructureReducer,
+    salaryComponents: salaryComponentReducer,
+
   },
 });
 

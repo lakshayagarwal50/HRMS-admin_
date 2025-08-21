@@ -154,20 +154,16 @@ const AppRoutes = () => (
         <Route path="/rating/criteria" element={<RatingCriteriaPage/>} />
         <Route path="/payslip-components" element={<PayslipComponentsPage/>}/>
         <Route path="/employee-salary-structures/:structureId/components" element={<SalaryComponentPage />} />
-        <Route path="/salary-group/:groupName/edit-component/:componentId" element={<EditSalaryComponentPage />} />
-        <Route path="/salary-group/:groupName/add-component" element={<AddSalaryComponentPage />} />
+        <Route path="/employee-salary-structures/:structureId/components/:componentId" element={<EditSalaryComponentPage />}/>
+        <Route path="/employee-salary-structures/:structureId/add-component" element={<AddSalaryComponentPage />}/>
         <Route path="/sequence-number" element={<SequenceNumberPage/>}/>
         <Route path="/payroll-configuration" element={<PayrollConfigurationPage/>}/>
         <Route path="/payslip-components" element={<PayslipComponentsPage />} />
-        <Route
-          path="/employee-salary-structures/${row.id}/components"
-          element={<SalaryComponentPage />}
-        />
+        <Route path="/employee-salary-structures/${row.id}/components"element={<SalaryComponentPage />}/>
         <Route path="/sequence-number" element={<SequenceNumberPage />} />
         <Route path="/attendance/summary" element={< AttendanceSummary/>} />
         <Route path="/attendance/upload" element={< UploadAttendance/>} />
-        
-      </Route>
+    </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />
     </Routes>

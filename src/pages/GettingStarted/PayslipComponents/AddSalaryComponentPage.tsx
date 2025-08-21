@@ -1,173 +1,173 @@
 import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-
-// --- TYPE DEFINITION for the form state ---
-interface NewComponentData {
-    name: string;
-    code: string;
-    type: 'earning' | 'deduction' | 'reimbursement' | 'overtime' | 'leave_encashment' | '';
-    showOnPayslip: boolean;
-    taxable: boolean;
-    isCtc: boolean;
-    leaveDependent: boolean;
-    deductBeforeTax: boolean;
-    adjustBalance: boolean;
-    calcType: 'fixed' | 'formula';
-    valueFormula: string;
-    minAmount: number;
-    maxAmount: number;
-    prorate: boolean;
-}
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../../../store/store';
+import { addSalaryComponent, type NewSalaryComponentPayload } from '../../../store/slice/salaryComponentSlice';
 
 // --- MAIN ADD PAGE COMPONENT ---
 const AddSalaryComponentPage: React.FC = () => {
-    const { groupName } = useParams<{ groupName: string }>();
+    const { structureId, groupName } = useParams<{ structureId: string, groupName: string }>();
     const navigate = useNavigate();
+    const dispatch = useDispatch<AppDispatch>();
     
-    // --- Initial state for a new component ---
-    const [componentData, setComponentData] = useState<NewComponentData>({
+    // Local state to manage the form inputs
+    const [formData, setFormData] = useState({
         name: '',
         code: '',
-        type: '',
+        type: 'EARNING',
         showOnPayslip: true,
-        taxable: true,
-        isCtc: false,
-        leaveDependent: false,
-        deductBeforeTax: false,
-        adjustBalance: false,
-        calcType: 'fixed',
-        valueFormula: '0',
-        minAmount: 0,
-        maxAmount: 0,
+        taxable: true, // true for 'Taxable', false for 'Non-Taxable'
+        isCtc: true,
+        leaveDependent: true,
+        deductBeforeTax: true,
+        adjustBalance: true,
+        calculationType: 'fixed',
+        value: '0',
+        minAmount: '0',
+        maxAmount: '0',
         prorate: false,
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
-        
-        if (type === 'checkbox') {
-            const { checked } = e.target as HTMLInputElement;
-            setComponentData({ ...componentData, [name]: checked });
-        } else if (type === 'radio') {
-             setComponentData({ ...componentData, [name]: value === 'true' });
-        } else {
-            setComponentData({ ...componentData, [name]: value });
-        }
-    };
+        const isCheckbox = type === 'checkbox';
+        const { checked } = e.target as HTMLInputElement;
 
-    const handleCancel = () => {
-        navigate(`/salary-group/${groupName}`);
+        if (name === "taxableOption") {
+            setFormData(prev => ({ ...prev, taxable: value === 'taxable' }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: isCheckbox ? checked : value }));
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // --- Replace this with your actual submission logic ---
-        console.log("Submitting new component:", componentData);
-        // For example: callAPIAdd('/api/components', componentData);
-        navigate(`/salary-group/${groupName}`);
+        if (!structureId || !formData.name || !formData.code) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+
+        const componentData: NewSalaryComponentPayload = {
+            name: formData.name,
+            code: formData.code,
+            type: formData.type.toUpperCase(), // Ensure type is uppercase for consistency
+            showOnPayslip: formData.showOnPayslip,
+            calculationType: formData.calculationType,
+            value: formData.value,
+            testAmount: formData.value,
+            otherSetting: {
+                taxable: formData.taxable,
+                leaveBased: formData.leaveDependent,
+                CTC: formData.isCtc,
+                adjustmentBalanced: formData.adjustBalance,
+            },
+        };
+
+        dispatch(addSalaryComponent({ structureId, componentData }));
+        navigate(`/employee-salary-structures/${structureId}/components`);
     };
 
     return (
         <div className="w-full bg-gray-50 p-4 sm:p-6">
-            {/* Page Header */}
-            <header className="mb-6 flex justify-between items-center">
-                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Salary Component(Group:{groupName})</h1>
-                <nav aria-label="Breadcrumb" className="hidden sm:flex items-center text-sm text-gray-500">
+            <header className="mb-6">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Salary Component(Group:{groupName})</h1>
+                <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
                     <Link to="/dashboard" className="hover:text-gray-700">Dashboard</Link>
                     <ChevronRight size={16} className="mx-1" />
-                    <Link to="/getting-started" className="hover:text-gray-700">Getting Started</Link>
+                    <Link to="/employee-salary-structures" className="hover:text-gray-700">Employee Salary Structures</Link>
                     <ChevronRight size={16} className="mx-1" />
-                    <Link to="/payslip-components" className="hover:text-gray-700">Payslip components</Link>
-                    <ChevronRight size={16} className="mx-1" />
-                    <Link to={`/salary-group/${groupName}`} className="hover:text-gray-700">Employee Salary Structures</Link>
+                    <Link to={`/employee-salary-structures/${structureId}/components`} className="hover:text-gray-700">Edit component</Link>
                     <ChevronRight size={16} className="mx-1" />
                     <span className="font-medium text-gray-800">Add new component</span>
                 </nav>
             </header>
 
-            {/* Main Content Grid */}
-            <main className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left Column: Form */}
-                <form className="bg-white p-6 rounded-lg shadow-md border space-y-6" onSubmit={handleSubmit}>
-                    {/* Form Fields */}
-                    <div className="space-y-4">
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                            <input type="text" id="name" name="name" value={componentData.name} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
-                        </div>
-                        <div>
-                            <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">Code *</label>
-                            <input type="text" id="code" name="code" value={componentData.code} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
-                        </div>
-                         <div>
-                            <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
-                            <select id="type" name="type" value={componentData.type} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm">
-                                <option value="">Choose Type</option>
-                                <option value="earning">Earning</option>
-                                <option value="deduction">Deduction</option>
-                                <option value="reimbursement">Reimbursement</option>
-                                <option value="overtime">OverTime</option>
-                                <option value="leave_encashment">Leave Encashment</option>
-                            </select>
-                        </div>
+            <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md border space-y-6">
+                    <div>
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                        <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500" required />
                     </div>
-                    
-                    <div className="flex items-center">
-                        <input id="showOnPayslip" name="showOnPayslip" type="checkbox" checked={componentData.showOnPayslip} onChange={handleInputChange} className="h-4 w-4 text-purple-600 border-gray-300 rounded" />
-                        <label htmlFor="showOnPayslip" className="ml-3 block text-sm font-medium text-gray-900">Show on payslip</label>
+                    <div>
+                        <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">Code *</label>
+                        <input type="text" id="code" name="code" value={formData.code} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+                    </div>
+                    <div>
+                        <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                        {/* This is the updated input with a datalist */}
+                        <input
+                            list="types"
+                            id="type"
+                            name="type"
+                            value={formData.type}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                        <datalist id="types">
+                            <option value="EARNING" />
+                            <option value="DEDUCTION" />
+                            <option value="REIMBURSEMENT" />
+                            <option value="OVERTIME" />
+                            <option value="LEAVE ENCASHMENT" />
+                        </datalist>
+                    </div>
+                    <div className="flex items-center pt-2">
+                        <input id="showOnPayslip" name="showOnPayslip" type="checkbox" checked={formData.showOnPayslip} onChange={handleInputChange} className="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"/>
+                        <label htmlFor="showOnPayslip" className="ml-2 font-medium">Show on payslip</label>
                     </div>
 
                     <div className="space-y-3 pt-4 border-t">
-                        <h3 className="text-md font-semibold text-gray-800">Tax Calculation</h3>
-                        <div className="space-y-3">
-                           <div className="flex items-center"><input id="taxable" name="taxable" type="radio" value="true" checked={componentData.taxable === true} onChange={handleInputChange} className="h-4 w-4 text-purple-600" /><label htmlFor="taxable" className="ml-3 text-sm font-medium text-gray-900">Taxable</label></div>
-                           <div className="flex items-center"><input id="nonTaxable" name="taxable" type="radio" value="false" checked={componentData.taxable === false} onChange={handleInputChange} className="h-4 w-4 text-purple-600" /><label htmlFor="nonTaxable" className="ml-3 text-sm font-medium text-gray-900">Non-Taxable</label></div>
+                        <h3 className="text-md font-semibold">Tax Calculation</h3>
+                        <div className="flex items-center space-x-6">
+                           <div className="flex items-center">
+                               <input id="taxable" name="taxableOption" type="radio" value="taxable" checked={formData.taxable === true} onChange={handleInputChange} className="h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500"/>
+                               <label htmlFor="taxable" className="ml-2">Taxable</label>
+                           </div>
+                           <div className="flex items-center">
+                               <input id="nonTaxable" name="taxableOption" type="radio" value="non-taxable" checked={formData.taxable === false} onChange={handleInputChange} className="h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500"/>
+                               <label htmlFor="nonTaxable" className="ml-2">Non-Taxable</label>
+                           </div>
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                       <div className="flex items-center"><input id="isCtc" name="isCtc" type="checkbox" checked={componentData.isCtc} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded" /><label htmlFor="isCtc" className="ml-3 text-sm font-medium text-gray-900">Part of CTC</label></div>
-                       <div className="flex items-center"><input id="leaveDependent" name="leaveDependent" type="checkbox" checked={componentData.leaveDependent} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded" /><label htmlFor="leaveDependent" className="ml-3 text-sm font-medium text-gray-900">Leave dependent</label></div>
-                       <div className="flex items-center"><input id="deductBeforeTax" name="deductBeforeTax" type="checkbox" checked={componentData.deductBeforeTax} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded" /><label htmlFor="deductBeforeTax" className="ml-3 text-sm font-medium text-gray-900">Deduct Before Tax Calculation</label></div>
-                       <div className="flex items-center"><input id="adjustBalance" name="adjustBalance" type="checkbox" checked={componentData.adjustBalance} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded" /><label htmlFor="adjustBalance" className="ml-3 text-sm font-medium text-gray-900">Adjust Balance Amount</label></div>
+                    <div className="space-y-3 pt-4 border-t">
+                       <div className="flex items-center"><input id="isCtc" name="isCtc" type="checkbox" checked={formData.isCtc} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"/><label htmlFor="isCtc" className="ml-2 font-medium">Part of CTC</label></div>
+                       <div className="flex items-center"><input id="leaveDependent" name="leaveDependent" type="checkbox" checked={formData.leaveDependent} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"/><label htmlFor="leaveDependent" className="ml-2 font-medium">Leave dependent</label></div>
+                       <div className="flex items-center"><input id="deductBeforeTax" name="deductBeforeTax" type="checkbox" checked={formData.deductBeforeTax} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"/><label htmlFor="deductBeforeTax" className="ml-2 font-medium">Deduct Before Tax Calculation</label></div>
+                       <div className="flex items-center"><input id="adjustBalance" name="adjustBalance" type="checkbox" checked={formData.adjustBalance} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"/><label htmlFor="adjustBalance" className="ml-2 font-medium">Adjust Balance Amount</label></div>
                     </div>
 
                     <div className="space-y-4 pt-4 border-t">
                         <div>
-                            <label htmlFor="calcType" className="block text-sm font-medium text-gray-700 mb-1">Calculation Type</label>
-                            <select id="calcType" name="calcType" value={componentData.calcType} onChange={handleInputChange} className="w-full px-3 py-2 border bg-white rounded-md">
+                            <label htmlFor="calculationType" className="block text-sm font-medium text-gray-700 mb-1">Calculation Type</label>
+                            <select id="calculationType" name="calculationType" value={formData.calculationType} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                                 <option value="fixed">Fixed</option>
                                 <option value="formula">Formula</option>
                             </select>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="sm:col-span-1">
-                                <label htmlFor="valueFormula" className="block text-sm font-medium text-gray-700 mb-1">Value/Formula</label>
-                                <input type="text" id="valueFormula" name="valueFormula" value={componentData.valueFormula} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-md"/>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">Value/Formula</label>
+                                <input type="text" id="value" name="value" value={formData.value} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"/>
                             </div>
-                            <div className="sm:col-span-1">
-                                <label htmlFor="minAmount" className="block text-sm font-medium text-gray-700 mb-1">Min Amount</label>
-                                <input type="number" id="minAmount" name="minAmount" value={componentData.minAmount} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-md"/>
-                            </div>
-                             <div className="sm:col-span-1">
-                                <label htmlFor="maxAmount" className="block text-sm font-medium text-gray-700 mb-1">Max Amount</label>
-                                <input type="number" id="maxAmount" name="maxAmount" value={componentData.maxAmount} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-md"/>
+                            <div>
+                                <label htmlFor="testAmount" className="block text-sm font-medium text-gray-700 mb-1">Test Amount</label>
+                                <input type="text" id="testAmount" name="testAmount" value={formData.testAmount} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"/>
                             </div>
                         </div>
                     </div>
                      <div className="flex items-start pt-4 border-t">
-                        <input id="prorate" name="prorate" type="checkbox" checked={componentData.prorate} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded mt-1" />
-                        <label htmlFor="prorate" className="ml-3 block text-sm font-medium text-gray-900">Prorate amount <span className="text-gray-500 font-normal">(Only if employee join or leave in middle of month. Amount will be prorated)</span></label>
+                        <input id="prorate" name="prorate" type="checkbox" checked={formData.prorate} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"/>
+                        <label htmlFor="prorate" className="ml-2 block text-sm font-medium text-gray-900">Prorate amount <span className="text-gray-500 font-normal">(Only if employee join or leave in middle of month, Amount will be prorated)</span></label>
                     </div>
 
-                    <div className="flex justify-end gap-4 pt-6 border-t">
-                        <button type="button" onClick={handleCancel} className="px-8 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Cancel</button>
-                        <button type="submit" className="px-8 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">SUBMIT</button>
+                    <div className="flex justify-start gap-4 pt-6 border-t">
+                        <button type="button" onClick={() => navigate(-1)} className="px-8 py-2 border rounded-md">Cancel</button>
+                        <button type="submit" className="px-8 py-2 bg-purple-600 text-white rounded-md">SUBMIT</button>
                     </div>
                 </form>
 
-                {/* Right Column: Help Text */}
                 <div className="space-y-5 text-sm text-gray-600 p-4">
                     <div><h4 className="font-semibold text-gray-800">Code:</h4><p>Unique code identify Type of Salary. For example HRA(House Rent Allowance), BASIC(Basic Salary). Note: If its Basic or House Rent allowance then please keep Code as BASIC or HRA.</p></div>
                     <div><h4 className="font-semibold text-gray-800">Type:</h4><p>Type of Salary Head, Choose any one from following</p></div>
