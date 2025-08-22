@@ -26,7 +26,7 @@ import ratingScaleReducer from './slice/ratingScaleSlice';
 import ratingCriteriaReducer from './slice/ratingCriteriaSlice';
 import salaryStructureReducer from './slice/salaryStructureSlice'
 import salaryComponentReducer from './slice/salaryComponentSlice'; 
-
+import payrollReducer from './slice/payrollSlice';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -54,7 +54,7 @@ export const store = configureStore({
     ratingCriteria: ratingCriteriaReducer, 
     salaryStructures: salaryStructureReducer,
     salaryComponents: salaryComponentReducer,
-
+    payroll: payrollReducer,
   },
 });
 
