@@ -37,6 +37,7 @@ import LoanDetailModal from "../common/LoanDetailModal";
 import LoanConfirmationModal from "../common/LoanConfirmationModal";
 import AddLoanModal from "../common/AddLoanModal";
 import PreviousJobDetails from "../common/PreviousJobDetails";
+import SalaryDistribution from "../common/SalaryDistribution";
 import ProjectsSection from "../common/ProjectsSection";
 import EmployeeActivities from "../common/EmployeeActivities";
 import {
@@ -598,7 +599,7 @@ export default function EmployeeDetailPage() {
             }
           />
         );
-        
+
       case "pf_esi_pt":
         return (
           <PlaceholderComponent
@@ -615,7 +616,7 @@ export default function EmployeeDetailPage() {
         );
       case "salary_distribution":
         return (
-          <PlaceholderComponent
+          <SalaryDistribution
             title="Salary Distribution"
             onEdit={() => handleEdit("salary_distribution", null)}
           />
