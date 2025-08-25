@@ -133,10 +133,8 @@
 //   }
 // };
 
-
-
 import { AxiosError } from "axios";
-import { axiosInstance } from "../../../services"; 
+import { axiosInstance } from "../../../services";
 import type { Project, ProjectResource } from "../../../types/project";
 
 interface ErrorResponse {
@@ -157,7 +155,7 @@ const handleApiError = (error: unknown): { message: string } => {
 // GET /project - Get All Projects
 export const fetchProjectsApi = async (): Promise<Project[]> => {
   try {
-    const response = await axiosInstance.get("/project");
+    const response = await axiosInstance.get("/project/getAll");
     return response.data;
   } catch (error) {
     throw handleApiError(error);
@@ -167,7 +165,7 @@ export const fetchProjectsApi = async (): Promise<Project[]> => {
 // GET /project/:id - Get Single Project
 export const fetchProjectByIdApi = async (id: string): Promise<Project> => {
   try {
-    const response = await axiosInstance.get(`/project/${id}`);
+    const response = await axiosInstance.get(`/project/getproject/${id}`);
     return response.data;
   } catch (error) {
     throw handleApiError(error);
@@ -179,7 +177,7 @@ export const createProjectApi = async (
   projectData: Omit<Project, "id" | "teamMember" | "isDeleted" | "resources">
 ): Promise<{ message: string; project: Project }> => {
   try {
-    const response = await axiosInstance.post("/project", projectData);
+    const response = await axiosInstance.post("/project/create", projectData);
     return response.data;
   } catch (error) {
     throw handleApiError(error);
@@ -192,7 +190,10 @@ export const allocateEmployeeToProjectApi = async (
   resource: Omit<ProjectResource, "id">
 ): Promise<{ message: string; allocationId: string }> => {
   try {
-    const response = await axiosInstance.post(`/project/${projectId}`, resource);
+    const response = await axiosInstance.post(
+      `/project/allocate/${projectId}`,
+      resource
+    );
     return response.data;
   } catch (error) {
     throw handleApiError(error);
@@ -205,7 +206,7 @@ export const updateProjectApi = async (
   data: Partial<Project>
 ): Promise<{ message: string; projectId: string }> => {
   try {
-    const response = await axiosInstance.patch(`/project/${id}`, data);
+    const response = await axiosInstance.patch(`/project/edit/${id}`, data);
     return response.data;
   } catch (error) {
     throw handleApiError(error);
@@ -237,7 +238,7 @@ export const deleteProjectApi = async (
   id: string
 ): Promise<{ message: string; projectId: string }> => {
   try {
-    const response = await axiosInstance.delete(`/project/${id}`);
+    const response = await axiosInstance.delete(`/project/delete/${id}`);
     return response.data;
   } catch (error) {
     throw handleApiError(error);

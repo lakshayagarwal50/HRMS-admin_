@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import axios, { isAxiosError } from 'axios';
 import type { RootState } from '../store'; // Adjust path if needed
 
-const API_BASE_URL = 'http://172.50.5.116:3000/api/dsr';
+const API_BASE_URL = 'http://172.50.5.49:3000/api/dsr';
 
 const getAuthToken = (): string | null => {
   return localStorage.getItem('accessToken'); 
