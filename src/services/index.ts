@@ -116,7 +116,7 @@ import type { AppDispatch, RootState } from "../store/store";
 import { refreshToken, logoutUser } from "../features/auth/authSlice";
 
 // Base URL (your API uses the /api prefix)
-const API_BASE_URL = "http://172.50.5.116:3000/";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 // Create the Axios instance
 export const axiosInstance = axios.create({
