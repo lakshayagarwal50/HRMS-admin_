@@ -303,8 +303,8 @@ const mainMenuItems: MenuItem[] = [
     icon: Wallet,
     subItems: [
       { label: "List", link: "/payroll/list" },
-      { label: "Crystal Employee", link: "/payroll/crystal" },
-      { label: "Full & Final Statement", link: "/payroll/final-statement" },
+      { label: "Crystal Run", link: "/payroll/crystal" },
+      // { label: "Full & Final Statement", link: "/payroll/final-statement" },
       { label: "Upload Form 16", link: "/payroll/upload-form16" },
     ],
   },

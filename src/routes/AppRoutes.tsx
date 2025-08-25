@@ -14,7 +14,6 @@ import HolidayConfigurationPage from "../pages/GettingStarted/HolidayConfigurati
 import LeaveSetupPage from "../pages/LeaveConfiguration/LeaveSetupPage";
 import CommingSoon from "../components/NotFound/CommingSoon";
 import HolidayCalendarPage from "../pages/GettingStarted/HolidayCalendar/HolidayCalenderPage";
-import EmployeeLeaveRequestPage from "../pages/LeaveConfiguration/EmployeeLeaveRequestPage";
 import RecordPage from "../pages/Rating/RecordPage";
 import EmployeesRatingPage from "../pages/Rating/EmployeesRatingPage";
 import ViewRatingDetailPage from "../pages/Rating/ViewRatingDetailPage";
@@ -26,6 +25,16 @@ import AddSalaryComponentPage from "../pages/GettingStarted/PayslipComponents/Ad
 import PayrollConfigurationPage from "../pages/GettingStarted/PayrollConfigurationPage/PayrollConfigurationPage";
 import CreateRolePage from "../pages/GettingStarted/Role/CreateRolePage";
 import RatingCriteriaPage from "../pages/Rating/RatingCriteriaPage";
+import CrystalRunPage from "../pages/Payroll/CrystalRunPage";
+import GeneratePayslipLayout from "../layout/GeneratePayslipLayout";
+import CtcStepPage from "../pages/Payroll/steps/CtcStepPage";
+import AttendanceStepPage from "../pages/Payroll/steps/AttendanceStepPage";
+import GrossEarningStepPage from "../pages/Payroll/steps/GrossEarningStepPage";
+import LoanApprovedStepPage from "../pages/Payroll/steps/LoanApprovedStepPage";
+import EmployeeStatutoryStepPage from "../pages/Payroll/steps/EmployeeStatutoryStepPage";
+import EmployerStatutoryStepPage from "../pages/Payroll/steps/EmployerStatutoryStepPage";
+import LoanRepaymentStepPage from "../pages/Payroll/steps/LoanRepaymentStepPage";
+import ProcessPayslipStepPage from "../pages/Payroll/steps/ProcessPayslipStepPage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
@@ -95,6 +104,8 @@ const UploadAttendance = lazy(
 const PayrollList = lazy(
   ()=> import("../features/payroll/pages/PayrollList")
 )
+const EmployeeLeaveRequest = lazy (()=> import("../pages/LeaveConfiguration/EmployeeLeaveRequestPage")
+)
 
 const AppRoutes = () => (
   <Suspense
@@ -157,7 +168,7 @@ const AppRoutes = () => (
           element={<HolidayConfigurationPage />}
         />
         <Route path="/leave/setup" element={<LeaveSetupPage />} />
-        <Route path="/leave/request" element={<EmployeeLeaveRequestPage />} />
+        <Route path="/leave/request" element={<EmployeeLeaveRequest />} />
         <Route path="/holiday-calendar" element={<HolidayCalendarPage />} />
         <Route path="/loanandandvance" element={<DisplayLoans />} />
         <Route
@@ -225,6 +236,21 @@ const AppRoutes = () => (
         <Route path="/attendance/summary" element={<AttendanceSummary />} />
         <Route path="/attendance/upload" element={<UploadAttendance />} />
         <Route path="/payroll/list" element={<PayrollList />} />
+        <Route path="/payroll/crystal" element={<CrystalRunPage/>}/>
+        <Route path="/payroll/generate" element={<GeneratePayslipLayout />}>
+        
+        {/* These are the nested child routes for each individual step */}
+        <Route path="ctc" element={<CtcStepPage />} />
+        <Route path="attendance" element={<AttendanceStepPage />} />
+        <Route path="gross-earning" element={<GrossEarningStepPage />} />
+        <Route path="loan-approved" element={<LoanApprovedStepPage />} />
+        <Route path="employee-statutory" element={<EmployeeStatutoryStepPage />} />
+        <Route path="employer-statutory" element={<EmployerStatutoryStepPage />} />
+        <Route path="loan-repayment" element={<LoanRepaymentStepPage />} />
+        <Route path="process" element={<ProcessPayslipStepPage />} />
+  
+        
+      </Route>
         
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

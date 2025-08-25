@@ -1,118 +1,93 @@
-import React from 'react';
-import { X  } from 'lucide-react';
-import SidePanelForm from '../../components/common/SidePanelForm'; // Assuming a generic side panel exists
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { X } from 'lucide-react';
+import type { AppDispatch, RootState } from '../../store/store';
+import { clearSelectedLeaveRequest, updateLeaveStatus } from '../../store/slice/leaveRequestSlice';
 
-// --- TYPE DEFINITIONS ---
-// These should match the types in your main page
-type ApprovalStatus = 'Pending' | 'Approved' | 'Declined';
+const LeaveRequestDetail: React.FC = () => {
+    const dispatch = useDispatch<AppDispatch>();
+    const { selectedRequest, selectedRequestStatus } = useSelector((state: RootState) => state.leaveRequests);
+    const [declineReason, setDeclineReason] = useState('');
+    const [showDeclineForm, setShowDeclineForm] = useState(false);
 
-interface LeaveRequest {
-  id: string;
-  employeeName: string;
-  leaveType: string;
-  appliedOn: string;
-  startDate: string;
-  endDate: string;
-  // Add any other fields you need from your main LeaveRequest type
-}
+    const handleClose = () => {
+        dispatch(clearSelectedLeaveRequest());
+        setShowDeclineForm(false);
+        setDeclineReason('');
+    };
 
-interface LeaveRequestDetailProps {
-  isOpen: boolean;
-  onClose: () => void;
-  request: LeaveRequest | null;
-}
+    const handleApprove = () => {
+        if (selectedRequest) {
+            dispatch(updateLeaveStatus({ id: selectedRequest.id, status: 'Approved' }));
+            handleClose();
+        }
+    };
 
-// --- Helper Components ---
-const LeaveBalanceCard: React.FC<{ title: string; allowed: number; taken: number; unpaid: number }> = ({ title, allowed, taken, unpaid }) => (
-    <div className="bg-gray-50 p-4 rounded-lg border">
-        <h3 className="font-semibold text-gray-800 mb-2">{title}</h3>
-        <div className="space-y-1 text-sm">
-            <div className="flex justify-between"><span>Allowed Leave:</span> <span>{allowed.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>Leave Taken:</span> <span>{taken.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>Unpaid Leave:</span> <span>{unpaid.toFixed(2)}</span></div>
-            <div className="flex justify-between font-bold"><span>Balance:</span> <span>{(allowed - taken).toFixed(2)}</span></div>
-        </div>
-    </div>
-);
+    const handleDecline = () => {
+        if (selectedRequest && declineReason) {
+            dispatch(updateLeaveStatus({ id: selectedRequest.id, status: 'Rejected', declineReason }));
+            handleClose();
+        }
+    };
 
-const DetailRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
-    <div className="flex justify-between items-center py-2 border-b last:border-b-0">
-        <span className="text-sm text-gray-600">{label}</span>
-        <span className="text-sm font-medium text-gray-900 text-right">{value}</span>
-    </div>
-);
+    if (!selectedRequest && selectedRequestStatus !== 'loading') return null;
 
-
-// --- MAIN COMPONENT ---
-const LeaveRequestDetail: React.FC<LeaveRequestDetailProps> = ({ isOpen, onClose, request }) => {
-  if (!request) {
-    return null;
-  }
-
-  // Dummy handler for the form submission
-  const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      console.log("Action buttons would be handled here.");
-      onClose();
-  };
-
-  return (
-    <SidePanelForm
-        isOpen={isOpen}
-        onClose={onClose}
-        title={`Leave Request (${request.employeeName})`}
-        onSubmit={handleSubmit}
-        // Hide the default footer buttons since we have custom ones
-        hideFooter={true} 
-    >
-        <div className="p-6 space-y-6">
-            {/* Leave Balances */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <LeaveBalanceCard title="Planned leave" allowed={5} taken={1} unpaid={0} />
-                <LeaveBalanceCard title="Casual leave" allowed={1} taken={0} unpaid={0} />
-                <LeaveBalanceCard title="Privileged leave" allowed={5} taken={1} unpaid={0} />
-                <LeaveBalanceCard title="Sick leave" allowed={1} taken={0} unpaid={0} />
-            </div>
-
-            {/* Leave Details */}
-            <div>
-                <h3 className="text-md font-semibold mb-2 text-gray-800">Leave Details</h3>
-                <div className="border rounded-lg p-4 bg-white">
-                    <DetailRow label="Employee" value={request.employeeName} />
-                    <DetailRow label="Leave Type" value={request.leaveType} />
-                    <DetailRow label="Applied On" value={new Date(request.appliedOn).toLocaleDateString()} />
-                    <DetailRow label="Start Date" value={new Date(request.startDate).toLocaleDateString()} />
-                    <DetailRow label="End Date" value={new Date(request.endDate).toLocaleDateString()} />
-                    <DetailRow label="Half Day" value="Yes" />
-                    <DetailRow label="Uploaded Document" value={<a href="#" className="text-purple-600 hover:underline">JimmyMedical.pdf</a>} />
-                    <DetailRow label="Reason" value="Need to Attend Some Family Function." />
-                    <DetailRow label="Status" value={<span className="text-green-600 font-semibold">Approved</span>} />
+    return (
+        <div className="fixed inset-0 bg-black/50 z-40" onClick={handleClose}>
+            <div className="fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-xl p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold">Leave Request Details</h2>
+                    <button onClick={handleClose}><X size={24} /></button>
                 </div>
-            </div>
 
-            {/* Approval Status */}
-            <div>
-                <h3 className="text-md font-semibold mb-2 text-gray-800">Approval Status</h3>
-                <div className="border rounded-lg p-4 bg-white">
-                    <DetailRow label="Kushal Saran (RM)" value={<span className="text-green-600 font-semibold">Approved</span>} />
-                </div>
-            </div>
+                {selectedRequestStatus === 'loading' && <p>Loading details...</p>}
 
-            {/* Custom Action Buttons */}
-            <div className="flex justify-end items-center pt-4 space-x-3">
-                <button type="button" className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200">
-                    Approve as unpaid
-                </button>
-                <button type="submit" className="px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-md hover:bg-purple-700">
-                    Approve
-                </button>
-                <button type="button" className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700">
-                    Decline Leave
-                </button>
+                {selectedRequestStatus === 'succeeded' && selectedRequest && (
+                    <div className="space-y-4 text-sm">
+                        <p><strong>Employee:</strong> {selectedRequest.employeeName} ({selectedRequest.empCode})</p>
+                        <p><strong>Department:</strong> {selectedRequest.department}</p>
+                        <p><strong>Leave Type:</strong> {selectedRequest.leaveType}</p>
+                        <p><strong>Dates:</strong> {new Date(selectedRequest.startDate).toLocaleDateString()} to {new Date(selectedRequest.endDate).toLocaleDateString()}</p>
+                        <p><strong>Duration:</strong> {selectedRequest.duration} Day(s)</p>
+                        <p><strong>Reason:</strong> {selectedRequest.reason}</p>
+                        <a href={selectedRequest.uploadedDocument} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">View Document</a>
+                        
+                        <div className="pt-4 border-t">
+                            <h3 className="font-semibold mb-2">Leave Balance</h3>
+                            <div className="grid grid-cols-2 gap-2">
+                                {Object.entries(selectedRequest.leaveBalance).map(([type, balance]) => (
+                                    <div key={type} className="bg-gray-50 p-2 rounded">
+                                        <p className="font-medium">{type}</p>
+                                        <p>Balance: {balance.balance}/{balance.allowedLeave}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="pt-6 border-t space-y-4">
+                            {!showDeclineForm && (
+                                <div className="flex gap-4">
+                                    <button onClick={handleApprove} className="flex-1 py-2 bg-green-600 text-white rounded-md">Approve</button>
+                                    <button onClick={() => setShowDeclineForm(true)} className="flex-1 py-2 bg-red-600 text-white rounded-md">Decline</button>
+                                </div>
+                            )}
+
+                            {showDeclineForm && (
+                                <div className="space-y-2">
+                                    <label htmlFor="declineReason" className="font-semibold">Reason for Decline</label>
+                                    <textarea id="declineReason" value={declineReason} onChange={(e) => setDeclineReason(e.target.value)} className="w-full p-2 border rounded-md" rows={3}></textarea>
+                                    <div className="flex gap-4">
+                                        <button onClick={() => setShowDeclineForm(false)} className="flex-1 py-2 bg-gray-200 rounded-md">Cancel</button>
+                                        <button onClick={handleDecline} className="flex-1 py-2 bg-red-600 text-white rounded-md">Confirm Decline</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
-    </SidePanelForm>
-  );
+    );
 };
 
 export default LeaveRequestDetail;
