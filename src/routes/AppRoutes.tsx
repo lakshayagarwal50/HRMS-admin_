@@ -55,8 +55,31 @@ const LoanDetailPage = lazy(
   () => import("../pages/LoanAndAdvances/displayLoanDetail")
 );
 const DisplayDSR = lazy(() => import("../pages/DSR/displayDSR"));
-// const DSRDetailPage = lazy(() => import("../pages/DSR/displayDSRDetail"));
-
+const AllReports = lazy(() => import("../pages/Reports/pages/allReports"));
+const CreateReports = lazy(
+  () => import("../pages/Reports/pages/createReports")
+);
+const ScheduledReports = lazy(
+  () => import("../pages/Reports/pages/ScheduledReports")
+);
+const EmployeeSnapshot = lazy(
+  () =>
+    import(
+      "../pages/Reports/pages/EmployeeReport/EmployeeSnapshot/employeeSnapshot"
+    )
+);
+const ProvidentFundReport = lazy(
+  () =>
+    import(
+      "../pages/Reports/pages/EmployeeReport/ProvidentFundReport/providentFundReport"
+    )
+);
+const EmployeeDeclarations = lazy(
+  () =>
+    import(
+      "../pages/Reports/pages/EmployeeReport/EmployeeDeclarations/employeeDeclarations"
+    )
+);
 const Projects = lazy(
   () => import("../features/Projects/list/pages/ProjectList")
 );
@@ -114,9 +137,7 @@ const AppRoutes = () => (
           element={<EmployeeDetailPage />}
         />
         <Route path="/employees/create" element={<CreateEmployeeForm />} />
-        <Route path="/employees/create" element={<CreateEmployeeForm />} />
         <Route path="/employees/upload" element={<UploadEmployee />} />
-
         <Route path="/department" element={<DepartmentPage />} />
         <Route path="/designation" element={<DesignationPage />} />
         <Route path="/role" element={<RolePage />} />
@@ -144,8 +165,6 @@ const AppRoutes = () => (
           element={<LoanDetailPage />}
         />
         <Route path="/dsr" element={<DisplayDSR />} />
-        {/* <Route path="/dsr/list/detail/:id" element={<DSRDetailPage />} /> */}
-
         <Route path="*" element={<CommingSoon />} />
         <Route path="/project" element={<Projects />} />
         <Route path="/projects" element={<Projects />} />
@@ -157,7 +176,28 @@ const AppRoutes = () => (
           element={<EmployeesRatingPage />}
         />
         <Route path="/rating/detail/:id" element={<ViewRatingDetailPage />} />
-        <Route path="/rating/criteria" element={<RatingCriteriaPage />} />
+        <Route path="/reports/all" element={<AllReports />} />
+        <Route path="/reports/create" element={<CreateReports />} />
+        <Route path="/reports/scheduled" element={<ScheduledReports />} />
+        <Route
+          path="/reports/employee/snapshot"
+          element={<EmployeeSnapshot />}
+        />
+        <Route
+          path="/reports/employee/provident-fund"
+          element={<ProvidentFundReport />}
+        />
+        <Route
+          path="/reports/employee/declarations"
+          element={<EmployeeDeclarations />}
+        />
+        <Route path="/rating/criteria" element={<RatingCriteriaPage/>} />
+        <Route path="/payslip-components" element={<PayslipComponentsPage/>}/>
+        <Route path="/employee-salary-structures/:structureId/components" element={<SalaryComponentPage />} />
+        <Route path="/employee-salary-structures/:structureId/components/:componentId" element={<EditSalaryComponentPage />}/>
+        <Route path="/employee-salary-structures/:structureId/add-component" element={<AddSalaryComponentPage />}/>
+        <Route path="/sequence-number" element={<SequenceNumberPage/>}/>
+        <Route path="/payroll-configuration" element={<PayrollConfigurationPage/>}/>
         <Route path="/payslip-components" element={<PayslipComponentsPage />} />
         <Route
           path="/employee-salary-structures/:structureId/components"

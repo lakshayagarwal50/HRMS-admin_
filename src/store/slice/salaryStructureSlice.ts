@@ -15,7 +15,6 @@ export interface SalaryStructure {
   description: string;
 }
 
-// Type for creating a new structure, matching the API request body
 export type NewSalaryStructure = {
   groupName: string;
   description: string;
@@ -27,7 +26,8 @@ export type UpdateSalaryStructurePayload = { id: string } & Partial<NewSalaryStr
 
 export interface SalaryStructureState {
   data: SalaryStructure[];
-  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  // 'mutating' can be used to distinguish between fetching data and changing it
+  status: 'idle' | 'loading' | 'succeeded' | 'failed' | 'mutating';
   error: string | null;
 }
 
@@ -40,6 +40,7 @@ const initialState: SalaryStructureState = {
 
 // --- ASYNCHRONOUS THUNKS ---
 
+// GET /payslip/structure
 export const fetchSalaryStructures = createAsyncThunk(
   'salaryStructures/fetch',
   async (_, { rejectWithValue }) => {
@@ -53,6 +54,7 @@ export const fetchSalaryStructures = createAsyncThunk(
   }
 );
 
+// POST /payslip/structure
 export const addSalaryStructure = createAsyncThunk(
   'salaryStructures/add',
   async (newStructure: NewSalaryStructure, { rejectWithValue }) => {
@@ -66,14 +68,13 @@ export const addSalaryStructure = createAsyncThunk(
   }
 );
 
+// PATCH /payslip/structure/:id
 export const updateSalaryStructure = createAsyncThunk(
   'salaryStructures/update',
   async (payload: UpdateSalaryStructurePayload, { rejectWithValue }) => {
     try {
       const { id, ...data } = payload;
-      // Corrected: Use PATCH and the correct endpoint
       const response = await axiosInstance.patch(`${API_BASE_URL}/${id}`, data);
-      // The API returns the full updated object, which we'll use to update the state
       return response.data as SalaryStructure;
     } catch (error) {
       if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update structure');
@@ -82,12 +83,14 @@ export const updateSalaryStructure = createAsyncThunk(
   }
 );
 
+// DELETE /payslip/structure/:id  <- CORRECTED ENDPOINT
 export const deleteSalaryStructure = createAsyncThunk(
   'salaryStructures/delete',
   async (id: string, { rejectWithValue }) => {
     try {
-      await axiosInstance.delete(`${API_BASE_URL}/delete/${id}`);
-      return id;
+      // ✅ Corrected: Removed the extra '/delete' from the URL
+      await axiosInstance.delete(`${API_BASE_URL}/${id}`);
+      return id; // Return the ID on success for filtering in the reducer
     } catch (error) {
       if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to delete structure');
       return rejectWithValue('An unknown error occurred.');
@@ -102,32 +105,54 @@ const salaryStructureSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
+    // Define a matcher for pending mutation actions (add, update, delete)
+    const isMutationPending = (action: PayloadAction<unknown>) =>
+      action.type.startsWith('salaryStructures/') && action.type.endsWith('/pending');
+
+    // Define a matcher for rejected mutation actions
+    const isMutationRejected = (action: PayloadAction<unknown>) =>
+      action.type.startsWith('salaryStructures/') && action.type.endsWith('/rejected');
+
     builder
-      // Fetch
-      .addCase(fetchSalaryStructures.pending, (state) => { state.status = 'loading'; })
+      // --- Fetch Cases ---
+      .addCase(fetchSalaryStructures.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
       .addCase(fetchSalaryStructures.fulfilled, (state, action: PayloadAction<SalaryStructure[]>) => {
         state.status = 'succeeded';
         state.data = action.payload;
       })
-      .addCase(fetchSalaryStructures.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload as string;
-      })
-      // Add
+      
+      // --- Add Cases ---
       .addCase(addSalaryStructure.fulfilled, (state, action: PayloadAction<SalaryStructure>) => {
+        state.status = 'succeeded';
         state.data.unshift(action.payload);
       })
-      // Update
+
+      // --- Update Cases ---
       .addCase(updateSalaryStructure.fulfilled, (state, action: PayloadAction<SalaryStructure>) => {
+        state.status = 'succeeded';
         const index = state.data.findIndex(s => s.id === action.payload.id);
         if (index !== -1) {
-          // Replace the old item with the full updated object from the API
           state.data[index] = action.payload;
         }
       })
-      // Delete
+      
+      // --- Delete Cases ---
       .addCase(deleteSalaryStructure.fulfilled, (state, action: PayloadAction<string>) => {
+        state.status = 'succeeded';
         state.data = state.data.filter(s => s.id !== action.payload);
+      })
+
+      // --- Shared Cases for Mutations using matchers ---
+      .addMatcher(isMutationPending, (state) => {
+        state.status = 'mutating'; // Use a specific status for mutations
+        state.error = null;
+      })
+      .addMatcher(isMutationRejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
       });
   },
 });

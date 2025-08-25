@@ -22,8 +22,8 @@ interface TableProps<T> {
 const Table = <T extends object>({
   data,
   columns,
-  itemsPerPageOptions = [5, 10, 25, 50],
-  defaultItemsPerPage = 5,
+  itemsPerPageOptions = [10, 25, 50],
+  defaultItemsPerPage = 10,
   showPagination = true,
   showSearch = true,
   searchPlaceholder = "Search",
