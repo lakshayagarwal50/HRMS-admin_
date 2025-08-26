@@ -34,3 +34,6 @@ export interface StatutoryEntry {
   employerPF: number;
   pt: number;
 }
+
+
+
