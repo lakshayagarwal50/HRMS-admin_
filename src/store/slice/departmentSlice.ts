@@ -1,13 +1,11 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { isAxiosError } from 'axios';
+// Assuming you have a configured axios instance in your services folder
+import { axiosInstance } from '../../services'; 
 
-// --- CONSTANTS ---
-const API_URL = 'http://172.50.5.116:3000/api/departments/';
-// WARNING: Storing tokens directly in code is insecure and will expire. 
-// This should be managed through an authentication context or a more secure mechanism.
-const getAuthToken = (): string | null => {
-  return localStorage.getItem('accessToken'); // Make sure the key matches what you use in your auth logic
-};
+// --- Base URL for the API endpoint ---
+const API_BASE_URL = '/api/departments/';
+
 // --- TYPE DEFINITIONS ---
 export interface Department {
   id: string;
@@ -19,7 +17,9 @@ export interface Department {
   createdAt: string;
 }
 
-export type NewDepartment = Omit<Department, 'id' | 'createdBy' | 'createdAt'>;
+export type NewDepartment = Omit<Department, 'id' | 'createdBy' | 'createdAt' | 'status'>;
+export type UpdateDepartmentPayload = { id: string } & Partial<NewDepartment>;
+
 
 export interface DepartmentsState {
   items: Department[];
@@ -35,51 +35,67 @@ const initialState: DepartmentsState = {
 
 // --- ASYNC THUNKS ---
 
-export const fetchDepartments = createAsyncThunk('departments/fetchDepartments', async () => {
-   const token = getAuthToken();
-  const response = await axios.get(API_URL, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data as Department[];
-});
-
-export const addDepartment = createAsyncThunk('departments/addDepartment', async (newDepartment: NewDepartment) => {
-    const token = getAuthToken();
-    const response = await axios.post(API_URL, newDepartment, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const { id } = response.data;
-    const createdDepartment: Department = {
-      ...newDepartment,
-      id: id,
-      createdBy: 'current-user-id',
-      createdAt: new Date().toISOString(),
-    };
-    return createdDepartment;
-  }
+export const fetchDepartments = createAsyncThunk(
+    'departments/fetchDepartments', 
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get(API_BASE_URL);
+            return response.data as Department[];
+        } catch (error) {
+            if (isAxiosError(error)) {
+                return rejectWithValue(error.response?.data?.message || 'Failed to fetch departments');
+            }
+            return rejectWithValue('An unknown error occurred.');
+        }
+    }
 );
 
-export const updateDepartment = createAsyncThunk('departments/updateDepartment', async (department: Department) => {
-  const token = getAuthToken();
-    const { id, ...data } = department;
-    await axios.put(`${API_URL}${id}`, data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return department;
-  }
+export const addDepartment = createAsyncThunk(
+    'departments/addDepartment', 
+    async (newDepartment: NewDepartment, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post(API_BASE_URL, newDepartment);
+            // Assuming the API returns the newly created department object
+            return response.data as Department;
+        } catch (error) {
+            if (isAxiosError(error)) {
+                return rejectWithValue(error.response?.data?.message || 'Failed to add department');
+            }
+            return rejectWithValue('An unknown error occurred.');
+        }
+    }
 );
 
-/**
- * DEACTIVATE: Uses the DELETE endpoint to mark a department as 'inactive'.
- */
-export const deactivateDepartment = createAsyncThunk('departments/deactivateDepartment', async (department: Department) => {
-    const token = getAuthToken();
-    await axios.delete(`${API_URL}${department.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    // Return a copy of the department with the status changed to 'inactive'
-    return { ...department, status: 'inactive' as const };
-  }
+export const updateDepartment = createAsyncThunk(
+    'departments/updateDepartment', 
+    async (department: UpdateDepartmentPayload, { rejectWithValue }) => {
+        try {
+            const { id, ...data } = department;
+            const response = await axiosInstance.put(`${API_BASE_URL}${id}`, data);
+             // Assuming the API returns the updated department object
+            return response.data as Department;
+        } catch (error) {
+            if (isAxiosError(error)) {
+                return rejectWithValue(error.response?.data?.message || 'Failed to update department');
+            }
+            return rejectWithValue('An unknown error occurred.');
+        }
+    }
+);
+
+export const deactivateDepartment = createAsyncThunk(
+    'departments/deactivateDepartment', 
+    async (id: string, { rejectWithValue }) => {
+        try {
+            await axiosInstance.delete(`${API_BASE_URL}${id}`);
+            return id; // Return the ID of the deactivated department
+        } catch (error) {
+            if (isAxiosError(error)) {
+                return rejectWithValue(error.response?.data?.message || 'Failed to deactivate department');
+            }
+            return rejectWithValue('An unknown error occurred.');
+        }
+    }
 );
 
 
@@ -93,6 +109,7 @@ const departmentSlice = createSlice({
       // Cases for Fetching Data
       .addCase(fetchDepartments.pending, (state) => {
         state.status = 'loading';
+        state.error = null;
       })
       .addCase(fetchDepartments.fulfilled, (state, action: PayloadAction<Department[]>) => {
         state.status = 'succeeded';
@@ -100,7 +117,7 @@ const departmentSlice = createSlice({
       })
       .addCase(fetchDepartments.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.error.message || 'Failed to fetch departments';
+        state.error = action.payload as string;
       })
 
       // Case for Adding a Department
@@ -108,7 +125,7 @@ const departmentSlice = createSlice({
         state.items.push(action.payload);
       })
       
-      // Case for Updating a Department (from the edit form)
+      // Case for Updating a Department
       .addCase(updateDepartment.fulfilled, (state, action: PayloadAction<Department>) => {
         const index = state.items.findIndex((dep) => dep.id === action.payload.id);
         if (index !== -1) {
@@ -117,11 +134,11 @@ const departmentSlice = createSlice({
       })
       
       // Case for Deactivating a Department
-      .addCase(deactivateDepartment.fulfilled, (state, action: PayloadAction<Department>) => {
-        const index = state.items.findIndex((dep) => dep.id === action.payload.id);
+      .addCase(deactivateDepartment.fulfilled, (state, action: PayloadAction<string>) => {
+        const index = state.items.findIndex((dep) => dep.id === action.payload);
         if (index !== -1) {
-          // Replace the item with the updated one (status is now 'inactive')
-          state.items[index] = action.payload;
+          // Update the status of the deactivated department
+          state.items[index].status = 'inactive';
         }
       });
   },

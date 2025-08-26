@@ -12,12 +12,12 @@ interface LeaveFilterProps {
   isOpen: boolean;
   onClose: () => void;
   onApply: (filters: LeaveFilters) => void;
-  initialFilters: LeaveFilters | null; // Prop to receive current filters
+  initialFilters: LeaveFilters | null;
 }
 
 // --- STATIC DATA for filter options ---
 const leaveTypeOptions = ['Planned leave', 'Casual leave', 'Privileged leave', 'Sick leave'];
-const approvalStatusOptions = ['Pending', 'Approved', 'Declined'];
+const approvalStatusOptions = ['Pending', 'Approved', 'Rejected'];
 const departmentOptions = ['Developer', 'Designer', 'Business analyst'];
 
 // --- Reusable Checkbox Group Component ---
@@ -61,7 +61,6 @@ const LeaveFilter: React.FC<LeaveFilterProps> = ({ isOpen, onClose, onApply, ini
   const [approvalStatus, setApprovalStatus] = useState<string[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
 
-  // Effect to set the form's state based on the applied filters from the parent page
   useEffect(() => {
     if (isOpen) {
       setLeaveTypes(initialFilters?.leaveTypes || []);
