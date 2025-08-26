@@ -12,8 +12,8 @@ const Login = () => {
 
   const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const [email, setEmail] = useState("superadmin@example.com");
-  const [password, setPassword] = useState("password"); // Pre-fill for convenience
+  const [email, setEmail] = useState("admin@superadmin.com");
+  const [password, setPassword] = useState("admin011"); // Pre-fill for convenience
 
   // Effect to navigate to dashboard upon successful authentication
   useEffect(() => {
