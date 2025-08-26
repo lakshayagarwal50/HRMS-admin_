@@ -29,14 +29,10 @@ import salaryStructureReducer from "./slice/salaryStructureSlice";
 import salaryComponentReducer from "./slice/salaryComponentSlice";
 import payrollReducer from "./slice/payrollSlice";
 import attendanceReducer from "./slice/attendanceSlice";
-<<<<<<< HEAD
 import salaryReducer from './slice/salarySlice';
 import loginDetailsReducer from './slice/loginDetailsSlice'; 
 import yearlyAttendanceReducer from "./slice/yearlyAttendanceSlice";
-=======
-import salaryReducer from "./slice/salarySlice";
-import createEmployeeReducer from "./slice/createEmployeeSlice"; // Import the new reducer
->>>>>>> dev
+import createEmployeeReducer from "./slice/createEmployeeSlice"; 
 
 export const store = configureStore({
   reducer: {
@@ -69,12 +65,9 @@ export const store = configureStore({
     leaveRequests: leaveRequestReducer,
     salary: salaryReducer,
     attendance: attendanceReducer,
-<<<<<<< HEAD
     loginDetails: loginDetailsReducer,
     yearlyAttendance: yearlyAttendanceReducer,
-=======
     createEmployee: createEmployeeReducer,
->>>>>>> dev
   },
 });
 
