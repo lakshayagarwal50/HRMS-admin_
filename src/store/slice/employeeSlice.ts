@@ -343,6 +343,7 @@ export interface LoanDetails {
 }
 
 export interface EmployeeDetail {
+  pfEsiDetails: any;
   project: never[];
   previous: never[];
   pf(arg0: string, pf: any): void;
@@ -461,6 +462,35 @@ export const updateEmployeeStatus = createAsyncThunk<
 );
 
 
+
+export const uploadProfilePicture = createAsyncThunk<
+  string, // <-- 1. Change the return type to string, since that's what the API returns
+  { employeeCode: string; file: File },
+  { rejectValue: string }
+>(
+  'employees/uploadPic',
+  async ({ employeeCode, file }, { dispatch, rejectWithValue }) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await axiosInstance.post(
+        `/employees/upload-pic/${employeeCode}`,
+        formData
+      );
+      // 2. After the upload is successful, dispatch another action to get the fresh data
+      dispatch(fetchEmployeeDetails(employeeCode));
+      return response.data as string; // Return the URL string
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to upload image');
+      }
+      return rejectWithValue('An unknown error occurred while uploading the image.');
+    }
+  }
+);
+
+
 // --- Slice and Reducers (No changes needed here) ---
 const employeeSlice = createSlice({
   name: 'employees',
@@ -518,6 +548,20 @@ const employeeSlice = createSlice({
         if (index !== -1) {
           state.employees[index] = action.payload;
         }
+      })
+      .addCase(uploadProfilePicture.pending, (state) => {
+        state.loading = true; // Still show loading
+        state.error = null;
+      })
+      .addCase(uploadProfilePicture.fulfilled, (state) => {
+        // 3. We no longer set currentEmployee here. 
+        // The fetchEmployeeDetails.fulfilled case will handle it when it completes.
+        // We can set loading to false, or let the fetchEmployeeDetails handle it.
+        // For a better UX, we'll let the next action handle the loading state.
+      })
+      .addCase(uploadProfilePicture.rejected, (state, action) => {
+        state.loading = false; // Stop loading on failure
+        state.error = action.payload as string;
       });
   },
 });

@@ -349,7 +349,7 @@ const mainMenuItems: MenuItem[] = [
     icon: FileText,
     subItems: [
       { label: "Standard Reports", link: "#" },
-      { label: "Statutory", link: "/reports/statutory" },
+      // { label: "Statutory", link: "/reports/statutory" },
       { label: "Audit History", link: "/reports/audit" },
     ],
   },
@@ -397,10 +397,10 @@ const reportsMenuItems: MenuItem[] = [
     label: "Attendance Report",
     icon: Clock,
     subItems: [
-      {
-        label: "Attendance Time log Report",
-        link: "/reports/attendance/time-log",
-      },
+      // {
+      //   label: "Attendance Time log Report",
+      //   link: "/reports/attendance/time-log",
+      // },
       {
         label: "Attendance Summary Report",
         link: "/reports/attendance/summary",

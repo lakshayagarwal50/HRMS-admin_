@@ -313,6 +313,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import Table, { type Column } from "../../../../components/common/Table";
 import Modal from "../../../../components/common/NotificationModal";
+import { Filter } from "lucide-react";
 import {
   fetchEmployees,
   deleteEmployee,
@@ -428,10 +429,9 @@ const EmployeesTable: React.FC = () => {
     switch (actionName) {
       case "View Details":
         navigate(`/employees/list/detail/${employee.code}/${employee.id}`, {
-          
           state: {
             mainEmployeeId: employee.id,
-            payslipComponent: employee.payslip, 
+            payslipComponent: employee.payslip,
           },
         });
         break;
@@ -603,11 +603,18 @@ const EmployeesTable: React.FC = () => {
           <button className="bg-[#741CDD] hover:bg-[#5b14a9] text-white px-4 py-2 text-sm rounded transition duration-200">
             + NEW EMPLOYEE
           </button>
-          <button
+          {/* <button
             onClick={() => setIsFilterOpen(true)}
             className="border border-[#741CDD] text-[#741CDD] hover:bg-[#f0e6fa] px-4 py-2 text-sm rounded transition duration-200"
           >
             Filter
+          </button> */}
+          <button
+            onClick={() => setIsFilterOpen(true)}
+            className="p-2 bg-[#741CDD] rounded text-white hover:bg-[#5f3dbb] transition duration-200"
+            aria-label="Open filters"
+          >
+            <Filter size={20} />
           </button>
         </div>
 

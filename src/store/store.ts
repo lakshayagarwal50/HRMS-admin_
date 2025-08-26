@@ -29,6 +29,8 @@ import salaryComponentReducer from "./slice/salaryComponentSlice";
 import payrollReducer from "./slice/payrollSlice";
 import attendanceReducer from "./slice/attendanceSlice";
 import salaryReducer from './slice/salarySlice';
+import loginDetailsReducer from './slice/loginDetailsSlice'; 
+import yearlyAttendanceReducer from "./slice/yearlyAttendanceSlice";
 
 export const store = configureStore({
   reducer: {
@@ -60,6 +62,8 @@ export const store = configureStore({
     payroll: payrollReducer,
     salary: salaryReducer,
     attendance: attendanceReducer,
+    loginDetails: loginDetailsReducer,
+    yearlyAttendance: yearlyAttendanceReducer,
   },
 });
 
