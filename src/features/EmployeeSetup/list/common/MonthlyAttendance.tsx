@@ -156,13 +156,28 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
         <h1 className="text-2xl font-bold text-gray-900">
           {`${month}-${year} Attendance for Employee ${employee.employeeCode} | ${employee.name}`}
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        {/* <p className="text-sm text-gray-500 mt-1">
           <Link to="/dashboard" className="hover:text-[#741CDD]">
             Dashboard
           </Link>{" "}
           /<span className="mx-1">Employee Setup</span> /
           <span className="mx-1">Detail</span> /
           <span className="text-[#741CDD] font-medium">Attendance</span>
+        </p> */}
+        <p className="text-sm text-gray-500 mt-1">
+          <Link to="/dashboard" className="hover:text-[#741CDD]">
+            Dashboard
+          </Link>
+          <span className="mx-2">/</span>
+          {/* Note: Linking Employee Setup to the list page as it's a more common UX pattern. */}
+          <Link to="/dashboard" className="hover:text-[#741CDD]">
+            Employee Setup
+          </Link>
+
+          <span className="mx-2">/Monthly Attendance</span>
+          {/* <Link to={`/employees/list`} className="hover:text-[#741CDD]">
+            Monthly Attendance
+          </Link> */}
         </p>
       </header>
 

@@ -34,18 +34,18 @@ const initialState: PfState = {
 
 export const addPfDetails = createAsyncThunk<
   ApiResponse,
-  { employeeId: string; pfData: PfDataPayload },
+  { employeeId: string; employeeCode: string; pfData: PfDataPayload },
   { rejectValue: string }
 >(
   'pf/addDetails',
-  async ({ employeeId, pfData }, { dispatch, rejectWithValue }) => {
+  async ({ employeeId, employeeCode,pfData }, { dispatch, rejectWithValue }) => {
     try {
       const response = await axiosInstance.post(
         `/employees/pf/${employeeId}`,
         pfData
       );
       // Refetch all employee details to update the UI with the new PF data
-      dispatch(fetchEmployeeDetails(employeeId));
+      dispatch(fetchEmployeeDetails(employeeCode));
       return response.data as ApiResponse;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {

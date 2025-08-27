@@ -571,7 +571,7 @@ export default function EmployeeDetailPage() {
           dispatch(
             addPfDetails({
               employeeId: mainEmployeeId,
-              employeeCode: employeeCode,
+              employeeCode: employeeCode, // 👈 PASS THE employeeCode HERE
               pfData: pfDataForApi as PfDataPayload,
             })
           );

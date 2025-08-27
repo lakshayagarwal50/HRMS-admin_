@@ -3,7 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchSalaryComponents } from "../../../../store/slice/salarySlice"; // Adjust path as needed
 import type { AppDispatch, RootState } from "../../../../store/store"; // Adjust path as needed
 
-// Define the shape of the data for clarity and type-safety
+// Import your shared SectionHeader
+import { SectionHeader } from "../common/DetailItem";
+
+// Define the shape of a single component item
 interface ComponentItem {
   name: string;
   code: string;
@@ -11,15 +14,22 @@ interface ComponentItem {
   amount: string;
 }
 
+// Flexible interface to handle any key from the API
 interface SalaryComponents {
-  EARNING: ComponentItem[];
-  STATUTORIES: ComponentItem[];
+  [key: string]: ComponentItem[];
 }
 
-// Define props for the component
 interface SalaryDistributionProps {
   groupname: string;
 }
+
+// Format titles (EARNING → Earnings, STATUTORIES → Statutory Deductions, etc.)
+const formatTitle = (key: string): string => {
+  if (!key) return "";
+  const formatted = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
+  if (formatted === "Statutories") return "Statutory Deductions";
+  return formatted;
+};
 
 const SalaryDistribution: React.FC<SalaryDistributionProps> = ({
   groupname,
@@ -27,17 +37,69 @@ const SalaryDistribution: React.FC<SalaryDistributionProps> = ({
   const dispatch = useDispatch<AppDispatch>();
 
   const { components, loading, error } = useSelector(
-    (state: RootState) => state.salary
+    (state: RootState) =>
+      state.salary as {
+        components: SalaryComponents | null;
+        loading: "idle" | "pending";
+        error: string | null;
+      }
   );
 
-  // Fetch the data on component mount, now using the groupname from props
   useEffect(() => {
     if (groupname) {
       dispatch(fetchSalaryComponents(groupname));
     }
   }, [dispatch, groupname]);
 
-  // Handle different states (loading, error, data)
+  const renderTable = (title: string, items: ComponentItem[]) => {
+    if (!items || items.length === 0) return null;
+
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        {/* Section title bar (kept purple like you had) */}
+        <div className="bg-purple-50 text-purple-800 font-semibold px-4 py-3 border-b border-purple-200">
+          {title}
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Formula/Value
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {items.map((item) => (
+                <tr key={item.code}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {item.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                    {item.value}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-semibold">
+                    {parseFloat(item.amount).toLocaleString("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                    })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     if (loading === "pending") {
       return (
@@ -57,7 +119,7 @@ const SalaryDistribution: React.FC<SalaryDistributionProps> = ({
       );
     }
 
-    if (!components) {
+    if (!components || Object.keys(components).length === 0) {
       return (
         <div className="text-center py-10 text-gray-500">
           No salary distribution data found.
@@ -65,69 +127,21 @@ const SalaryDistribution: React.FC<SalaryDistributionProps> = ({
       );
     }
 
-    const { EARNING, STATUTORIES } = components;
-
-    // Helper function to render a table section
-    const renderTable = (title: string, items: ComponentItem[] | undefined) => {
-      if (!items || items.length === 0) {
-        return null;
-      }
-
-      return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="bg-purple-100 text-purple-800 font-semibold px-4 py-3 border-b border-purple-200">
-            {title}
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Formula/Value
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {items.map((item) => (
-                  <tr key={item.code}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {item.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                      {item.value}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-semibold">
-                      {parseFloat(item.amount).toLocaleString("en-IN", {
-                        style: "currency",
-                        currency: "INR",
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      );
-    };
-
     return (
-      <div className="p-4 md:p-6 space-y-6">
-        {renderTable("Earnings", EARNING)}
-        {renderTable("Statutory Deductions", STATUTORIES)}
+      <div className="space-y-6">
+        {Object.entries(components).map(([category, items]) =>
+          renderTable(formatTitle(category), items)
+        )}
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans">
-      <div className="max-w-4xl mx-auto">{renderContent()}</div>
+    <div>
+      {/* ✅ Page Title, consistent with other detail sections */}
+      <SectionHeader title="Salary Distribution" action={null} />
+
+      <div className="mt-4">{renderContent()}</div>
     </div>
   );
 };
