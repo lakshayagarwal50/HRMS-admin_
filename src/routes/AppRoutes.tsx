@@ -120,11 +120,10 @@ const AttendanceSummary = lazy(
 const UploadAttendance = lazy(
   () => import("../features/Attendance/pages/UploadAttendance")
 );
-const PayrollList = lazy(
-  ()=> import("../features/payroll/pages/PayrollList")
-)
-const EmployeeLeaveRequest = lazy (()=> import("../pages/LeaveConfiguration/EmployeeLeaveRequestPage")
-)
+const PayrollList = lazy(() => import("../features/payroll/pages/PayrollList"));
+const EmployeeLeaveRequest = lazy(
+  () => import("../pages/LeaveConfiguration/EmployeeLeaveRequestPage")
+);
 
 const AppRoutes = () => (
   <Suspense
@@ -156,9 +155,9 @@ const AppRoutes = () => (
               employeeName={""}
               selectedMonth={""}
               selectedYear={""}
-              onClose={function (): void {
-                throw new Error("Function not implemented.");
-              }}
+              // onClose={function (): void {
+              //   throw new Error("Function not implemented.");
+              // }}
             /> //create payslip
           }
         />
@@ -282,22 +281,24 @@ const AppRoutes = () => (
         <Route path="/attendance/summary" element={<AttendanceSummary />} />
         <Route path="/attendance/upload" element={<UploadAttendance />} />
         <Route path="/payroll/list" element={<PayrollList />} />
-        <Route path="/payroll/crystal" element={<CrystalRunPage/>}/>
+        <Route path="/payroll/crystal" element={<CrystalRunPage />} />
         <Route path="/payroll/generate" element={<GeneratePayslipLayout />}>
-        
-        {/* These are the nested child routes for each individual step */}
-        <Route path="ctc" element={<CtcStepPage />} />
-        <Route path="attendance" element={<AttendanceStepPage />} />
-        <Route path="gross-earning" element={<GrossEarningStepPage />} />
-        <Route path="loan-approved" element={<LoanApprovedStepPage />} />
-        <Route path="employee-statutory" element={<EmployeeStatutoryStepPage />} />
-        <Route path="employer-statutory" element={<EmployerStatutoryStepPage />} />
-        <Route path="loan-repayment" element={<LoanRepaymentStepPage />} />
-        <Route path="process" element={<ProcessPayslipStepPage />} />
-  
-        
-      </Route>
-        
+          {/* These are the nested child routes for each individual step */}
+          <Route path="ctc" element={<CtcStepPage />} />
+          <Route path="attendance" element={<AttendanceStepPage />} />
+          <Route path="gross-earning" element={<GrossEarningStepPage />} />
+          <Route path="loan-approved" element={<LoanApprovedStepPage />} />
+          <Route
+            path="employee-statutory"
+            element={<EmployeeStatutoryStepPage />}
+          />
+          <Route
+            path="employer-statutory"
+            element={<EmployerStatutoryStepPage />}
+          />
+          <Route path="loan-repayment" element={<LoanRepaymentStepPage />} />
+          <Route path="process" element={<ProcessPayslipStepPage />} />
+        </Route>
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />
