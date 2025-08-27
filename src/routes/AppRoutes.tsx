@@ -23,7 +23,6 @@ import SequenceNumberPage from "../pages/GettingStarted/SequenceNumber/SequenceN
 import EditSalaryComponentPage from "../pages/GettingStarted/PayslipComponents/EditSalaryComponentPage";
 import AddSalaryComponentPage from "../pages/GettingStarted/PayslipComponents/AddSalaryComponentPage";
 import PayrollConfigurationPage from "../pages/GettingStarted/PayrollConfigurationPage/PayrollConfigurationPage";
-import CreateRolePage from "../pages/GettingStarted/Role/CreateRolePage";
 import RatingCriteriaPage from "../pages/Rating/RatingCriteriaPage";
 import CrystalRunPage from "../pages/Payroll/CrystalRunPage";
 import GeneratePayslipLayout from "../layout/GeneratePayslipLayout";
@@ -35,6 +34,7 @@ import EmployeeStatutoryStepPage from "../pages/Payroll/steps/EmployeeStatutoryS
 import EmployerStatutoryStepPage from "../pages/Payroll/steps/EmployerStatutoryStepPage";
 import LoanRepaymentStepPage from "../pages/Payroll/steps/LoanRepaymentStepPage";
 import ProcessPayslipStepPage from "../pages/Payroll/steps/ProcessPayslipStepPage";
+import UpsertRolePage from "../pages/GettingStarted/Role/UpsertRolePage";
 
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard/DashboardPage"));
@@ -171,7 +171,8 @@ const AppRoutes = () => (
         <Route path="/department" element={<DepartmentPage />} />
         <Route path="/designation" element={<DesignationPage />} />
         <Route path="/role" element={<RolePage />} />
-        <Route path="/roles/add" element={<CreateRolePage />} />
+        <Route path="/roles/add" element={<UpsertRolePage />} />
+        <Route path="/roles/edit/:roleId" element={<UpsertRolePage />} />
         <Route path="/working-patterns" element={<WorkingPatternsPage />} />
         <Route
           path="/organisation-setting"
