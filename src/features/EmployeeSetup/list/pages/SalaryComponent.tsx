@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { evaluateFormula } from "../../../../utils/formulaEvaluator";
+import { useNavigate } from "react-router-dom";
 
 interface SalaryComponentItem {
   id: string;
@@ -28,7 +29,6 @@ interface SalaryComponentProps {
   employeeName: string;
   selectedMonth: string;
   selectedYear: string;
-  onClose: () => void;
 }
 
 const SalaryComponent: React.FC<SalaryComponentProps> = ({
@@ -36,7 +36,6 @@ const SalaryComponent: React.FC<SalaryComponentProps> = ({
   employeeName,
   selectedMonth,
   selectedYear,
-  onClose,
 }) => {
   const [monthlyCTC, setMonthlyCTC] = useState<number | string>("");
   const [lossOfPayDays, setLossOfPayDays] = useState<number | string>(0);
@@ -50,6 +49,7 @@ const SalaryComponent: React.FC<SalaryComponentProps> = ({
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSalaryData = async () => {
@@ -260,7 +260,6 @@ const SalaryComponent: React.FC<SalaryComponentProps> = ({
   const handleCreatePayslip = async () => {
     /* ... existing payslip creation logic ... */
     alert("Payslip created successfully! (Mock response)");
-    onClose();
   };
 
   // Helper render function for tables
@@ -401,8 +400,14 @@ const SalaryComponent: React.FC<SalaryComponentProps> = ({
               >
                 CREATE PAYSLIP
               </button>
-              <button
+              {/* <button
                 onClick={onClose}
+                className="border border-gray-300 text-gray-700 px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-100"
+              >
+                CLOSE
+              </button> */}
+              <button
+                onClick={() => navigate(-1)}
                 className="border border-gray-300 text-gray-700 px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-100"
               >
                 CLOSE
