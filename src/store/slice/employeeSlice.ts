@@ -342,11 +342,22 @@ export interface LoanDetails {
   balance: string;
 }
 
+export interface PfData {
+  id?: string;
+  employeePfEnable: boolean;
+  pfNum: string | null;
+  employeerPfEnable: boolean;
+  uanNum: string | null;
+  esiEnable: boolean;
+  esiNum: string | null;
+  professionalTax: boolean;
+  labourWelfare: boolean;
+}
 export interface EmployeeDetail {
-  pfEsiDetails: any;
+  
   project: never[];
   previous: never[];
-  pf(arg0: string, pf: any): void;
+  pf: PfData | null;
   professional: any;
   general: any;
   bankDetails: any;
