@@ -1,21 +1,13 @@
-import React, { useState, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-import { useDispatch } from 'react-redux';
-import type { AppDispatch } from '../../../store/store';
-import { addRole, type RolePayload } from '../../../store/slice/roleSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch, RootState } from '../../../store/store';
+import { addRole, updateRole, fetchRoleById, clearSelectedRole, type RolePayload, type Role } from '../../../store/slice/roleSlice';
 
 // --- TYPE DEFINITIONS ---
-type Permission = {
-    name: string;
-    enabled: boolean;
-};
-
-type PermissionGroup = {
-    feature: string;
-    permissions: Permission[];
-};
-
+type Permission = { name: string; enabled: boolean; };
+type PermissionGroup = { feature: string; permissions: Permission[]; };
 interface RoleFormData {
     name: string;
     code: string;
@@ -23,13 +15,10 @@ interface RoleFormData {
     permissions: Record<string, PermissionGroup>;
 }
 
-// --- INITIAL DATA ---
-const createPermissions = (...names: string[]): Permission[] => 
-    names.map(name => ({ name, enabled: false }));
+// --- INITIAL DATA & HELPERS ---
+const createPermissions = (...names: string[]): Permission[] => names.map(name => ({ name, enabled: false }));
 
-// This is the complete and corrected list of all permissions from your API docs
 const initialPermissions: Record<string, PermissionGroup> = {
-    // Column 1
     myHolidays: { feature: 'My Holidays', permissions: createPermissions('view') },
     holidayConfiguration: { feature: 'Holiday Configuration', permissions: createPermissions('view', 'add', 'edit', 'delete') },
     holidayCalendar: { feature: 'Holiday Calendar', permissions: createPermissions('view', 'add', 'edit', 'delete') },
@@ -64,8 +53,6 @@ const initialPermissions: Record<string, PermissionGroup> = {
     myDeclaration: { feature: 'My Declaration', permissions: createPermissions('view', 'add', 'edit') },
     employeesDeclaration: { feature: 'Employees Declaration', permissions: createPermissions('view', 'edit') },
     reports: { feature: 'Reports', permissions: createPermissions('view', 'add', 'edit', 'delete', 'download') },
-    
-    // Column 2
     myForm16: { feature: 'My Form 16', permissions: createPermissions('download') },
     employeesForm16: { feature: 'Employees Form 16', permissions: createPermissions('upload', 'download') },
     employeeSetUp: { feature: 'Employee set up', permissions: [] },
@@ -77,7 +64,7 @@ const initialPermissions: Record<string, PermissionGroup> = {
     employeesPreviousJobDetails: { feature: 'Employees Previous Job Details', permissions: createPermissions('view', 'add', 'edit') },
     employeesSalaryDistribution: { feature: 'Employees Salary Distribution', permissions: createPermissions('view', 'edit') },
     employeesActivities: { feature: 'Employees Activities', permissions: createPermissions('view') },
-    projectsColumn2: { feature: 'Projects', permissions: createPermissions('view', 'release') }, // Renamed to avoid key conflict
+    projectsColumn2: { feature: 'Projects', permissions: createPermissions('view', 'release') },
     myProfile: { feature: 'My profile', permissions: [] },
     myGeneralInfo: { feature: 'My General Info', permissions: createPermissions('view', 'edit') },
     myProfessionalInfo: { feature: 'My Professional Info', permissions: createPermissions('view') },
@@ -99,7 +86,6 @@ const initialPermissions: Record<string, PermissionGroup> = {
     webCheckInSettings: { feature: 'Web Check-in Settings', permissions: createPermissions('view', 'add', 'edit') },
 };
 
-// --- Helper function to transform UI state to API format ---
 const transformPermissionsForAPI = (permissions: Record<string, PermissionGroup>) => {
     const apiPermissions: Record<string, Record<string, boolean>> = {};
     for (const key in permissions) {
@@ -114,17 +100,70 @@ const transformPermissionsForAPI = (permissions: Record<string, PermissionGroup>
     return apiPermissions;
 };
 
+const transformApiPermissionsToState = (apiPermissions: Record<string, Record<string, boolean>>): Record<string, PermissionGroup> => {
+    const statePermissions = JSON.parse(JSON.stringify(initialPermissions)); // Deep copy
+    for (const featureName in apiPermissions) {
+        const groupKey = Object.keys(statePermissions).find(key => statePermissions[key].feature === featureName);
+        if (groupKey) {
+            const permissionStates = apiPermissions[featureName];
+            statePermissions[groupKey].permissions.forEach((perm: Permission) => {
+                if (permissionStates[perm.name] !== undefined) {
+                    perm.enabled = permissionStates[perm.name];
+                }
+            });
+        }
+    }
+    return statePermissions;
+};
 
-// --- MAIN CREATE ROLE PAGE COMPONENT ---
-const CreateRolePage: React.FC = () => {
+
+// --- MAIN UPSERT ROLE PAGE COMPONENT ---
+const UpsertRolePage: React.FC = () => {
+    const { roleId } = useParams<{ roleId: string }>();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
+    
+    const { selectedRole, selectedStatus } = useSelector((state: RootState) => state.roles);
+    
+    const isEditMode = !!roleId;
+
     const [formData, setFormData] = useState<RoleFormData>({
         name: '',
         code: '',
         description: '',
         permissions: initialPermissions,
     });
+
+    // Effect to handle fetching data for edit mode or resetting for create mode
+    useEffect(() => {
+        if (isEditMode && roleId) {
+            dispatch(fetchRoleById(roleId));
+        } else {
+            // When in create mode, ensure the form is reset to its initial blank state
+            setFormData({
+                name: '',
+                code: '',
+                description: '',
+                permissions: initialPermissions,
+            });
+        }
+        // Cleanup function to clear the selected role from Redux state when leaving the page
+        return () => {
+            dispatch(clearSelectedRole());
+        }
+    }, [dispatch, roleId, isEditMode]);
+
+    // Effect to populate the form ONLY when the selectedRole data from Redux changes
+    useEffect(() => {
+        if (isEditMode && selectedRole) {
+            setFormData({
+                name: selectedRole.name,
+                code: selectedRole.code,
+                description: selectedRole.description,
+                permissions: transformApiPermissionsToState(selectedRole.permissions),
+            });
+        }
+    }, [selectedRole, isEditMode]);
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -137,7 +176,7 @@ const CreateRolePage: React.FC = () => {
             const group = newPermissions[groupKey];
             const permIndex = group.permissions.findIndex(p => p.name === permissionName);
             if (permIndex > -1) {
-                group.permissions[permIndex] = { ...group.permissions[permIndex], enabled: isEnabled };
+                newPermissions[groupKey].permissions[permIndex].enabled = isEnabled;
             }
             return { ...prev, permissions: newPermissions };
         });
@@ -150,31 +189,34 @@ const CreateRolePage: React.FC = () => {
             name: formData.name,
             code: formData.code,
             description: formData.description,
-            status: 'Active', // Default status for new roles
+            status: selectedRole?.status || 'Active', // Preserve existing status or default to Active
             permissions: transformPermissionsForAPI(formData.permissions),
         };
 
-        dispatch(addRole(payload));
+        if (isEditMode && roleId) {
+            dispatch(updateRole({ id: roleId, ...payload }));
+        } else {
+            dispatch(addRole(payload));
+        }
         navigate('/roles');
-    }, [formData, dispatch, navigate]);
+    }, [formData, dispatch, navigate, isEditMode, roleId, selectedRole]);
+
+    if (isEditMode && selectedStatus === 'loading') {
+        return <div className="p-6 text-center">Loading Role Details...</div>;
+    }
 
     const permissionKeysCol1 = ['myHolidays', 'holidayConfiguration', 'holidayCalendar', 'leaves', 'leaveSetup', 'myLeaves', 'teamLeaveRequests', 'employeeLeaveRequests', 'dsr', 'myDSR', 'teamDSRRequests', 'employeesDSRRequests', 'attendance', 'myAttendance', 'teamAttendanceSummary', 'employeesAttendanceSummary', 'ratings', 'ratingConfiguration', 'myMonthlyRatings', 'myPerformance', 'rateTeamMembers', 'loanAndAdvances', 'myLoanAndAdvances', 'employeesLoanAdvancesRequests', 'projects', 'myProjects', 'allProjects', 'payslips', 'myPayslips', 'employeesPayslips', 'declaration', 'myDeclaration', 'employeesDeclaration', 'reports'];
     const permissionKeysCol2 = ['myForm16', 'employeesForm16', 'employeeSetUp', 'allEmployees', 'employeesGeneralInfo', 'employeesProfessionalInfo', 'employeesBankDetails', 'employeesPFESI_PT', 'employeesPreviousJobDetails', 'employeesSalaryDistribution', 'employeesActivities', 'projectsColumn2', 'myProfile', 'myGeneralInfo', 'myProfessionalInfo', 'myBankDetails', 'myPFESI_PT', 'myPreviousJobDetails', 'payroll', 'crystalRun', 'masterConfiguration', 'workingPattern', 'department', 'designation', 'roles', 'locations', 'payslipComponents', 'organizationSettings', 'sequenceNumber', 'payrollConfiguration', 'webCheckInSettings'];
-
 
     return (
         <div className="w-full bg-gray-50 p-4 sm:p-6">
              <header className="mb-6">
                 <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-900">Create Role</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">{isEditMode ? 'Edit Role' : 'Create Role'}</h1>
                     <nav aria-label="Breadcrumb" className="flex items-center text-sm text-gray-500">
-                        <Link to="/dashboard" className="hover:text-gray-700">Dashboard</Link>
-                        <ChevronRight size={16} className="mx-1" />
-                        <Link to="/getting-started" className="hover:text-gray-700">Getting Started</Link>
-                        <ChevronRight size={16} className="mx-1" />
                         <Link to="/roles" className="hover:text-gray-700">Roles</Link>
                         <ChevronRight size={16} className="mx-1" />
-                        <span className="font-medium text-gray-800">Create Role</span>
+                        <span className="font-medium text-gray-800">{isEditMode ? 'Edit' : 'Create'}</span>
                     </nav>
                 </div>
             </header>
@@ -202,14 +244,12 @@ const CreateRolePage: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-12 gap-y-4">
-                        {/* Column 1 */}
                         <div>
                             {permissionKeysCol1.map(key => {
                                 const group = formData.permissions[key];
                                 return <PermissionRow key={key} feature={group.feature} permissions={group.permissions} onPermissionChange={(perm, enabled) => handlePermissionChange(key, perm, enabled)} />;
                             })}
                         </div>
-                        {/* Column 2 */}
                         <div>
                             {permissionKeysCol2.map(key => {
                                 const group = formData.permissions[key];
@@ -221,7 +261,7 @@ const CreateRolePage: React.FC = () => {
 
                 <div className="flex justify-start gap-4 pt-6 border-t">
                     <button type="button" onClick={() => navigate('/roles')} className="px-10 py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
-                    <button type="submit" className="px-10 py-2.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">SUBMIT</button>
+                    <button type="submit" className="px-10 py-2.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">{isEditMode ? 'UPDATE' : 'SUBMIT'}</button>
                 </div>
             </form>
         </div>
@@ -262,4 +302,4 @@ const PermissionRow: React.FC<{
 };
 
 
-export default CreateRolePage;
+export default UpsertRolePage;
