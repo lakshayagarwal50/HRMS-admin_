@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { ChevronUp, Plus } from "lucide-react";
+import { ChevronUp } from "lucide-react";
+import { SectionHeader, DetailItem, AddButton } from "../common/DetailItem"; // reuse shared components
 
-// (Interfaces and mock data remain the same)
 interface DeclarationRow {
   name: string;
   amount: number;
@@ -14,6 +14,7 @@ interface DeclarationSection {
   rows: DeclarationRow[];
   hasRentalSection?: boolean;
 }
+
 const declarationData: DeclarationSection[] = [
   {
     id: "std_deduction",
@@ -49,17 +50,17 @@ const Declarations: React.FC = () => {
 
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let i = 0; i <= 5; i++) {
-      years.push(currentYear - i);
-    }
-    return years;
+    return Array.from({ length: 6 }, (_, i) => currentYear - i);
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 mb-6">
+    <div>
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* ✅ Static page title */}
+        <SectionHeader title="Declarations" action={null} />
+
+        {/* Year Selector + Action Buttons */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -73,7 +74,6 @@ const Declarations: React.FC = () => {
             ))}
           </select>
 
-          {/* Using your custom 'primary' color */}
           <button className="w-full sm:w-auto bg-primary text-white font-semibold py-2 px-6 rounded-md hover:opacity-90 transition-opacity">
             UPDATE
           </button>
@@ -82,101 +82,78 @@ const Declarations: React.FC = () => {
           </button>
         </div>
 
-        <div className="space-y-4">
-          {declarationData.map((section) => (
+        {/* ✅ Declaration Sections */}
+        {declarationData.map((section) => (
+          <div
+            key={section.id}
+            className="bg-white rounded-lg shadow-sm border border-gray-200"
+          >
+            {/* Section toggle header */}
             <div
-              key={section.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200"
+              className="flex justify-between items-center px-4 py-3 cursor-pointer"
+              onClick={() => toggleSection(section.id)}
             >
-              <div
-                className="flex justify-between items-center p-4 cursor-pointer"
-                onClick={() => toggleSection(section.id)}
-              >
-                <div className="flex items-center gap-2">
-                  <ChevronUp
-                    className={`h-5 w-5 text-primary transform transition-transform ${
-                      openSection === section.id ? "rotate-0" : "rotate-180"
-                    }`}
-                  />
-                  <h2 className="font-semibold text-primary">
-                    {section.title}
-                  </h2>
-                  <p className="text-xs text-gray-500">
-                    (Total=₹{section.total.toFixed(2)}) (MaxAmount=₹
-                    {section.maxAmount.toFixed(2)})
-                  </p>
-                </div>
+              <div className="flex items-center gap-2">
+                <ChevronUp
+                  className={`h-5 w-5 text-primary transform transition-transform ${
+                    openSection === section.id ? "rotate-0" : "rotate-180"
+                  }`}
+                />
+                <h2 className="font-semibold text-primary">{section.title}</h2>
+                <p className="text-xs text-gray-500">
+                  (Total=₹{section.total.toFixed(2)}) (Max=₹
+                  {section.maxAmount.toFixed(2)})
+                </p>
               </div>
+            </div>
 
-              {openSection === section.id && (
-                <div className="border-t border-gray-200 px-4 pt-4 pb-6">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left font-medium text-gray-500 pb-2">
-                          Name
-                        </th>
-                        <th className="text-left font-medium text-gray-500 pb-2 w-1/4">
-                          {section.id === "std_deduction"
-                            ? "Requested Amount"
-                            : "Amount"}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {section.rows.map((row) => (
-                        <tr key={row.name}>
-                          <td className="py-3 text-gray-800">{row.name}</td>
-                          <td className="py-3">
-                            <div className="bg-gray-100 p-2 rounded-md text-right text-gray-800">
-                              {row.amount.toFixed(2)}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {section.id === "std_deduction" && (
-                        <tr>
-                          <td className="pt-3 font-semibold text-gray-800 text-right">
-                            Total :
-                          </td>
-                          <td className="pt-3 font-semibold text-gray-800 text-right pr-2">
-                            {section.total.toFixed(2)}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+            {/* Section body */}
+            {openSection === section.id && (
+              <div className="border-t border-gray-200 p-4 space-y-2">
+                {/* Row items */}
+                {section.rows.map((row) => (
+                  <DetailItem
+                    key={row.name}
+                    label={row.name}
+                    value={row.amount.toFixed(2)}
+                  />
+                ))}
 
-                  {section.hasRentalSection && (
-                    <div className="mt-6">
-                      <div className="grid grid-cols-1 md:grid-cols-3 items-end gap-4">
-                        <div className="md:col-span-1">
-                          <label className="block text-xs font-medium text-gray-600">
-                            Owner Name
-                          </label>
-                        </div>
-                        <div className="md:col-span-1">
-                          <label className="block text-xs font-medium text-gray-600">
-                            Pancard
-                          </label>
-                        </div>
-                        <div className="md:col-span-1 flex justify-end">
-                          <button className="w-full sm:w-auto bg-primary text-white font-semibold py-2 px-4 rounded-md hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-                            <Plus size={16} />
-                            Rental Owner
-                          </button>
-                        </div>
+                {/* Total row for Standard Deduction */}
+                {section.id === "std_deduction" && (
+                  <div className="flex justify-between font-semibold text-gray-800 pt-2 border-t">
+                    <span>Total :</span>
+                    <span>₹{section.total.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {/* Rental Section */}
+                {section.hasRentalSection && (
+                  <div className="mt-6 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-end gap-4">
+                      <div className="md:col-span-1">
+                        <label className="block text-xs font-medium text-gray-600">
+                          Owner Name
+                        </label>
                       </div>
-                      <div className="mt-4 text-center text-gray-500 bg-gray-100 p-6 rounded-md">
-                        No rental owner detail added
+                      <div className="md:col-span-1">
+                        <label className="block text-xs font-medium text-gray-600">
+                          Pancard
+                        </label>
+                      </div>
+                      <div className="md:col-span-1 flex justify-end">
+                        <AddButton onClick={() => {}} label="Rental Owner" />
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+                    <div className="text-center text-gray-500 bg-gray-100 p-6 rounded-md">
+                      No rental owner detail added
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

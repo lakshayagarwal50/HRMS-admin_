@@ -320,7 +320,7 @@ import {
   updateEmployeeStatus,
   setFilters as setReduxFilters,
   clearFilters as clearReduxFilters,
-  sendInviteEmail, 
+  sendInviteEmail,
   resetInviteStatus,
 } from "../../../../store/slice/employeeSlice";
 import type { RootState, AppDispatch } from "../../../../store/store";
@@ -377,7 +377,6 @@ const EmployeesTable: React.FC = () => {
       dispatch(resetInviteStatus()); // Reset status after showing message
     }
   }, [inviteStatus, dispatch]);
-
 
   const employeesData = useMemo(() => {
     if (!Array.isArray(employeesFromStore)) return [];
@@ -618,7 +617,13 @@ const EmployeesTable: React.FC = () => {
 
       <div className="bg-white shadow-lg rounded-lg p-4 md:p-6">
         <div className="flex justify-between items-center flex-wrap mb-4">
-          <button className="bg-[#741CDD] hover:bg-[#5b14a9] text-white px-4 py-2 text-sm rounded transition duration-200">
+          {/* <button className="bg-[#741CDD] hover:bg-[#5b14a9] text-white px-4 py-2 text-sm rounded transition duration-200">
+            + NEW EMPLOYEE
+          </button> */}
+          <button
+            onClick={() => navigate("/employees/create")}
+            className="bg-[#741CDD] hover:bg-[#5b14a9] text-white px-4 py-2 text-sm rounded transition duration-200 cursor-pointer"
+          >
             + NEW EMPLOYEE
           </button>
           {/* <button
@@ -629,7 +634,7 @@ const EmployeesTable: React.FC = () => {
           </button> */}
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="p-2 bg-[#741CDD] rounded text-white hover:bg-[#5f3dbb] transition duration-200"
+            className="p-2 bg-[#741CDD] rounded text-white hover:bg-[#5f3dbb] transition duration-200 cursor-pointer"
             aria-label="Open filters"
           >
             <Filter size={20} />

@@ -24,7 +24,7 @@ export const DetailItem: React.FC<{
 export const EditButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md"
+    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md cursor-pointer"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -47,7 +47,7 @@ export const EditButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
 export const AddButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-1.5 text-sm text-white bg-[#741CDD] hover:bg-[#5f3dbb] transition-colors px-3 py-1.5 rounded-md font-semibold"
+    className="flex items-center gap-1.5 text-sm text-white bg-[#741CDD] hover:bg-[#5f3dbb] transition-colors px-3 py-1.5 rounded-md font-semibold cursor-pointer"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
