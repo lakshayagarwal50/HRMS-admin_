@@ -36,7 +36,8 @@ import payrollConfigReducer from './slice/payrollConfigSlice'; //
 import loginDetailsReducer from './slice/loginDetailsSlice'; 
 import yearlyAttendanceReducer from "./slice/yearlyAttendanceSlice";
 import createEmployeeReducer from "./slice/createEmployeeSlice"; 
-import roleReducer from './slice/roleSlice'
+import roleReducer from './slice/roleSlice';
+import reportReducer from "./slice/reportSlice";
 
 export const store = configureStore({
   reducer: {
@@ -76,6 +77,7 @@ export const store = configureStore({
     yearlyAttendance: yearlyAttendanceReducer,
     createEmployee: createEmployeeReducer,
     roles: roleReducer, 
+    reports: reportReducer,
   },
 });
 
