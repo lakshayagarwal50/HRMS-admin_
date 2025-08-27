@@ -14,7 +14,7 @@ import holidayConfigurationReducer from "./slice/holidayconfigurationSlice";
 import holidayCalendarReducer from "./slice/holidayCalendarSlice";
 import employeeDesignationReducer from "./slice/employeeDesignationSlice";
 import leaveSetupReducer from "./slice/leaveSetupSlice";
-import leaveRequestReducer from "./slice/leaveRequestSlice"
+import leaveRequestReducer from "./slice/leaveRequestSlice";
 
 import previousJobReducer from "./slice/previousJobSlice";
 import loansReducer from "./slice/loanAndAdvancesSlice";
@@ -33,6 +33,9 @@ import salaryReducer from './slice/salarySlice';
 import recordReducer from './slice/recordSlice';
 import employeesRatingReducer from './slice/employeesRatingSlice'
 import payrollConfigReducer from './slice/payrollConfigSlice'; //
+import loginDetailsReducer from './slice/loginDetailsSlice'; 
+import yearlyAttendanceReducer from "./slice/yearlyAttendanceSlice";
+import createEmployeeReducer from "./slice/createEmployeeSlice"; 
 
 export const store = configureStore({
   reducer: {
@@ -68,6 +71,9 @@ export const store = configureStore({
     records: recordReducer,
     employeesRating: employeesRatingReducer,
     payrollConfig: payrollConfigReducer,
+    loginDetails: loginDetailsReducer,
+    yearlyAttendance: yearlyAttendanceReducer,
+    createEmployee: createEmployeeReducer,
   },
 });
 

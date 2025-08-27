@@ -89,6 +89,25 @@ const EmployeeDeclarations = lazy(
       "../pages/Reports/pages/EmployeeReport/EmployeeDeclarations/employeeDeclarations"
     )
 );
+const PayslipSummaryReport = lazy(
+  () =>
+    import(
+      "../pages/Reports/pages/FinanceReport/PayslipSummaryReport/PayslipSummaryReport"
+    )
+);
+const PayslipComponentReport = lazy(
+  () =>
+    import(
+      "../pages/Reports/pages/FinanceReport/PayslipComponent/PayslipComponentReport"
+    )
+);
+const AttendanceReport = lazy(
+  () => import("../pages/Reports/pages/AttendanceReport/AttendanceReport")
+);
+const LeaveReport = lazy(
+  () => import("../pages/Reports/pages/AttendanceReport/LeaveReport")
+);
+const AuditHistory = lazy(() => import("../pages/Reports/pages/AuditHistory"));
 const Projects = lazy(
   () => import("../features/Projects/list/pages/ProjectList")
 );
@@ -202,13 +221,39 @@ const AppRoutes = () => (
           path="/reports/employee/declarations"
           element={<EmployeeDeclarations />}
         />
-        <Route path="/rating/criteria" element={<RatingCriteriaPage/>} />
-        <Route path="/payslip-components" element={<PayslipComponentsPage/>}/>
-        <Route path="/employee-salary-structures/:structureId/components" element={<SalaryComponentPage />} />
-        <Route path="/employee-salary-structures/:structureId/components/:componentId" element={<EditSalaryComponentPage />}/>
-        <Route path="/employee-salary-structures/:structureId/add-component" element={<AddSalaryComponentPage />}/>
-        <Route path="/sequence-number" element={<SequenceNumberPage/>}/>
-        <Route path="/payroll-configuration" element={<PayrollConfigurationPage/>}/>
+        <Route
+          path="/reports/finance/payslip-summary"
+          element={<PayslipSummaryReport />}
+        />
+        <Route
+          path="/reports/finance/payslip-component"
+          element={<PayslipComponentReport />}
+        />
+        <Route
+          path="/reports/attendance/summary"
+          element={<AttendanceReport />}
+        />
+        <Route path="/reports/attendance/leave" element={<LeaveReport />} />
+        <Route path="/reports/audit" element={<AuditHistory />} />
+        <Route path="/rating/criteria" element={<RatingCriteriaPage />} />
+        <Route path="/payslip-components" element={<PayslipComponentsPage />} />
+        <Route
+          path="/employee-salary-structures/:structureId/components"
+          element={<SalaryComponentPage />}
+        />
+        <Route
+          path="/employee-salary-structures/:structureId/components/:componentId"
+          element={<EditSalaryComponentPage />}
+        />
+        <Route
+          path="/employee-salary-structures/:structureId/add-component"
+          element={<AddSalaryComponentPage />}
+        />
+        <Route path="/sequence-number" element={<SequenceNumberPage />} />
+        <Route
+          path="/payroll-configuration"
+          element={<PayrollConfigurationPage />}
+        />
         <Route path="/payslip-components" element={<PayslipComponentsPage />} />
         <Route
           path="/employee-salary-structures/:structureId/components"

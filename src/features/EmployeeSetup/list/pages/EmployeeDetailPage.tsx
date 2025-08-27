@@ -29,13 +29,16 @@ import GeneralInfo from "../common/GeneralInfo";
 import ProfessionalInfo from "../common/ProfessionalInfo";
 import BankDetailsSection from "../common/BankDetailsSection";
 import LoanAdvances from "../common/LoanAdvances";
+import PfEsiComponent from "../common/pfEsiComponent";
+import Declarations from "../common/declarations";
+import Attendance from "../common/Attendance";
 
 import GenericForm, {
   type FormField,
 } from "../../../../components/common/GenericForm";
-import LoanDetailModal from "../common/LoanDetailModal";
-import LoanConfirmationModal from "../common/LoanConfirmationModal";
-import AddLoanModal from "../common/AddLoanModal";
+import LoanDetailModal from "../modal/LoanDetailModal";
+import LoanConfirmationModal from "../modal/LoanConfirmationModal";
+import AddLoanModal from "../modal/AddLoanModal";
 import PreviousJobDetails from "../common/PreviousJobDetails";
 import SalaryDistribution from "../common/SalaryDistribution";
 import ProjectsSection from "../common/ProjectsSection";
@@ -47,6 +50,45 @@ import {
   type PreviousJob, // Import the specific payload type
 } from "../../../../store/slice/previousJobSlice";
 
+// Skeleton for the Header section (Employee Name & Breadcrumbs)
+const EmployeeDetailHeaderSkeleton: React.FC = () => (
+  <header className="mb-6 animate-pulse">
+    <div className="h-8 bg-gray-200 rounded-md w-1/3 mb-2"></div>
+    <div className="h-5 bg-gray-200 rounded-md w-1/2"></div>
+  </header>
+);
+
+// Skeleton for the Profile Sidebar
+const ProfileSidebarSkeleton: React.FC = () => {
+  const SKELETON_ITEM_COUNT = 12; // Matches your menu item count
+  return (
+    <div className="w-full md:w-[260px] font-sans shrink-0 animate-pulse">
+      <ul className="list-none m-0 p-0 overflow-hidden rounded-lg border-2 border-gray-200">
+        {Array.from({ length: SKELETON_ITEM_COUNT }).map((_, index) => (
+          <li
+            key={index}
+            className="py-4 pr-6 pl-6 border-b border-gray-200 last:border-b-0"
+          >
+            <div className="h-5 bg-gray-200 rounded"></div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Skeleton for the main content area on the right
+const MainContentSkeleton: React.FC = () => (
+  <div className="flex-grow w-full bg-white p-6 rounded-lg border border-gray-200 animate-pulse">
+    <div className="space-y-4">
+      <div className="h-8 w-1/4 bg-gray-200 rounded-md"></div>
+      <div className="h-5 w-full bg-gray-200 rounded-md"></div>
+      <div className="h-5 w-5/6 bg-gray-200 rounded-md"></div>
+      <div className="h-5 w-3/4 bg-gray-200 rounded-md mt-6"></div>
+    </div>
+  </div>
+);
+
 const generalInfoFields: FormField[] = [
   {
     name: "title",
@@ -55,7 +97,7 @@ const generalInfoFields: FormField[] = [
     required: true,
     options: [
       { value: "MR", label: "MR" },
-      { value: "MISS", label: "MISS" },
+      { value: "MRS", label: "MRS" },
     ],
   },
   { name: "firstName", label: "First Name", type: "text", required: true },
@@ -322,6 +364,9 @@ export default function EmployeeDetailPage() {
   const location = useLocation();
   const mainEmployeeId = (location.state as { mainEmployeeId?: string })
     ?.mainEmployeeId;
+  const payslipComponent = (location.state as { payslipComponent?: string })
+    ?.payslipComponent;
+  console.log("Payslip component from location state:", payslipComponent);
 
   const { currentEmployee, loading, error } = useSelector(
     (state: RootState) => state.employees
@@ -579,6 +624,7 @@ export default function EmployeeDetailPage() {
           <GeneralInfo
             data={currentEmployee}
             onEdit={() => handleEdit("general", currentEmployee.general)}
+            employeeId={employeeCode}
           />
         );
       case "professional":
@@ -602,25 +648,33 @@ export default function EmployeeDetailPage() {
 
       case "pf_esi_pt":
         return (
-          <PlaceholderComponent
+          <PfEsiComponent
             title="PF, ESI & PT"
             onEdit={() => handleEdit("pf_esi_pt", currentEmployee.pf)}
           />
         );
       case "declaration":
         return (
-          <PlaceholderComponent
+          <Declarations
             title="Declaration"
             onEdit={() => handleEdit("declaration", null)}
           />
         );
       case "salary_distribution":
-        return (
-          <SalaryDistribution
-            title="Salary Distribution"
-            onEdit={() => handleEdit("salary_distribution", null)}
-          />
-        );
+        if (!payslipComponent || payslipComponent.trim() === "") {
+          return (
+            <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <h3 className="font-bold text-yellow-800">
+                Salary Data Not Available
+              </h3>
+              <p className="text-yellow-700">
+                This employee has not been assigned a payslip component group.
+              </p>
+            </div>
+          );
+        }
+        // Render the actual component with the required prop
+        return <SalaryDistribution groupname={payslipComponent} />;
       case "payslips":
         return (
           <PlaceholderComponent
@@ -630,7 +684,7 @@ export default function EmployeeDetailPage() {
         );
       case "attendance":
         return (
-          <PlaceholderComponent
+          <Attendance
             title="Attendance"
             onEdit={() => handleEdit("attendance", null)}
           />
@@ -663,6 +717,7 @@ export default function EmployeeDetailPage() {
           <GeneralInfo
             data={currentEmployee}
             onEdit={() => handleEdit("general", currentEmployee.general)}
+            employeeId={employeeCode}
           />
         );
     }
@@ -850,15 +905,32 @@ export default function EmployeeDetailPage() {
   };
 
   if (loading) {
+    // return (
+    //   <div className="flex justify-center items-center h-screen bg-slate-50">
+    //     <p className="text-lg text-gray-500 animate-pulse">
+    //       Loading Employee Details...
+    //     </p>
+    //   </div>
+    // );
     return (
-      <div className="flex justify-center items-center h-screen bg-slate-50">
-        <p className="text-lg text-gray-500 animate-pulse">
-          Loading Employee Details...
-        </p>
+      <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto">
+          <EmployeeDetailHeaderSkeleton />
+          <div className="flex flex-col md:flex-row items-start gap-6">
+            <ProfileSidebarSkeleton />
+            <MainContentSkeleton />
+          </div>
+        </div>
       </div>
     );
   }
   if (error) {
+    // return (
+    //   <div className="flex flex-col justify-center items-center h-screen bg-slate-50 text-center">
+    //     <h1 className="text-2xl font-bold text-red-600">Failed to Load Data</h1>
+    //     <p className="text-md text-gray-600 mt-2">{error}</p>
+    //   </div>
+    // );
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-50 text-center">
         <h1 className="text-2xl font-bold text-red-600">Failed to Load Data</h1>
@@ -867,6 +939,14 @@ export default function EmployeeDetailPage() {
     );
   }
   if (!currentEmployee) {
+    // return (
+    //   <div className="flex flex-col justify-center items-center h-screen bg-slate-50 text-center">
+    //     <h1 className="text-2xl font-bold text-red-600">Employee Not Found</h1>
+    //     <p className="text-md text-gray-600 mt-2">
+    //       No employee with ID '{employeeCode}' could be found.
+    //     </p>
+    //   </div>
+    // );
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-50 text-center">
         <h1 className="text-2xl font-bold text-red-600">Employee Not Found</h1>

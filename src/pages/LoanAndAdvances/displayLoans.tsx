@@ -1351,11 +1351,11 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 // --- COMPONENT IMPORTS ---
 import Table, { type Column } from "../../components/common/Table";
-import LoanConfirmationModal from "../../features/EmployeeSetup/list/common/LoanConfirmationModal";
+import LoanConfirmationModal from "../../features/EmployeeSetup/list/modal/LoanConfirmationModal";
 import { type FormField } from "../../components/common/GenericForm";
 
 // --- REDUX IMPORTS ---
@@ -1764,7 +1764,9 @@ const DisplayLoans: React.FC = () => {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentFilters, setCurrentFilters] = useState<
     Omit<FilterState, "statuses"> & { statuses?: string[] }
@@ -1782,8 +1784,16 @@ const DisplayLoans: React.FC = () => {
     );
   }, [dispatch, currentPage, itemsPerPage, currentFilters]);
 
+  // const handleApplyFilters = (filters: FilterState) => {
+  //   setCurrentPage(1);
+  //   setCurrentFilters({
+  //     startDate: filters.startDate,
+  //     endDate: filters.endDate,
+  //     statuses: filters.statuses,
+  //   });
+  // };
   const handleApplyFilters = (filters: FilterState) => {
-    setCurrentPage(1);
+    setSearchParams({ page: "1" }); // <-- Update the URL to reset to page 1
     setCurrentFilters({
       startDate: filters.startDate,
       endDate: filters.endDate,
@@ -1793,6 +1803,10 @@ const DisplayLoans: React.FC = () => {
 
   const handleToggleMenu = (id: string) => {
     setActiveMenuId((prevId) => (prevId === id ? null : id));
+  };
+  const handlePageChange = (newPage: number) => {
+    // This will update the URL (e.g., to '?page=2') and trigger a re-render
+    setSearchParams({ page: String(newPage) });
   };
 
   const handleViewDetails = (loan: Loan) => {
@@ -1972,11 +1986,16 @@ const DisplayLoans: React.FC = () => {
               showPagination={false}
             />
             <Pagination
+              // currentPage={currentPage}
+              // totalPages={totalPages}
+              // totalItems={totalItems}
+              // itemsPerPage={itemsPerPage}
+              // onPageChange={setCurrentPage}
               currentPage={currentPage}
               totalPages={totalPages}
               totalItems={totalItems}
               itemsPerPage={itemsPerPage}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
             />
           </>
         )}
