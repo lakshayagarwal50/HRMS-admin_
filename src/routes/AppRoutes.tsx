@@ -124,6 +124,12 @@ const PayrollList = lazy(() => import("../features/payroll/pages/PayrollList"));
 const EmployeeLeaveRequest = lazy(
   () => import("../pages/LeaveConfiguration/EmployeeLeaveRequestPage")
 );
+const PaymentSalary = lazy(
+  () => import("../features/payments/salary/pages/Salary")
+);
+const PaymentTds = lazy(
+  () => import("../features/payments/TDS/pages/TDS")
+);
 
 const AppRoutes = () => (
   <Suspense
@@ -282,6 +288,7 @@ const AppRoutes = () => (
         <Route path="/attendance/upload" element={<UploadAttendance />} />
         <Route path="/payroll/list" element={<PayrollList />} />
         <Route path="/payroll/crystal" element={<CrystalRunPage />} />
+        <Route path="/payroll/crystal" element={<CrystalRunPage />} />
         <Route path="/payroll/generate" element={<GeneratePayslipLayout />}>
           {/* These are the nested child routes for each individual step */}
           <Route path="ctc" element={<CtcStepPage />} />
@@ -298,7 +305,10 @@ const AppRoutes = () => (
           />
           <Route path="loan-repayment" element={<LoanRepaymentStepPage />} />
           <Route path="process" element={<ProcessPayslipStepPage />} />
+
         </Route>
+          <Route path="/payment/salary" element={<PaymentSalary />} />
+          <Route path="/payment/tds" element={<PaymentTds />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />

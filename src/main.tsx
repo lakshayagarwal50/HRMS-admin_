@@ -9,7 +9,7 @@ import { BrowserRouter } from "react-router-dom";
 import { setupAxiosInterceptors } from "./services/index.ts";
 import { checkAuthStatus } from "./features/auth/authSlice.ts";
 import ErrorBoundary from "./ErrorBoundary.tsx.tsx";
-
+import { Toaster } from "react-hot-toast";
 // Setup Axios interceptors
 setupAxiosInterceptors(store);
 
@@ -18,10 +18,11 @@ store.dispatch(checkAuthStatus());
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
-     <ErrorBoundary>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ErrorBoundary>
+      <Toaster position="top-center" />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </ErrorBoundary>
   </Provider>
 );
