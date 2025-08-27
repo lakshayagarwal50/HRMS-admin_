@@ -30,6 +30,9 @@ import salaryComponentReducer from "./slice/salaryComponentSlice";
 import payrollReducer from "./slice/payrollSlice";
 import attendanceReducer from "./slice/attendanceSlice";
 import salaryReducer from './slice/salarySlice';
+import recordReducer from './slice/recordSlice';
+import employeesRatingReducer from './slice/employeesRatingSlice'
+import payrollConfigReducer from './slice/payrollConfigSlice'; //
 import loginDetailsReducer from './slice/loginDetailsSlice'; 
 import yearlyAttendanceReducer from "./slice/yearlyAttendanceSlice";
 import createEmployeeReducer from "./slice/createEmployeeSlice"; 
@@ -65,6 +68,9 @@ export const store = configureStore({
     leaveRequests: leaveRequestReducer,
     salary: salaryReducer,
     attendance: attendanceReducer,
+    records: recordReducer,
+    employeesRating: employeesRatingReducer,
+    payrollConfig: payrollConfigReducer,
     loginDetails: loginDetailsReducer,
     yearlyAttendance: yearlyAttendanceReducer,
     createEmployee: createEmployeeReducer,

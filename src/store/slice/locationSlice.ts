@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import axios, { isAxiosError } from 'axios';
+import { isAxiosError } from 'axios';
+// Assuming you have a configured axios instance in your services folder
+import { axiosInstance } from '../../services'; 
 
-// --- CONSTANTS & HELPERS ---
-const API_BASE_URL = 'http://172.50.5.116:3000/api/locations/';
-const getAuthToken = (): string | null => localStorage.getItem('accessToken');
+// --- Base URL for the API endpoint ---
+const API_BASE_URL = '/api/locations/';
 
 // --- TYPE DEFINITIONS ---
 // This is the shape of the data coming from the API
@@ -53,13 +54,9 @@ const transformApiData = (apiData: LocationFromAPI[]): Location[] => {
 
 // --- ASYNC THUNKS ---
 export const fetchLocations = createAsyncThunk('locations/fetch', async (_, { rejectWithValue }) => {
-  const token = getAuthToken();
-  if (!token) return rejectWithValue('Authentication token not found.');
-
   try {
-    const response = await axios.get(`${API_BASE_URL}get`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.get(`${API_BASE_URL}get`);
+    // The API response is an array of LocationFromAPI, so we transform it
     return transformApiData(response.data as LocationFromAPI[]);
   } catch (error) {
     if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to fetch locations');
@@ -68,9 +65,6 @@ export const fetchLocations = createAsyncThunk('locations/fetch', async (_, { re
 });
 
 export const addLocation = createAsyncThunk('locations/add', async (newLocation: NewLocation, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
-    
     // Transform UI data to match the API's expected body format
     const apiRequestBody = {
         cityName: newLocation.city,
@@ -80,9 +74,7 @@ export const addLocation = createAsyncThunk('locations/add', async (newLocation:
     };
 
     try {
-        const response = await axios.post(`${API_BASE_URL}create`, apiRequestBody, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axiosInstance.post(`${API_BASE_URL}create`, apiRequestBody);
         // Return a complete Location object to add to the state
         return { ...newLocation, id: response.data.id } as Location;
     } catch (error) {
@@ -92,9 +84,6 @@ export const addLocation = createAsyncThunk('locations/add', async (newLocation:
 });
 
 export const updateLocation = createAsyncThunk('locations/update', async (location: Location, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
-
     const apiRequestBody = {
         cityName: location.city,
         code: location.code,
@@ -103,9 +92,7 @@ export const updateLocation = createAsyncThunk('locations/update', async (locati
     };
 
     try {
-        await axios.put(`${API_BASE_URL}update/${location.id}`, apiRequestBody, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        await axiosInstance.put(`${API_BASE_URL}update/${location.id}`, apiRequestBody);
         return location; // Return the updated location on success
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update location');
@@ -114,12 +101,8 @@ export const updateLocation = createAsyncThunk('locations/update', async (locati
 });
 
 export const toggleLocationStatus = createAsyncThunk('locations/toggleStatus', async (location: Location, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
     try {
-        await axios.delete(`${API_BASE_URL}delete/${location.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        await axiosInstance.delete(`${API_BASE_URL}delete/${location.id}`);
         // On success, return the location with the toggled status
         return { ...location, status: location.status === 'Active' ? 'Inactive' : 'Active' } as Location;
     } catch (error) {

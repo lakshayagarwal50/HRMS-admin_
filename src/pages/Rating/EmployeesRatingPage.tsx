@@ -1,137 +1,86 @@
-import React, { useState, useEffect, useRef, useMemo} from 'react';
-import { MoreHorizontal, ChevronRight, SlidersHorizontal, X, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { MoreHorizontal, ChevronRight, SlidersHorizontal, X, ServerCrash, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 
-// --- Component Imports ---
+// --- Component & Redux Imports ---
 import Table, { type Column } from '../../components/common/Table'; 
-import RequestRatingModal from '../../components/Modal/RequestRatingModal'; // Updated import
-import SidePanelForm from '../../components/common/SidePanelForm';
+import RequestRatingModal from '../../components/Modal/RequestRatingModal';
+import FilterEmployeesRating, { type RatingFilters } from '../../components/Rating/FilterEmployeesRating';
+import Toast from '../../components/common/Toast';
+import type { AppDispatch, RootState } from '../../store/store';
+import { fetchEmployeeRatings, type EmployeeRating } from '../../store/slice/employeesRatingSlice';
 
-// --- TYPE DEFINITIONS ---
-interface EmployeeRating {
-  id: string;
-  employee: string;
-  code: string;
-  department: string;
-  designation: string;
-  yearOfExperience: number;
-  overallAverageRating: number;
-  project?: string;
-}
 
-export interface RatingFilters {
-  department: string;
-  project: string;
-}
-
-// --- MOCK DATA ---
-const employeeRatingData: EmployeeRating[] = [
-  { id: '1', employee: 'Surendranath Malviya', code: '845161', department: 'Business Analyst', designation: 'Business Analyst', yearOfExperience: 1, overallAverageRating: 4.5, project: 'PyThru' },
-  { id: '2', employee: 'Nakula Bagchi', code: '64161', department: 'Project Management', designation: 'Project Management', yearOfExperience: 3, overallAverageRating: 4.1, project: 'Project A' },
-  { id: '3', employee: 'Kusika Dalavi', code: '75453', department: 'Quality Analyst', designation: 'Quality Analyst', yearOfExperience: 4, overallAverageRating: 3.8, project: 'PyThru' },
-  { id: '4', employee: 'Kanada Kashyap', code: '94131', department: 'Designing', designation: 'Design', yearOfExperience: 5, overallAverageRating: 4.9, project: 'Project B' },
-  { id: '5', employee: 'John Doe', code: '12345', department: 'Development', designation: 'Software Engineer', yearOfExperience: 2, overallAverageRating: 4.2, project: 'PyThru' },
-  { id: '6', employee: 'Jane Smith', code: '67890', department: 'QA', designation: 'QA Engineer', yearOfExperience: 3, overallAverageRating: 4.8, project: 'Project A' },
-];
-
-// --- Filter Component ---
-const FilterEmployeesRating: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onApply: (filters: RatingFilters) => void;
-  initialFilters: RatingFilters | null;
-}> = ({ isOpen, onClose, onApply, initialFilters }) => {
-  const [department, setDepartment] = useState('');
-  const [project, setProject] = useState('');
-
-  useEffect(() => {
-    if (isOpen) {
-      setDepartment(initialFilters?.department || '');
-      setProject(initialFilters?.project || '');
-    }
-  }, [isOpen, initialFilters]);
-
-  const handleClear = () => {
-    setDepartment('');
-    setProject('');
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onApply({ department, project });
-    onClose();
-  };
-
-  return (
-    <SidePanelForm
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Filter"
-      onSubmit={handleSubmit}
-      submitText="APPLY"
-      onClear={handleClear} // Assuming SidePanelForm can handle an onClear prop
-    >
-      <div className="space-y-6">
-        <div>
-          <h3 className="w-full flex justify-between items-center text-lg font-semibold text-gray-800 mb-2">Department <ChevronUp size={20} /></h3>
-          <select value={department} onChange={(e) => setDepartment(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md bg-white">
-            <option value="">Select...</option>
-            <option value="Designing">Designing</option>
-            <option value="Project Management">Project Management</option>
-            <option value="Business Analyst">Business Analyst</option>
-            <option value="Quality Analyst">Quality Analyst</option>
-            <option value="Development">Development</option>
-          </select>
+// --- UI State Components ---
+const TableSkeleton: React.FC = () => (
+    <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
+        <div className="space-y-3">
+            {[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-gray-200 rounded-md w-full"></div>)}
         </div>
-        <div>
-          <h3 className="w-full flex justify-between items-center text-lg font-semibold text-gray-800 mb-2">Project <ChevronUp size={20} /></h3>
-          <select value={project} onChange={(e) => setProject(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md bg-white">
-            <option value="">Select...</option>
-            <option value="PyThru">PyThru</option>
-            <option value="Project A">Project A</option>
-            <option value="Project B">Project B</option>
-          </select>
+    </div>
+);
+
+const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ onRetry, error }) => (
+    <div className="text-center py-10 px-4 bg-red-50 border border-red-200 rounded-lg">
+        <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
+        <h3 className="mt-2 text-lg font-semibold text-red-800">Failed to Load Data</h3>
+        <p className="mt-1 text-sm text-red-600">{error || 'An unknown error occurred.'}</p>
+        <div className="mt-6">
+            <button type="button" onClick={onRetry} className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                <RefreshCw className="-ml-1 mr-2 h-5 w-5" />
+                Try Again
+            </button>
         </div>
-      </div>
-    </SidePanelForm>
-  );
-};
+    </div>
+);
+
+const EmptyState: React.FC = () => (
+    <div className="text-center py-10 px-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <h3 className="text-lg font-semibold text-gray-800">No Results Found</h3>
+    </div>
+);
 
 
 // --- MAIN PAGE COMPONENT ---
 const EmployeesRatingPage: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { items: ratings, status, error } = useSelector((state: RootState) => state.employeesRating);
+
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false); // State for the new modal
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<RatingFilters | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const handleApplyFilters = (filters: RatingFilters) => {
+  useEffect(() => {
+    dispatch(fetchEmployeeRatings(null));
+  }, [dispatch]);
+
+  const handleApplyFilters = useCallback((filters: RatingFilters) => {
     setAppliedFilters(filters);
-  };
+    dispatch(fetchEmployeeRatings({ department: filters.department }));
+  }, [dispatch]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setAppliedFilters(null);
-  };
+    dispatch(fetchEmployeeRatings(null));
+  }, [dispatch]);
 
-  const filteredData = useMemo(() => {
-    if (!appliedFilters) {
-      return employeeRatingData;
-    }
-    return employeeRatingData.filter(item => {
-      const departmentMatch = !appliedFilters.department || item.department === appliedFilters.department;
-      const projectMatch = !appliedFilters.project || item.project === appliedFilters.project;
-      return departmentMatch && projectMatch;
-    });
-  }, [appliedFilters]);
+  const handleRetry = useCallback(() => {
+      dispatch(fetchEmployeeRatings(appliedFilters ? { department: appliedFilters.department } : null));
+  }, [dispatch, appliedFilters]);
 
+  // The 'columns' array is now memoized without depending on 'activeDropdown'.
+  // This prevents it from being recreated on every dropdown click, fixing the infinite loop.
   const columns = useMemo<Column<EmployeeRating>[]>(() => [
     { key: 'employee', header: 'Employee' },
     { key: 'code', header: 'Code' },
     { key: 'department', header: 'Department' },
     { key: 'designation', header: 'Designation' },
     { key: 'yearOfExperience', header: 'Year Of Experience' },
-    { key: 'overallAverageRating', header: 'Overall average Rating' },
+    { key: 'overallAverageRating', header: 'Overall average Rating', render: (row) => row.overallAverageRating.toFixed(2) },
     {
       key: 'action',
       header: 'Action',
@@ -144,9 +93,9 @@ const EmployeesRatingPage: React.FC = () => {
             <MoreHorizontal size={20} />
           </button>
           {activeDropdown === row.id && (
-            <div ref={dropdownRef} className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-20">
+            <div ref={dropdownRef} className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-20" onClick={()=>{dispatch(fetchEmployeeRatings("sa",12))}}>
               <Link
-                to={`/rating/detail/${row.id}`} // Restored original "View Detail" link
+                to={`/rating/detail/${row.id}`}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 View Detail
@@ -156,7 +105,7 @@ const EmployeesRatingPage: React.FC = () => {
         </div>
       ),
     },
-  ], [activeDropdown]);
+  ], [activeDropdown]); // The render function will always get the latest activeDropdown state
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -169,9 +118,32 @@ const EmployeesRatingPage: React.FC = () => {
   }, []);
   
   const activeFilterCount = appliedFilters ? Object.values(appliedFilters).filter(Boolean).length : 0;
+  
+  const renderContent = () => {
+      if (status === 'loading' || status === 'idle') {
+          return <TableSkeleton />;
+      }
+      if (status === 'failed') {
+          return <ErrorState onRetry={handleRetry} error={error} />;
+      }
+      if (status === 'succeeded' && ratings.length === 0) {
+          return <EmptyState />;
+      }
+      return (
+          <Table
+              columns={columns}
+              data={ratings}
+              showSearch={true}
+              showPagination={true}
+              searchPlaceholder="Search by employee name or code"
+              defaultItemsPerPage={10}
+          />
+      );
+  };
 
   return (
     <div className="w-full bg-white p-6 rounded-lg shadow-md">
+       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <header className="mb-6">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
@@ -186,7 +158,7 @@ const EmployeesRatingPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => setIsRequestModalOpen(true)} // Open the new modal
+              onClick={() => setIsRequestModalOpen(true)}
               className="px-4 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700">
               REQUEST RATING
             </button>
@@ -209,7 +181,7 @@ const EmployeesRatingPage: React.FC = () => {
         {appliedFilters && (
             <div className="bg-gray-50 p-3 rounded-md mb-4 flex justify-between items-center">
                 <p className="text-sm text-gray-700">
-                    Filters are active. {filteredData.length} results found.
+                    Filters are active. {ratings.length} results found.
                 </p>
                 <button onClick={handleClearFilters} className="flex items-center text-sm text-purple-600 hover:underline">
                     <X size={16} className="mr-1" />
@@ -217,29 +189,13 @@ const EmployeesRatingPage: React.FC = () => {
                 </button>
             </div>
         )}
-
-        {filteredData.length > 0 ? (
-            <Table
-                columns={columns}
-                data={filteredData}
-                showSearch={true}
-                showPagination={true}
-                searchPlaceholder="Search by employee name or code"
-                defaultItemsPerPage={4}
-            />
-        ) : (
-            <div className="text-center py-10 px-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800">No Results Found</h3>
-                <p className="mt-1 text-sm text-gray-600">
-                    Your filter criteria did not match any records.
-                </p>
-            </div>
-        )}
+        {renderContent()}
       </main>
 
       <RequestRatingModal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
+        setToast={setToast}
       />
 
       <FilterEmployeesRating

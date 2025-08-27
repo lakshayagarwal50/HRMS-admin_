@@ -5,7 +5,7 @@ import SidePanelForm from '../../components/common/SidePanelForm'; // Adjust pat
 // --- TYPE DEFINITIONS ---
 export interface RatingFilters {
   department: string;
-  project: string;
+  project: string; // Note: 'project' is not in the API, so this will be for client-side filtering
 }
 
 interface FilterEmployeesRatingProps {
@@ -81,12 +81,12 @@ const FilterEmployeesRating: React.FC<FilterEmployeesRatingProps> = ({ isOpen, o
       title="Filter"
       onSubmit={handleSubmit}
       submitText="APPLY"
-      onClear={handleClear} // Assuming SidePanelForm can handle an onClear prop
+      onClear={handleClear}
     >
       <div className="space-y-6">
         <FilterDropdown
           title="Department"
-          options={['Designing', 'Project Management', 'Business Analyst', 'Quality Analyst', 'Development']}
+          options={['Engineering', 'HR', 'Development', 'Designing', 'Project Management', 'Business Analyst', 'Quality Analyst']}
           selectedValue={department}
           onSelect={setDepartment}
         />
