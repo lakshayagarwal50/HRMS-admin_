@@ -33,7 +33,13 @@ export interface LeaveRequest {
   leaveBalance: LeaveBalance;
 }
 
-// Type for the update action payload
+// This type should match the one in your filter component
+export interface LeaveFilters {
+  leaveTypes: string[];
+  approvalStatus: string[];
+  departments: string[];
+}
+
 export interface UpdateLeaveStatusPayload {
     id: string;
     status: 'Approved' | 'Rejected';
@@ -59,12 +65,23 @@ const initialState: LeaveRequestState = {
 // --- ASYNCHRONOUS THUNKS ---
 export const fetchLeaveRequests = createAsyncThunk(
   'leaveRequests/fetch',
-  async (filters: any | null, { rejectWithValue }) => {
+  async (filters: LeaveFilters | null, { rejectWithValue }) => {
     try {
       const token = "YOUR_FIREBASE_ID_TOKEN";
-      const params = new URLSearchParams(filters || {}).toString();
-      const response = await axiosInstance.get(`${API_BASE_URL}/get?${params}`, {
+      
+      // Correctly build query parameters for axios
+      const params: Record<string, string> = {};
+      if (filters) {
+          // The API docs show single query params, so we'll take the first selected value for each filter.
+          // If your API supports multiple values, you might need to adjust this.
+          if (filters.leaveTypes.length > 0) params.leaveType = filters.leaveTypes[0];
+          if (filters.approvalStatus.length > 0) params.finalApprovalStatus = filters.approvalStatus[0];
+          if (filters.departments.length > 0) params.department = filters.departments[0];
+      }
+      
+      const response = await axiosInstance.get(`${API_BASE_URL}/get`, {
         headers: { 'Authorization': `Bearer ${token}` },
+        params, // Pass the params object to axios
       });
       return response.data.data as LeaveRequest[];
     } catch (error) {
@@ -74,17 +91,15 @@ export const fetchLeaveRequests = createAsyncThunk(
   }
 );
 
-// New thunk to fetch a single request by ID
 export const fetchLeaveRequestById = createAsyncThunk(
   'leaveRequests/fetchById',
   async (id: string, { rejectWithValue }) => {
       try {
           const token = "YOUR_FIREBASE_ID_TOKEN";
-          // Assuming an endpoint like /api/leaveRequest/get/:id exists
-          const response = await axiosInstance.get(`${API_BASE_URL}/get/${id}`, {
+          const response = await axiosInstance.get(`${API_BASE_URL}/get?id=${id}`, {
               headers: { 'Authorization': `Bearer ${token}` },
           });
-          return response.data.data as LeaveRequest; // Assuming it returns a single object
+          return response.data.data[0] as LeaveRequest;
       } catch (error) {
           if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message);
           return rejectWithValue('Failed to fetch leave request details.');

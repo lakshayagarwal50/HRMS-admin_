@@ -1,49 +1,84 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ChevronDown, ChevronRight, ServerCrash, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 
-// --- Component Imports ---
-import Table, { type Column } from '../../components/common/Table'; // Assuming this is the correct path
+// --- Component & Redux Imports ---
+import Table, { type Column } from '../../components/common/Table';
+import type { AppDispatch, RootState } from '../../store/store';
+import { fetchRecords, type Record } from '../../store/slice/recordSlice';
 
-// --- TYPE DEFINITIONS ---
-interface Record {
-  month: string;
-  requestedDate: string;
-  employeeWindow: string;
-  managerWindow: string;
-}
+// --- UI State Components ---
+const TableSkeleton: React.FC = () => (
+    <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
+        <div className="space-y-3">
+            {[...Array(10)].map((_, i) => <div key={i} className="h-10 bg-gray-200 rounded-md w-full"></div>)}
+        </div>
+    </div>
+);
 
-// --- MOCK DATA ---
-// Static data to match the provided screenshot
-const recordData: Record[] = [
-  { month: 'December', requestedDate: '25 Apr, 2022', employeeWindow: '15 Jul, 2022 - 22 Jun, 2022', managerWindow: '30 Jun, 2022 - 30 Aug, 2022' },
-  { month: 'November', requestedDate: '25 Apr, 2022', employeeWindow: '15 Jul, 2022 - 22 Jun, 2022', managerWindow: '30 Jun, 2022 - 30 Aug, 2022' },
-  { month: 'October', requestedDate: '25 Apr, 2022', employeeWindow: '15 Jul, 2022 - 22 Jun, 2022', managerWindow: '30 Jun, 2022 - 30 Aug, 2022' },
-  { month: 'September', requestedDate: '14 Jun, 2022', employeeWindow: '1 Jul, 2022 - 30 Jul, 2022', managerWindow: '15 Jul, 2022 - 30 Jun, 2022' },
-  { month: 'August', requestedDate: '14 Jun, 2022', employeeWindow: '1 Jul, 2022 - 30 Jul, 2022', managerWindow: '15 Jul, 2022 - 30 Jun, 2022' },
-  { month: 'June', requestedDate: 'NA', employeeWindow: 'NA', managerWindow: 'NA' },
-  { month: 'May', requestedDate: 'NA', employeeWindow: 'NA', managerWindow: 'NA' },
-  { month: 'April', requestedDate: 'NA', employeeWindow: 'NA', managerWindow: 'NA' },
-  { month: 'March', requestedDate: '29 May, 2022', employeeWindow: '10 Apr, 2022 - 20 Apr, 2022', managerWindow: '05 May, 2022 - 25 Jun, 2022' },
-  { month: 'February', requestedDate: '29 May, 2022', employeeWindow: '10 Apr, 2022 - 20 Apr, 2022', managerWindow: '05 May, 2022 - 25 Jun, 2022' },
-  { month: 'January', requestedDate: '29 May, 2022', employeeWindow: '10 Apr, 2022 - 20 Apr, 2022', managerWindow: '05 May, 2022 - 25 Jun, 2022' },
-];
+const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ onRetry, error }) => (
+    <div className="text-center py-10 px-4 bg-red-50 border border-red-200 rounded-lg">
+        <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
+        <h3 className="mt-2 text-lg font-semibold text-red-800">Failed to Load Records</h3>
+        <p className="mt-1 text-sm text-red-600">{error || 'An unknown error occurred.'}</p>
+        <div className="mt-6">
+            <button type="button" onClick={onRetry} className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                <RefreshCw className="-ml-1 mr-2 h-5 w-5" />
+                Try Again
+            </button>
+        </div>
+    </div>
+);
+
 
 // --- MAIN PAGE COMPONENT ---
 const RecordPage: React.FC = () => {
-  const [selectedYear, setSelectedYear] = useState('2021');
+  const dispatch = useDispatch<AppDispatch>();
+  const { items: records, status, error } = useSelector((state: RootState) => state.records);
+  const [selectedYear, setSelectedYear] = useState('All');
 
-  // Define columns for the generic Table component
-  const columns: Column<Record>[] = [
+  // This effect now re-runs whenever 'selectedYear' changes
+  useEffect(() => {
+    // Dispatch the fetch action with the currently selected year, or null for "All"
+    const yearToFetch = selectedYear === 'All' ? null : selectedYear;
+    dispatch(fetchRecords(yearToFetch));
+  }, [dispatch, selectedYear]);
+
+  const columns: Column<Record>[] = useMemo(() => [
     { key: 'month', header: 'Month' },
     { key: 'requestedDate', header: 'Requested Date' },
     { key: 'employeeWindow', header: 'Employee Open Window (From - to)' },
     { key: 'managerWindow', header: 'Manager Open window (From - to)' },
-  ];
+  ], []);
+
+  const renderContent = () => {
+      // Show skeleton on initial load or when re-fetching for a new year
+      if (status === 'loading' || status === 'idle') {
+          return <TableSkeleton />;
+      }
+      if (status === 'failed') {
+          // The retry button now correctly re-fetches with the selected year
+          const yearToFetch = selectedYear === 'All' ? null : selectedYear;
+          return <ErrorState onRetry={() => dispatch(fetchRecords(yearToFetch))} error={error} />;
+      }
+      if (status === 'succeeded' && records.length > 0) {
+          return (
+            <Table
+              columns={columns}
+              data={records}
+              showSearch={true}
+              showPagination={true}
+              searchPlaceholder="Search records..."
+              defaultItemsPerPage={10}
+            />
+          );
+      }
+      return <div className="text-center p-10 bg-gray-50 rounded-lg border">No records found for the selected year.</div>;
+  }
 
   return (
     <div className="w-full bg-white p-6 rounded-lg shadow-md">
-      {/* Page Header */}
       <header className="mb-6">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
@@ -62,6 +97,7 @@ const RecordPage: React.FC = () => {
               onChange={(e) => setSelectedYear(e.target.value)}
               className="appearance-none w-full pl-3 pr-8 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
+              <option>All</option>
               <option>2021</option>
               <option>2022</option>
               <option>2023</option>
@@ -73,15 +109,8 @@ const RecordPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content Area: Now using the generic Table component */}
       <main>
-        <Table
-          columns={columns}
-          data={recordData}
-          showSearch={true}
-          showPagination={true}
-          searchPlaceholder="Search records..."
-        />
+        {renderContent()}
       </main>
     </div>
   );
