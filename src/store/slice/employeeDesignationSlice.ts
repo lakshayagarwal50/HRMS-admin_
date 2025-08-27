@@ -86,11 +86,12 @@
 
 // export const { resetEmployeeDesignations } = employeeDesignationSlice.actions;
 // export default employeeDesignationSlice.reducer;
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { type PayloadAction} from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; // Use the configured axios instance
-import type { RootState } from '../store';
+
 
 // 🔧 API URL for designations (relative path)
 const API_URL = '/api/designations/get';
