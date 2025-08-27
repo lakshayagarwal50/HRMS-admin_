@@ -31,14 +31,14 @@ import BankDetailsSection from "../common/BankDetailsSection";
 import LoanAdvances from "../common/LoanAdvances";
 import PfEsiComponent from "../common/pfEsiComponent";
 import Declarations from "../common/declarations";
-import Attendance from "../common/attendance";
+import Attendance from "../common/Attendance";
 
 import GenericForm, {
   type FormField,
 } from "../../../../components/common/GenericForm";
-import LoanDetailModal from "../common/LoanDetailModal";
-import LoanConfirmationModal from "../common/LoanConfirmationModal";
-import AddLoanModal from "../common/AddLoanModal";
+import LoanDetailModal from "../modal/LoanDetailModal";
+import LoanConfirmationModal from "../modal/LoanConfirmationModal";
+import AddLoanModal from "../modal/AddLoanModal";
 import PreviousJobDetails from "../common/PreviousJobDetails";
 import SalaryDistribution from "../common/SalaryDistribution";
 import ProjectsSection from "../common/ProjectsSection";

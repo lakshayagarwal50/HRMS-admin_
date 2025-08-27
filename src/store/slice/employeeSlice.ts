@@ -361,6 +361,8 @@ export interface EmployeeState {
   error: string | null;
   limit: number;
   total: number;
+  inviteStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
+  inviteError: string | null;
 }
 
 export const initialState: EmployeeState = {
@@ -377,6 +379,8 @@ export const initialState: EmployeeState = {
   error: null,
   limit: 10,
   total: 0,
+  inviteStatus: 'idle',
+  inviteError: null,
 };
 
 // --- UPDATED ASYNC THUNKS ---
@@ -490,6 +494,29 @@ export const uploadProfilePicture = createAsyncThunk<
   }
 );
 
+export const sendInviteEmail = createAsyncThunk<
+  { message: string }, // Expected successful response shape
+  string,              // Type for the employeeCode argument
+  { rejectValue: string }
+>(
+  'employees/sendInviteEmail',
+  async (employeeCode, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(
+        `/employees/sendEmail/${employeeCode}`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(
+          error.response.data?.message || 'Failed to send invitation.'
+        );
+      }
+      return rejectWithValue('An unknown error occurred while sending the invitation.');
+    }
+  }
+);
+
 
 // --- Slice and Reducers (No changes needed here) ---
 const employeeSlice = createSlice({
@@ -507,6 +534,10 @@ const employeeSlice = createSlice({
         designation: 'All',
         location: '',
       };
+    },
+    resetInviteStatus: (state) => {
+      state.inviteStatus = 'idle';
+      state.inviteError = null;
     },
   },
   extraReducers: (builder) => {
@@ -562,13 +593,26 @@ const employeeSlice = createSlice({
       .addCase(uploadProfilePicture.rejected, (state, action) => {
         state.loading = false; // Stop loading on failure
         state.error = action.payload as string;
-      });
+      })
+      .addCase(sendInviteEmail.pending, (state) => {
+        state.inviteStatus = 'loading';
+        state.inviteError = null;
+      })
+      .addCase(sendInviteEmail.fulfilled, (state) => {
+        state.inviteStatus = 'succeeded';
+      })
+      .addCase(sendInviteEmail.rejected, (state, action) => {
+        state.inviteStatus = 'failed';
+        state.error = action.payload as string;
+      }
+    );
   },
 });
 
 export const {
   setFilters,
   clearFilters,
+  resetInviteStatus, 
 } = employeeSlice.actions;
 
 export default employeeSlice.reducer;

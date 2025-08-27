@@ -320,6 +320,8 @@ import {
   updateEmployeeStatus,
   setFilters as setReduxFilters,
   clearFilters as clearReduxFilters,
+  sendInviteEmail, 
+  resetInviteStatus,
 } from "../../../../store/slice/employeeSlice";
 import type { RootState, AppDispatch } from "../../../../store/store";
 import ActionDropdown from "./ActionDropdown";
@@ -342,6 +344,7 @@ const EmployeesTable: React.FC = () => {
     filters: reduxFilters,
     limit,
     total,
+    inviteStatus,
   } = useSelector((state: RootState) => state.employees);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -364,6 +367,17 @@ const EmployeesTable: React.FC = () => {
   useEffect(() => {
     dispatch(fetchEmployees({ page: currentPageFromUrl, limit }));
   }, [dispatch, currentPageFromUrl, limit]);
+
+  useEffect(() => {
+    if (inviteStatus === "succeeded") {
+      console.log("Invitation email sent successfully!");
+      dispatch(resetInviteStatus()); // Reset status after showing message
+    } else if (inviteStatus === "failed") {
+      console.log("Failed to send invitation email.");
+      dispatch(resetInviteStatus()); // Reset status after showing message
+    }
+  }, [inviteStatus, dispatch]);
+
 
   const employeesData = useMemo(() => {
     if (!Array.isArray(employeesFromStore)) return [];
@@ -502,6 +516,10 @@ const EmployeesTable: React.FC = () => {
             status: "Active",
           })
         );
+        break;
+      case "Invite":
+      case "Re-invite":
+        dispatch(sendInviteEmail(employeeForModal.code)); // Correct location ✅
         break;
       default:
         break;

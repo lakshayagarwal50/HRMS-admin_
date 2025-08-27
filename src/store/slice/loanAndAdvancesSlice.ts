@@ -374,13 +374,18 @@ export const fetchLoans = createAsyncThunk(
       // CHANGED: Use axiosInstance with a relative URL and no manual headers
       const response = await axiosInstance.get(`/loan/getAll?${params.toString()}`);
       
-      const data: LoanAPIResponse[] = response.data;
-      const totalCount = Number(response.headers['x-total-count'] || data.length);
+      // const data: LoanAPIResponse[] = response.data;
+      // const totalCount = Number(response.headers['x-total-count'] || data.length);
+      const data = response.data.loans; 
+const totalCount = response.data.total;
 
       return {
+        // loans: data.map(transformApiLoan),
+        // totalItems: totalCount,
+        // totalPages: Math.ceil(totalCount / limit),
         loans: data.map(transformApiLoan),
-        totalItems: totalCount,
-        totalPages: Math.ceil(totalCount / limit),
+  totalItems: totalCount,
+  totalPages: Math.ceil(totalCount / limit),
       };
     } catch (error) {
       return rejectWithValue(isAxiosError(error) ? error.response?.data?.message : 'An unknown error occurred');

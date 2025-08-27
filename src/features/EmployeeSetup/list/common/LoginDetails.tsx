@@ -8,8 +8,8 @@ import {
   type CreateLoginDetailsPayload,
   type LoginDetails as LoginDetailsType,
 } from "../../../../store/slice/loginDetailsSlice"; // Adjust path
-import AddLoginDetailsModal from "./AddLoginDetailsModal"; // Adjust path
-import EditLoginDetailsModal from "./EditLoginDetailsModal"; // Adjust path
+import AddLoginDetailsModal from "../modal/AddLoginDetailsModal"; // Adjust path
+import EditLoginDetailsModal from "../modal/EditLoginDetailsModal"; // Adjust path
 
 import { SectionHeader, EditButton } from "../common/DetailItem"; // Adjust path as needed
 
