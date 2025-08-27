@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../../store/store';
-import { addRole, updateRole, fetchRoleById, clearSelectedRole, type RolePayload, } from '../../../store/slice/roleSlice';
+import { addRole, updateRole, fetchRoleById, clearSelectedRole, type RolePayload, type Role } from '../../../store/slice/roleSlice';
 
 // --- TYPE DEFINITIONS ---
 type Permission = { name: string; enabled: boolean; };
@@ -21,7 +21,69 @@ const createPermissions = (...names: string[]): Permission[] => names.map(name =
 const initialPermissions: Record<string, PermissionGroup> = {
     myHolidays: { feature: 'My Holidays', permissions: createPermissions('view') },
     holidayConfiguration: { feature: 'Holiday Configuration', permissions: createPermissions('view', 'add', 'edit', 'delete') },
-    // ... (include all other permissions as before)
+    holidayCalendar: { feature: 'Holiday Calendar', permissions: createPermissions('view', 'add', 'edit', 'delete') },
+    leaves: { feature: 'Leaves', permissions: [] },
+    leaveSetup: { feature: 'Leave Setup', permissions: createPermissions('view', 'add', 'edit', 'changeStatus') },
+    myLeaves: { feature: 'My Leaves', permissions: createPermissions('view', 'add', 'cancel') },
+    teamLeaveRequests: { feature: 'Team Leave Requests', permissions: createPermissions('view', 'approve') },
+    employeeLeaveRequests: { feature: 'Employee Leave Requests', permissions: createPermissions('view', 'add', 'approve') },
+    dsr: { feature: 'DSR', permissions: [] },
+    myDSR: { feature: 'My DSR', permissions: createPermissions('view', 'add', 'edit') },
+    teamDSRRequests: { feature: 'Team DSR Requests', permissions: createPermissions('view', 'approve') },
+    employeesDSRRequests: { feature: 'Employees DSR Requests', permissions: createPermissions('view', 'approve') },
+    attendance: { feature: 'Attendance', permissions: [] },
+    myAttendance: { feature: 'My Attendance', permissions: createPermissions('view', 'add') },
+    teamAttendanceSummary: { feature: 'Team Attendance Summary', permissions: createPermissions('view') },
+    employeesAttendanceSummary: { feature: 'Employees Attendance Summary', permissions: createPermissions('view', 'add', 'edit', 'upload') },
+    ratings: { feature: 'Ratings', permissions: [] },
+    ratingConfiguration: { feature: 'Rating Configuration', permissions: createPermissions('view', 'add', 'edit') },
+    myMonthlyRatings: { feature: 'My Monthly Ratings', permissions: createPermissions('view', 'add', 'edit') },
+    myPerformance: { feature: 'My Performance', permissions: createPermissions('view') },
+    rateTeamMembers: { feature: 'Rate Team Members', permissions: createPermissions('view', 'add', 'edit') },
+    loanAndAdvances: { feature: 'Loan & advances', permissions: [] },
+    myLoanAndAdvances: { feature: 'My Loan and Advances', permissions: createPermissions('view', 'add', 'edit') },
+    employeesLoanAdvancesRequests: { feature: 'Employees Loan & Advances Requests', permissions: createPermissions('view', 'edit', 'approve') },
+    projects: { feature: 'Projects', permissions: [] },
+    myProjects: { feature: 'My Projects', permissions: createPermissions('view') },
+    allProjects: { feature: 'All Projects', permissions: createPermissions('view', 'edit', 'changeStatus', 'addResource', 'release', 'delete') },
+    payslips: { feature: 'Payslips', permissions: [] },
+    myPayslips: { feature: 'My Payslips', permissions: createPermissions('view') },
+    employeesPayslips: { feature: 'Employees Payslips', permissions: createPermissions('view', 'create', 'process', 'cancel', 'release') },
+    declaration: { feature: 'Declaration', permissions: [] },
+    myDeclaration: { feature: 'My Declaration', permissions: createPermissions('view', 'add', 'edit') },
+    employeesDeclaration: { feature: 'Employees Declaration', permissions: createPermissions('view', 'edit') },
+    reports: { feature: 'Reports', permissions: createPermissions('view', 'add', 'edit', 'delete', 'download') },
+    myForm16: { feature: 'My Form 16', permissions: createPermissions('download') },
+    employeesForm16: { feature: 'Employees Form 16', permissions: createPermissions('upload', 'download') },
+    employeeSetUp: { feature: 'Employee set up', permissions: [] },
+    allEmployees: { feature: 'All Employees', permissions: createPermissions('view', 'add', 'delete', 'changeStatus', 'createPayslip', 'upload') },
+    employeesGeneralInfo: { feature: 'Employees General Info', permissions: createPermissions('view', 'add', 'edit') },
+    employeesProfessionalInfo: { feature: 'Employees Professional Info', permissions: createPermissions('view', 'add', 'edit') },
+    employeesBankDetails: { feature: 'Employees Bank Details', permissions: createPermissions('view', 'add', 'edit') },
+    employeesPFESI_PT: { feature: 'Employees PF, ESI & PT', permissions: createPermissions('view', 'add', 'edit') },
+    employeesPreviousJobDetails: { feature: 'Employees Previous Job Details', permissions: createPermissions('view', 'add', 'edit') },
+    employeesSalaryDistribution: { feature: 'Employees Salary Distribution', permissions: createPermissions('view', 'edit') },
+    employeesActivities: { feature: 'Employees Activities', permissions: createPermissions('view') },
+    projectsColumn2: { feature: 'Projects', permissions: createPermissions('view', 'release') },
+    myProfile: { feature: 'My profile', permissions: [] },
+    myGeneralInfo: { feature: 'My General Info', permissions: createPermissions('view', 'edit') },
+    myProfessionalInfo: { feature: 'My Professional Info', permissions: createPermissions('view') },
+    myBankDetails: { feature: 'My Bank Details', permissions: createPermissions('view') },
+    myPFESI_PT: { feature: 'My PF, ESI & PT', permissions: createPermissions('view') },
+    myPreviousJobDetails: { feature: 'My Previous Job Details', permissions: createPermissions('view', 'add', 'edit') },
+    payroll: { feature: 'Payroll', permissions: createPermissions('view', 'add', 'edit') },
+    crystalRun: { feature: 'Crystal Run', permissions: createPermissions('view', 'add', 'edit') },
+    masterConfiguration: { feature: 'Master configuration', permissions: [] },
+    workingPattern: { feature: 'Working Pattern', permissions: createPermissions('view', 'add', 'edit') },
+    department: { feature: 'Department', permissions: createPermissions('view', 'add', 'edit', 'changeStatus') },
+    designation: { feature: 'Designation', permissions: createPermissions('view', 'add', 'edit', 'changeStatus') },
+    roles: { feature: 'Roles', permissions: createPermissions('view', 'add', 'edit', 'changeStatus') },
+    locations: { feature: 'Locations', permissions: createPermissions('view', 'add', 'edit', 'changeStatus') },
+    payslipComponents: { feature: 'Payslip Components', permissions: createPermissions('view', 'add', 'edit') },
+    organizationSettings: { feature: 'Organization Settings', permissions: createPermissions('view') },
+    sequenceNumber: { feature: 'Sequence Number', permissions: createPermissions('view', 'add') },
+    payrollConfiguration: { feature: 'Payroll Configuration', permissions: createPermissions('view', 'add', 'edit') },
+    webCheckInSettings: { feature: 'Web Check-in Settings', permissions: createPermissions('view', 'add', 'edit') },
 };
 
 const transformPermissionsForAPI = (permissions: Record<string, PermissionGroup>) => {
@@ -72,17 +134,26 @@ const UpsertRolePage: React.FC = () => {
         permissions: initialPermissions,
     });
 
+    // Effect to handle fetching data for edit mode or resetting for create mode
     useEffect(() => {
-        if (isEditMode) {
+        if (isEditMode && roleId) {
             dispatch(fetchRoleById(roleId));
+        } else {
+            // When in create mode, ensure the form is reset to its initial blank state
+            setFormData({
+                name: '',
+                code: '',
+                description: '',
+                permissions: initialPermissions,
+            });
         }
-        // Clear the selected role when the component unmounts
+        // Cleanup function to clear the selected role from Redux state when leaving the page
         return () => {
             dispatch(clearSelectedRole());
         }
     }, [dispatch, roleId, isEditMode]);
 
-    // Effect to populate the form when the selectedRole data arrives
+    // Effect to populate the form ONLY when the selectedRole data from Redux changes
     useEffect(() => {
         if (isEditMode && selectedRole) {
             setFormData({
@@ -92,7 +163,7 @@ const UpsertRolePage: React.FC = () => {
                 permissions: transformApiPermissionsToState(selectedRole.permissions),
             });
         }
-    }, [isEditMode, selectedRole]);
+    }, [selectedRole, isEditMode]);
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -118,7 +189,7 @@ const UpsertRolePage: React.FC = () => {
             name: formData.name,
             code: formData.code,
             description: formData.description,
-            status: 'Active', // Status is managed by a separate action
+            status: selectedRole?.status || 'Active', // Preserve existing status or default to Active
             permissions: transformPermissionsForAPI(formData.permissions),
         };
 
@@ -128,10 +199,10 @@ const UpsertRolePage: React.FC = () => {
             dispatch(addRole(payload));
         }
         navigate('/roles');
-    }, [formData, dispatch, navigate, isEditMode, roleId]);
+    }, [formData, dispatch, navigate, isEditMode, roleId, selectedRole]);
 
     if (isEditMode && selectedStatus === 'loading') {
-        return <div className="p-6">Loading Role Details...</div>;
+        return <div className="p-6 text-center">Loading Role Details...</div>;
     }
 
     const permissionKeysCol1 = ['myHolidays', 'holidayConfiguration', 'holidayCalendar', 'leaves', 'leaveSetup', 'myLeaves', 'teamLeaveRequests', 'employeeLeaveRequests', 'dsr', 'myDSR', 'teamDSRRequests', 'employeesDSRRequests', 'attendance', 'myAttendance', 'teamAttendanceSummary', 'employeesAttendanceSummary', 'ratings', 'ratingConfiguration', 'myMonthlyRatings', 'myPerformance', 'rateTeamMembers', 'loanAndAdvances', 'myLoanAndAdvances', 'employeesLoanAdvancesRequests', 'projects', 'myProjects', 'allProjects', 'payslips', 'myPayslips', 'employeesPayslips', 'declaration', 'myDeclaration', 'employeesDeclaration', 'reports'];

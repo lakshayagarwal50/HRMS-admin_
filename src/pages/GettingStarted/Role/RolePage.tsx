@@ -1,4 +1,4 @@
-import React, {  useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Plus, MoreHorizontal, Edit, ToggleLeft, ToggleRight, ServerCrash, RefreshCw } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -49,6 +49,8 @@ const EmptyState: React.FC = () => (
 const RolesPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { items: roles, status, error } = useSelector((state: RootState) => state.roles);
+    const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (status === 'idle') {
@@ -58,9 +60,9 @@ const RolesPage: React.FC = () => {
 
     const handleStatusToggle = useCallback((role: Role) => {
         dispatch(toggleRoleStatus(role));
+        setActiveDropdown(null);
     }, [dispatch]);
 
-    // Add a serial number (s_no) to the roles data for display
     const rolesWithSerial = useMemo(() => {
         return roles.map((role, index) => ({ ...role, s_no: index + 1 }));
     }, [roles]);
@@ -90,36 +92,51 @@ const RolesPage: React.FC = () => {
         key: "action",
         className: "text-center",
         render: (row) => (
-          <div className="relative group">
-            <button className="text-gray-500 hover:text-purple-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
+          <div className="relative">
+            <button 
+                onClick={() => setActiveDropdown(activeDropdown === row.id ? null : row.id)}
+                className="text-gray-500 hover:text-purple-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+            >
               <MoreHorizontal size={20} />
             </button>
-            <div className="absolute right-0 mt-1 w-40 bg-white rounded-md shadow-lg z-10 hidden group-hover:block">
-              <div className="py-1">
-                <Link
-                  to={`/roles/edit/${row.id}`}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  <Edit size={16} className="mr-3" />
-                  Edit
-                </Link>
-                <button
-                  onClick={() => handleStatusToggle(row)}
-                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  {row.status === "Active" ? (
-                    <ToggleLeft size={16} className="mr-3" />
-                  ) : (
-                    <ToggleRight size={16} className="mr-3" />
-                  )}
-                  {row.status === "Active" ? "Set Inactive" : "Set Active"}
-                </button>
-              </div>
-            </div>
+            {activeDropdown === row.id && (
+                <div ref={dropdownRef} className="absolute right-0 mt-1 w-40 bg-white rounded-md shadow-lg z-10">
+                  <div className="py-1">
+                    <Link
+                      to={`/roles/edit/${row.id}`}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Edit size={16} className="mr-3" />
+                      Edit
+                    </Link>
+                    <button
+                      onClick={() => handleStatusToggle(row)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {row.status === "Active" ? (
+                        <ToggleLeft size={16} className="mr-3" />
+                      ) : (
+                        <ToggleRight size={16} className="mr-3" />
+                      )}
+                      {row.status === "Active" ? "Set Inactive" : "Set Active"}
+                    </button>
+                  </div>
+                </div>
+            )}
           </div>
         ),
       },
-    ], [handleStatusToggle]);
+    ], [activeDropdown, handleStatusToggle]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+          if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            setActiveDropdown(null);
+          }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const renderContent = () => {
         if (status === 'loading' || status === 'idle') {
