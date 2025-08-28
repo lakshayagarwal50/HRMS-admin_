@@ -1,119 +1,100 @@
 import React, { useState, useEffect, useRef } from "react";
-import Table, { type Column } from ".././../../components/common/Table"; // Adjust the import path
+import { Link, useSearchParams } from "react-router-dom";
 import { MoreHorizontal, X } from "lucide-react";
-import AlertModal from "../../../components/Modal/AlertModal"; // Adjust the import path
-import EditScheduledReport from "./EditScheduledReport"; // Adjust the import path
-import { Link } from "react-router-dom";
 
-// Define the type for our scheduled report data
-interface ScheduledReport {
-  id: number;
-  subject: string;
-  frequency: string;
-  report: string;
-  nextRunDate: string;
-}
+// --- COMPONENT IMPORTS ---
+import Table, { type Column } from "../../../components/common/Table";
+import AlertModal from "../../../components/Modal/AlertModal";
+import EditScheduledReport from "./EditScheduledReport";
 
-// Expanded mock data to ensure pagination is visible
-const mockData: ScheduledReport[] = [
-  {
-    id: 1,
-    subject: "Employee Detail",
-    frequency: "Weekly",
-    report: "Employee Snapshot",
-    nextRunDate: "27 Jun 2021",
-  },
-  {
-    id: 2,
-    subject: "Employee Detail",
-    frequency: "Weekly",
-    report: "Employee Snapshot",
-    nextRunDate: "30 Feb 2020",
-  },
-  {
-    id: 3,
-    subject: "Employee Detail",
-    frequency: "Monthly",
-    report: "Employee Snapshot",
-    nextRunDate: "22 Jun 2020",
-  },
-  {
-    id: 4,
-    subject: "Employee Detail",
-    frequency: "Weekly",
-    report: "Employee Snapshot",
-    nextRunDate: "01 May 2021",
-  },
-  {
-    id: 5,
-    subject: "Employee Detail",
-    frequency: "Monthly",
-    report: "Employee Snapshot",
-    nextRunDate: "09 Jun 2021",
-  },
-  {
-    id: 6,
-    subject: "Employee Detail",
-    frequency: "Weekly",
-    report: "Employee Snapshot",
-    nextRunDate: "19 Apr 2021",
-  },
-  {
-    id: 7,
-    subject: "Payroll Summary",
-    frequency: "Monthly",
-    report: "Payslip Report",
-    nextRunDate: "05 Jul 2021",
-  },
-  {
-    id: 8,
-    subject: "Attendance Log",
-    frequency: "Daily",
-    report: "Attendance Snapshot",
-    nextRunDate: "11 Aug 2021",
-  },
-  {
-    id: 9,
-    subject: "Employee Detail",
-    frequency: "Weekly",
-    report: "Employee Snapshot",
-    nextRunDate: "22 Aug 2021",
-  },
-  {
-    id: 10,
-    subject: "Finance Overview",
-    frequency: "Yearly",
-    report: "Annual Finance Report",
-    nextRunDate: "01 Jan 2022",
-  },
-  {
-    id: 11,
-    subject: "Employee Detail",
-    frequency: "Weekly",
-    report: "Employee Snapshot",
-    nextRunDate: "15 Sep 2021",
-  },
-  {
-    id: 12,
-    subject: "Leave Balance",
-    frequency: "Monthly",
-    report: "Leave Summary",
-    nextRunDate: "01 Oct 2021",
-  },
-];
+// --- REDUX IMPORTS ---
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../../store/store";
+import {
+  fetchScheduledReports,deleteScheduledReport,
+  type ScheduledReport,
+} from "../../../store/slice/reportSlice";
+
+// --- PAGINATION COMPONENT ---
+const Pagination: React.FC<{
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
+  if (totalPages <= 1) return null;
+
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-700">
+      <span>
+        Showing {startItem} to {endItem} of {totalItems} items
+      </span>
+      <div className="flex space-x-1">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-1 border rounded ${
+              currentPage === page
+                ? "bg-[#741CDD] text-white"
+                : "bg-white hover:bg-gray-100"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const ScheduledReports: React.FC = () => {
-  // State for the main page view (table vs. edit form)
+  const dispatch = useDispatch<AppDispatch>();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Get data and pagination info from the Redux store
+  const {
+    scheduledReports,
+    status,
+    error,
+    scheduledTotalPages,
+    scheduledTotalItems,
+  } = useSelector((state: RootState) => state.reports);
+
+  // Manage page state
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const [itemsPerPage] = useState(10);
+
+  // Fetch data when page changes
+  useEffect(() => {
+    dispatch(fetchScheduledReports({ page: currentPage, limit: itemsPerPage }));
+  }, [dispatch, currentPage, itemsPerPage]);
+
+  // State for the component's UI (modals, menus, etc.)
   const [view, setView] = useState<"table" | "edit">("table");
   const [reportToEdit, setReportToEdit] = useState<ScheduledReport | null>(
     null
   );
-
-  // State for the action popover menu
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  // State for the delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<ScheduledReport | null>(
     null
@@ -132,48 +113,61 @@ const ScheduledReports: React.FC = () => {
     };
   }, []);
 
-  // Handler to switch to the edit view
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({ page: String(newPage) });
+    window.scrollTo(0, 0);
+  };
+
   const handleEdit = (report: ScheduledReport) => {
     setReportToEdit(report);
     setView("edit");
     setOpenMenuId(null);
   };
 
-  // Handler to open the delete confirmation modal
   const handleDeleteClick = (report: ScheduledReport) => {
     setReportToDelete(report);
     setIsDeleteModalOpen(true);
     setOpenMenuId(null);
   };
 
-  // Handler for when deletion is confirmed
-  const confirmDelete = () => {
-    if (reportToDelete) {
-      alert(`Report "${reportToDelete.subject}" has been removed.`);
-      // Add logic here to remove the item from your data array or call an API
+  const confirmDelete = async () => {
+    if (!reportToDelete) return;
+
+    try {
+      // Dispatch the delete action and wait for it to complete
+      await dispatch(deleteScheduledReport(reportToDelete.id)).unwrap();
+
+      alert(`Scheduled report "${reportToDelete.subject}" has been removed.`);
+
+      // **IMPORTANT**: Re-fetch the reports to ensure the list is up-to-date.
+      // This is especially important if deleting the last item on a page.
+      dispatch(
+        fetchScheduledReports({ page: currentPage, limit: itemsPerPage })
+      );
+    } catch (err) {
+      alert(`Failed to delete scheduled report: ${err}`);
+    } finally {
+      // Always close the modal and clear the state
+      setIsDeleteModalOpen(false);
+      setReportToDelete(null);
     }
-    setIsDeleteModalOpen(false);
-    setReportToDelete(null);
   };
 
-  // Handler for submitting the updated form data
   const handleUpdateSubmit = (formData: any) => {
     alert("Report updated successfully!");
     console.log("Updated data:", formData);
     setView("table");
   };
 
-  // Define the columns for the table, including the custom action menu
   const columns: Column<ScheduledReport>[] = [
     { key: "subject", header: "Subject" },
     { key: "frequency", header: "Frequency" },
     {
-      key: "report",
+      key: "reportId",
       header: "Report",
       render: (row) => (
-        <span className="text-purple-600 font-medium cursor-pointer hover:underline">
-          {row.report}
-        </span>
+        // You might want to map reportId to a name if you have that data available
+        <span className="text-purple-600 font-medium">{row.subject}</span>
       ),
     },
     { key: "nextRunDate", header: "Next Run Date" },
@@ -217,9 +211,34 @@ const ScheduledReports: React.FC = () => {
     },
   ];
 
+  const renderContent = () => {
+    if (status === "loading" && scheduledReports.length === 0) {
+      return <p className="text-center p-10">Loading scheduled reports...</p>;
+    }
+    if (status === "failed") {
+      return <p className="text-center p-10 text-red-500">Error: {error}</p>;
+    }
+    return (
+      <>
+        <Table
+          data={scheduledReports}
+          columns={columns}
+          showSearch={false}
+          showPagination={false}
+        />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={scheduledTotalPages}
+          totalItems={scheduledTotalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+        />
+      </>
+    );
+  };
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      {/* Conditionally render the table or the edit form */}
       {view === "table" ? (
         <>
           <div className="flex justify-between items-center mb-6">
@@ -227,38 +246,38 @@ const ScheduledReports: React.FC = () => {
               Scheduled Reports
             </h1>
             <p className="text-sm text-gray-500">
-              <Link to="/reports/all">Reports</Link>
-              {" / "}
-              Scheduled Reports
+              <Link to="/reports/all">Reports</Link> / Scheduled Reports
             </p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <Table
-              data={mockData}
-              columns={columns}
-              showSearch={false}
-              showPagination={true}
-              defaultItemsPerPage={10}
-            />
+            {renderContent()}
           </div>
         </>
       ) : (
-        <EditScheduledReport
-          reportName={reportToEdit?.report || ""}
-          onCancel={() => setView("table")}
-          onSubmit={handleUpdateSubmit}
-        />
+        // <EditScheduledReport
+        //   reportName={reportToEdit?.subject || ""}
+        //   onCancel={() => setView("table")}
+        //   onSubmit={handleUpdateSubmit}
+        // />
+
+        // Ensure reportToEdit is not null before rendering
+        reportToEdit && (
+          <EditScheduledReport
+            initialData={reportToEdit} // <-- This prop is essential
+            onCancel={() => setView("table")}
+            onSubmit={handleUpdateSubmit}
+          />
+        )
       )}
 
-      {/* The confirmation modal is always available in the DOM, but only visible when isOpen is true */}
       <AlertModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDelete}
-        title="Remove Report"
+        title="Remove Scheduled Report"
         icon={<X size={32} className="text-red-500" />}
       >
-        <p>Are you sure you want to remove this Report?</p>
+        <p>Are you sure you want to remove this Scheduled Report?</p>
       </AlertModal>
     </div>
   );

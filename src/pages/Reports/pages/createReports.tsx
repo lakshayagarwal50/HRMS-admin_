@@ -158,9 +158,14 @@ import type { AppDispatch, RootState } from "../../../store/store"; // Adjust pa
 
 // Helper array for the dropdown options
 const reportTypeOptions = [
-  "Attendance Summary Report",
+  "Payslip Component Report",
   "Employees Snapshot Report",
-  "Finance Report",
+  "Payslip Summary Report",
+  "Provident Fund Report",
+  "Employee Declaration Report",
+  "Attendance Time log Report",
+  "Attendance Summary Report",
+  "Leave Report",
 ];
 
 const CreateReport: React.FC = () => {

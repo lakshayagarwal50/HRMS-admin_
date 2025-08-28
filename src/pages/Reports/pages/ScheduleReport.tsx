@@ -1,49 +1,102 @@
-// src/pages/ScheduleReport.tsx
+// src/pages/ScheduleReport.tsx (UPDATED)
 
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../../store/store"; // Adjust path
+// Adjust path
+import {
+  scheduleReportAPI,
+  resetScheduleStatus,
+} from "../../../store/slice/reportSlice"; // Adjust path
+import { type ScheduleReportData } from "../../../store/slice/reportSlice"; // Adjust path
+
 
 // Helper arrays for dropdown options
 const frequencyOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
-const hourOptions = Array.from({ length: 24 }, (_, i) => {
-  const hour = i % 12 === 0 ? 12 : i % 12;
-  const ampm = i < 12 ? "AM" : "PM";
-  return `${hour} ${ampm}`;
-});
-const minuteOptions = Array.from({ length: 60 }, (_, i) => i);
+const hourOptions = Array.from({ length: 24 }, (_, i) => `${i}`);
+const minuteOptions = Array.from({ length: 60 }, (_, i) => `${i}`);
 
 interface ScheduleReportProps {
   reportName: string;
+  reportId: string; // **NEW**: reportId is now required
   onCancel: () => void;
-  onSubmit: (formData: any) => void;
+  
 }
+
+// Helper to format date from YYYY-MM-DD to DD MMM YYYY
+const formatDateForAPI = (dateString: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 const ScheduleReport: React.FC<ScheduleReportProps> = ({
   reportName,
+  reportId,
   onCancel,
-  onSubmit,
 }) => {
-  const [formData, setFormData] = React.useState({
-    // ... form state
+  const navigate = useNavigate(); 
+  const dispatch = useDispatch<AppDispatch>();
+  const { scheduleStatus, error } = useSelector(
+    (state: RootState) => state.reports
+  );
+
+  const [formData, setFormData] = useState<ScheduleReportData>({
+    frequency: "",
+    startDate: "",
+    hours: "",
+    minutes: "",
+    format: "EXCEL",
+    to: "",
+    cc: "",
+    subject: `Scheduled Report: ${reportName}`,
+    body: `Please find the attached report: ${reportName}.`,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const payload = {
+      ...formData,
+      startDate: formatDateForAPI(formData.startDate),
+    };
+
+    try {
+      await dispatch(
+        scheduleReportAPI({ reportId, scheduleData: payload })
+      ).unwrap();
+      alert("Report scheduled successfully!");
+      dispatch(resetScheduleStatus()); // Reset status for next time
+      navigate("/reports/all"); 
+    } catch (err) {
+      // Error is already in the Redux state, it will be displayed in the UI
+      console.error("Failed to schedule report:", err);
+    }
+  };
+
+  const isSubmitting = scheduleStatus === "loading";
 
   return (
     <div>
-      {/* --- Page Header (Re-added) --- */}
+      {/* --- Page Header --- */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Schedule Reports</h1>
-
         <p className="text-sm text-gray-500">
-          <Link to="/reports/all">Reports</Link>
-          {" / "}
-          <Link to="/reports/all">Standard Report</Link>
-          {" / "}
-          Schedule Reports
+          <Link to="/reports/all">Reports</Link> / Schedule Reports
         </p>
       </div>
 
@@ -54,14 +107,27 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
         </div>
 
         <form onSubmit={handleSubmit}>
+          {/* All form inputs now need name, value, and onChange props */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Frequency */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="frequency"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Frequency
               </label>
-              <select className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
-                <option value="">Select One</option>
+              <select
+                id="frequency"
+                name="frequency"
+                value={formData.frequency}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="" disabled>
+                  Select One
+                </option>
                 {frequencyOptions.map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}
@@ -69,134 +135,203 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
                 ))}
               </select>
             </div>
-
+            {/* ... other inputs are similar ... */}
             {/* Start Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="startDate"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Start Date
               </label>
               <input
+                id="startDate"
+                name="startDate"
                 type="date"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                value={formData.startDate}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
-
             {/* Hours */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hours
+              <label
+                htmlFor="hours"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Hours (24h)
               </label>
-              <select className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
-                <option value="">Select One</option>
+              <select
+                id="hours"
+                name="hours"
+                value={formData.hours}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="" disabled>
+                  Select Hour
+                </option>
                 {hourOptions.map((opt) => (
                   <option key={opt} value={opt}>
-                    {opt}
+                    {opt.padStart(2, "0")}
                   </option>
                 ))}
               </select>
             </div>
-
             {/* Minutes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="minutes"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Minutes
               </label>
-              <select className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
-                <option value="">Select One</option>
+              <select
+                id="minutes"
+                name="minutes"
+                value={formData.minutes}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="" disabled>
+                  Select Minute
+                </option>
                 {minuteOptions.map((opt) => (
                   <option key={opt} value={opt}>
-                    {opt}
+                    {opt.padStart(2, "0")}
                   </option>
                 ))}
               </select>
             </div>
           </div>
-
           {/* Send As Radio Buttons */}
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Send As (Select any one)
+              Send As
             </label>
             <div className="flex items-center space-x-6">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
-                  name="sendAs"
+                  name="format"
                   value="EXCEL"
-                  className="h-4 w-4 text-purple-600 border-gray-300"
-                  defaultChecked
+                  checked={formData.format === "EXCEL"}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-purple-600"
                 />
-                <span className="text-sm">EXCEL</span>
+                <span>EXCEL</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
-                  name="sendAs"
+                  name="format"
                   value="CSV"
-                  className="h-4 w-4 text-purple-600 border-gray-300"
+                  checked={formData.format === "CSV"}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-purple-600"
                 />
-                <span className="text-sm">CSV</span>
+                <span>CSV</span>
               </label>
             </div>
           </div>
-
           {/* Email Fields */}
           <div className="mt-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="to"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 To
               </label>
               <input
+                id="to"
+                name="to"
                 type="email"
-                placeholder="sales@gonowfly.co.in"
+                value={formData.to}
+                onChange={handleChange}
+                placeholder="comma,separated,emails"
+                required
                 className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="cc"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 CC
               </label>
               <input
+                id="cc"
+                name="cc"
                 type="email"
+                value={formData.cc}
+                onChange={handleChange}
+                placeholder="comma,separated,emails"
                 className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="subject"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Email Subject
               </label>
               <input
+                id="subject"
+                name="subject"
                 type="text"
+                value={formData.subject}
+                onChange={handleChange}
+                required
                 className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Text
+              <label
+                htmlFor="body"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Email Body
               </label>
               <textarea
-                placeholder="sales@gonowfly.co.in"
+                id="body"
+                name="body"
+                value={formData.body}
+                onChange={handleChange}
                 rows={3}
+                required
                 className="w-full p-2 border border-gray-300 rounded-md"
-              ></textarea>
+              />
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-8 flex items-center space-x-4">
-            <button
-              type="submit"
-              className="bg-[#7F56D9] text-white font-semibold py-2 px-6 rounded-lg hover:bg-opacity-90 transition-colors"
-            >
-              SUBMIT
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              CANCEL
-            </button>
+          <div className="mt-8">
+            <div className="flex items-center space-x-4">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-[#7F56D9] text-white font-semibold py-2 px-6 rounded-lg hover:bg-opacity-90 disabled:bg-gray-400"
+              >
+                {isSubmitting ? "SUBMITTING..." : "SUBMIT"}
+              </button>
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={isSubmitting}
+                className="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300"
+              >
+                CANCEL
+              </button>
+            </div>
+            {scheduleStatus === "failed" && (
+              <p className="text-red-500 mt-4">Error: {error}</p>
+            )}
           </div>
         </form>
       </div>

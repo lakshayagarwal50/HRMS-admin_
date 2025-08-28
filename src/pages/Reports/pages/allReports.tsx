@@ -1,29 +1,84 @@
 import React, { useState, useEffect } from "react";
-import Table, { type Column } from "../../../components/common/Table";
+import { Link, useSearchParams } from "react-router-dom";
 import { Play, CalendarClock, Trash2, X } from "lucide-react";
-import { Link } from "react-router-dom";
+
+// --- COMPONENT IMPORTS ---
+import Table, { type Column } from "../../../components/common/Table";
 import ScheduleReport from "./ScheduleReport";
 import AlertModal from "../../../components/Modal/AlertModal";
 
 // --- REDUX IMPORTS ---
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../../../store/store"; // Adjust path
-// Adjust path
-import { fetchAllReports, type Report } from "../../../store/slice/reportSlice"; // Adjust path
+import type { AppDispatch, RootState } from "../../../store/store";
+import { fetchAllReports, deleteReport,type Report } from "../../../store/slice/reportSlice";
+
+// --- PAGINATION COMPONENT ---
+const Pagination: React.FC<{
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
+  if (totalPages <= 1) return null;
+
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-700">
+      <span>
+        Showing {startItem} to {endItem} of {totalItems} items
+      </span>
+      <div className="flex space-x-1">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-1 border rounded ${
+              currentPage === page
+                ? "bg-[#741CDD] text-white"
+                : "bg-white hover:bg-gray-100"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const AllReports: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { reports, status, error } = useSelector(
+  // SELECT PAGINATION STATE FROM REDUX
+  const { reports, status, error, totalPages, totalItems } = useSelector(
     (state: RootState) => state.reports
   );
 
-  // Fetch data when the component mounts
+  // MANAGE PAGE STATE WITH URL SEARCH PARAMS
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const [itemsPerPage] = useState(10);
+
+  // UPDATE DATA FETCHING EFFECT
   useEffect(() => {
-    // Only fetch if the data hasn't been fetched yet
-    if (status === "idle") {
-      dispatch(fetchAllReports());
-    }
-  }, [status, dispatch]);
+    dispatch(fetchAllReports({ page: currentPage, limit: itemsPerPage }));
+  }, [dispatch, currentPage, itemsPerPage]);
 
   const [view, setView] = useState<"table" | "schedule">("table");
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -38,13 +93,25 @@ const AllReports: React.FC = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (reportToDelete) {
-      alert(`Report "${reportToDelete.name}" has been removed.`);
-      // TODO: Dispatch a deleteReportAPI thunk here
+  const confirmDelete = async () => {
+    if (!reportToDelete) return;
+
+    try {
+      // Dispatch the delete action and wait for it to complete
+      await dispatch(deleteReport(reportToDelete.id)).unwrap();
+
+      alert(`Report "${reportToDelete.name}" has been removed successfully.`);
+
+      // **IMPORTANT**: Re-fetch the reports to update the list
+      dispatch(fetchAllReports({ page: currentPage, limit: itemsPerPage }));
+    } catch (err) {
+      // The error is already in the Redux state, but you can also alert it
+      alert(`Failed to delete report: ${err}`);
+    } finally {
+      // Always close the modal and reset the state
+      setIsDeleteModalOpen(false);
+      setReportToDelete(null);
     }
-    setIsDeleteModalOpen(false);
-    setReportToDelete(null);
   };
 
   const handleSchedule = (report: Report) => {
@@ -53,12 +120,16 @@ const AllReports: React.FC = () => {
   };
 
   const handleFormSubmit = (formData: any) => {
-    alert("Form submitted! Check console.");
     console.log(formData);
     setView("table");
   };
 
-  // --- UPDATED --- Columns to match the API data structure
+  // HANDLE PAGE CHANGE
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({ page: String(newPage) });
+    window.scrollTo(0, 0);
+  };
+
   const columns: Column<Report>[] = [
     { key: "Snum", header: "S no.", className: "w-1/12" },
     { key: "name", header: "Name", className: "w-2/12" },
@@ -73,6 +144,7 @@ const AllReports: React.FC = () => {
       className: "w-4/12",
       render: (row) => (
         <div className="flex items-center space-x-1">
+          {/* Action Buttons */}
           <button
             onClick={() => handleRun(row.id)}
             className="flex items-center justify-center space-x-1 px-2 py-1 text-xs text-white bg-[#741CDD] rounded hover:bg-[#5f17b8]"
@@ -105,22 +177,30 @@ const AllReports: React.FC = () => {
     },
   ];
 
-  // --- NEW --- Content renderer based on fetch status
   const renderContent = () => {
-    if (status === "loading") {
+    // Show loading on initial fetch only
+    if (status === "loading" && reports.length === 0) {
       return <p className="text-center p-10">Loading reports...</p>;
     }
     if (status === "failed") {
       return <p className="text-center p-10 text-red-500">Error: {error}</p>;
     }
     return (
-      <Table
-        data={reports}
-        columns={columns}
-        showSearch={false}
-        defaultItemsPerPage={10}
-        itemsPerPageOptions={[5, 10, 15, 20]}
-      />
+      <>
+        <Table
+          data={reports}
+          columns={columns}
+          showSearch={false}
+          showPagination={false} // Disable internal table pagination
+        />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+        />
+      </>
     );
   };
 
@@ -142,8 +222,9 @@ const AllReports: React.FC = () => {
       ) : (
         <ScheduleReport
           reportName={selectedReport?.name || ""}
+          reportId={selectedReport?.id || ""}
           onCancel={() => setView("table")}
-          onSubmit={handleFormSubmit}
+          
         />
       )}
 

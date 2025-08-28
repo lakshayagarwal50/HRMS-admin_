@@ -91,7 +91,7 @@ const LoanDetailView: React.FC<{
 }> = ({ loan, onClose, onApprove, onDecline }) => {
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-30 z-40"
+      className="fixed inset-0 bg-black/50 bg-opacity-30 z-40"
       onClick={onClose}
     >
       <div

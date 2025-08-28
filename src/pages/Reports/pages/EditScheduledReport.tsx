@@ -1,40 +1,89 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+// src/pages/EditScheduledReport.tsx (CORRECTED & COMPLETE)
 
-// Helper arrays for dropdown options
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../../store/store";
+import {
+  updateScheduledReport,
+  resetScheduleStatus,
+  type ScheduledReport,
+  type ScheduleReportData,
+} from "../../../store/slice/reportSlice";
+
+// --- Helper arrays for dropdown options ---
 const frequencyOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
-const hourOptions = Array.from({ length: 24 }, (_, i) => {
-  const hour = i % 12 === 0 ? 12 : i % 12;
-  const ampm = i < 12 ? "AM" : "PM";
-  return `${hour} ${ampm}`;
-});
-const minuteOptions = Array.from({ length: 60 }, (_, i) => i);
+const hourOptions = Array.from({ length: 24 }, (_, i) => `${i}`);
+const minuteOptions = Array.from({ length: 60 }, (_, i) => `${i}`);
+
+// --- HELPER FUNCTIONS FOR DATE FORMATTING ---
+const formatDateForInput = (dateString: string): string => {
+  if (!dateString) return "";
+  // Converts "26 Aug 2025" to "2025-08-26" for the input field
+  const date = new Date(
+    dateString.replace(/(\d{2}) (\w{3}) (\d{4})/, "$2 $1, $3")
+  );
+  if (isNaN(date.getTime())) return ""; // Handle invalid date
+  return date.toISOString().split("T")[0];
+};
+
+const formatDateForAPI = (dateString: string): string => {
+  if (!dateString) return "";
+  // Converts "2025-08-26" back to "26 Aug 2025" for the API
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 interface EditScheduledReportProps {
-  reportName: string;
+  initialData: ScheduledReport;
   onCancel: () => void;
-  onSubmit: (formData: any) => void;
+  onSubmit: () => void;
 }
 
 const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
-  reportName,
+  initialData,
   onCancel,
   onSubmit,
 }) => {
-  // The initial state is now empty to allow for placeholders
-  const [formData, setFormData] = useState({
+  const dispatch = useDispatch<AppDispatch>();
+  const { scheduleStatus, error } = useSelector(
+    (state: RootState) => state.reports
+  );
+
+  // Initialize state with a structure matching the form fields
+  const [formData, setFormData] = useState<ScheduleReportData>({
     frequency: "",
     startDate: "",
     hours: "",
     minutes: "",
-    sendAs: "EXCEL",
+    format: "EXCEL",
     to: "",
     cc: "",
     subject: "",
-    text: "",
+    body: "",
   });
 
-  // Generic handler to update form state as the user types
+  // This effect runs when the component loads, pre-filling the form
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        frequency: initialData.frequency,
+        startDate: formatDateForInput(initialData.startDate),
+        hours: initialData.hours,
+        minutes: initialData.minutes,
+        format: initialData.format as "EXCEL" | "CSV",
+        to: initialData.to,
+        cc: initialData.cc,
+        subject: initialData.subject,
+        body: initialData.body,
+      });
+    }
+  }, [initialData]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -44,30 +93,45 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    const payload = {
+      ...formData,
+      startDate: formatDateForAPI(formData.startDate),
+    };
+
+    try {
+      await dispatch(
+        updateScheduledReport({
+          scheduleId: initialData.id,
+          updatedData: payload,
+        })
+      ).unwrap();
+      alert("Report updated successfully!");
+      dispatch(resetScheduleStatus());
+      onSubmit();
+    } catch (err) {
+      console.error("Failed to update report:", err);
+    }
   };
+
+  const isSubmitting = scheduleStatus === "loading";
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">
-          Edit Scheduled Reports
+          Edit Scheduled Report
         </h1>
-
         <p className="text-sm text-gray-500">
-          <Link to="/reports/all">Reports</Link>
-          {" / "}
-          <Link to="/reports/scheduled">Scheduled Reports</Link>
-          {" / "}
-          Edit Scheduled Reports
+          <Link to="/reports/all">Reports</Link> {" / "}
+          <Link to="/reports/scheduled">Scheduled Reports</Link> {" / "} Edit
         </p>
       </div>
 
       <div className="bg-white p-8 rounded-lg shadow-sm">
         <div className="inline-block bg-purple-100 text-purple-800 text-sm font-medium px-4 py-1 rounded-full mb-8">
-          Schedule Email For Report: {reportName}
+          Editing Schedule For Report: {initialData.subject}
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -109,7 +173,7 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
             {/* Hours */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hours
+                Hours (24h)
               </label>
               <select
                 name="hours"
@@ -118,7 +182,7 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
                 className="w-full p-2 border border-gray-300 rounded-md"
               >
                 <option value="" disabled>
-                  Select One
+                  Select Hour
                 </option>
                 {hourOptions.map((opt) => (
                   <option key={opt} value={opt}>
@@ -139,7 +203,7 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
                 className="w-full p-2 border border-gray-300 rounded-md"
               >
                 <option value="" disabled>
-                  Select One
+                  Select Minute
                 </option>
                 {minuteOptions.map((opt) => (
                   <option key={opt} value={opt}>
@@ -152,15 +216,15 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
           {/* Send As Radio Buttons */}
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Send As (Select any one)
+              Send As
             </label>
             <div className="flex items-center space-x-6">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
-                  name="sendAs"
+                  name="format"
                   value="EXCEL"
-                  checked={formData.sendAs === "EXCEL"}
+                  checked={formData.format === "EXCEL"}
                   onChange={handleChange}
                   className="h-4 w-4 text-purple-600"
                 />
@@ -169,9 +233,9 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
-                  name="sendAs"
+                  name="format"
                   value="CSV"
-                  checked={formData.sendAs === "CSV"}
+                  checked={formData.format === "CSV"}
                   onChange={handleChange}
                   className="h-4 w-4 text-purple-600"
                 />
@@ -179,7 +243,7 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
               </label>
             </div>
           </div>
-          {/* Email Fields with placeholders */}
+          {/* Email Fields */}
           <div className="mt-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -190,7 +254,6 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
                 name="to"
                 value={formData.to}
                 onChange={handleChange}
-                placeholder="sales@gonowfly.co.in"
                 className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
@@ -203,7 +266,6 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
                 name="cc"
                 value={formData.cc}
                 onChange={handleChange}
-                placeholder="thuhang.nute@gmail.com"
                 className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
@@ -216,39 +278,44 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
                 name="subject"
                 value={formData.subject}
                 onChange={handleChange}
-                placeholder="trungkienqaktm@gmail.com"
                 className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Text
+                Email Body
               </label>
               <textarea
-                name="text"
-                value={formData.text}
+                name="body"
+                value={formData.body}
                 onChange={handleChange}
-                placeholder="Welcome to the pythru private technologies"
                 rows={3}
                 className="w-full p-2 border border-gray-300 rounded-md"
-              ></textarea>
+              />
             </div>
           </div>
 
-          <div className="mt-8 flex items-center space-x-4">
-            <button
-              type="submit"
-              className="bg-[#7F56D9] text-white font-semibold py-2 px-6 rounded-lg hover:bg-opacity-90 transition-colors"
-            >
-              UPDATE
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              CANCEL
-            </button>
+          <div className="mt-8">
+            <div className="flex items-center space-x-4">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-[#7F56D9] text-white font-semibold py-2 px-6 rounded-lg hover:bg-opacity-90 transition-colors disabled:bg-gray-400"
+              >
+                {isSubmitting ? "UPDATING..." : "UPDATE"}
+              </button>
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={isSubmitting}
+                className="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                CANCEL
+              </button>
+            </div>
+            {scheduleStatus === "failed" && (
+              <p className="text-red-500 mt-4">Error: {error}</p>
+            )}
           </div>
         </form>
       </div>
