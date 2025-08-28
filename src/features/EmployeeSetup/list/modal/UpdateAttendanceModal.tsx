@@ -57,7 +57,7 @@ const UpdateAttendanceModal: React.FC<UpdateAttendanceModalProps> = ({
       );
 
       console.log("API Response:", response.data);
-      alert(response.data.message || "Attendance updated successfully!");
+      // alert(response.data.message || "Attendance updated successfully!");
       onSuccess(); // Call the success handler
       onClose(); // Close the modal
     } catch (err: any) {

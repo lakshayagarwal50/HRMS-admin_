@@ -9,6 +9,11 @@ import {
   addBankDetails,
   updateBankDetails,
 } from "../../../../store/slice/bankSlice";
+import {
+  addPfDetails,
+  updatePfDetails,
+  type PfDataPayload,
+} from "../../../../store/slice/pfSlice";
 import { updateGeneralInfo } from "../../../../store/slice/generalSlice";
 import { updateProfessionalInfo } from "../../../../store/slice/professionalSlice";
 import type {
@@ -355,6 +360,57 @@ const editLoanFields: FormField[] = [
   },
 ];
 
+const pfEsiFields: FormField[] = [
+  {
+    name: "employeePfEnable",
+    label: "Employee PF Enabled",
+    type: "select", // Changed from 'toggle'
+    options: [
+      // Added options
+      { value: true, label: "Yes" },
+      { value: false, label: "No" },
+    ],
+  },
+  { name: "pfNum", label: "Employee PF Number", type: "text" },
+  { name: "uanNum", label: "Employee UAN Number", type: "text" },
+  {
+    name: "employeerPfEnable",
+    label: "Employer PF Enabled",
+    type: "select",
+    options: [
+      { value: true, label: "Yes" },
+      { value: false, label: "No" },
+    ],
+  },
+  {
+    name: "esiEnable",
+    label: "ESI Enabled",
+    type: "select",
+    options: [
+      { value: true, label: "Yes" },
+      { value: false, label: "No" },
+    ],
+  },
+  { name: "esiNum", label: "ESI Number", type: "text" },
+  {
+    name: "professionalTax",
+    label: "Professional Tax Enabled",
+    type: "select",
+    options: [
+      { value: true, label: "Yes" },
+      { value: false, label: "No" },
+    ],
+  },
+  {
+    name: "labourWelfare",
+    label: "Labour Welfare Fund Enabled",
+    type: "select",
+    options: [
+      { value: true, label: "Yes" },
+      { value: false, label: "No" },
+    ],
+  },
+];
 // --- MAIN PAGE COMPONENT ---
 
 export default function EmployeeDetailPage() {
@@ -483,6 +539,45 @@ export default function EmployeeDetailPage() {
             payload: editPayload,
           })
         );
+      }
+    } else if (editingSection === "pf_esi_pt") {
+      const pfDataForApi = { ...data };
+      const booleanKeys = [
+        "employeePfEnable",
+        "employeerPfEnable",
+        "esiEnable",
+        "professionalTax",
+        "labourWelfare",
+      ];
+
+      booleanKeys.forEach((key) => {
+        if (pfDataForApi[key] !== undefined) {
+          pfDataForApi[key] = String(pfDataForApi[key]);
+        }
+      });
+      // 👇 Add this new block
+      if (currentEmployee.pf?.id) {
+        // --- EDIT LOGIC ---
+        dispatch(
+          updatePfDetails({
+            pfId: currentEmployee.pf.id,
+            employeeCode: employeeCode, // Needed to refetch employee data
+            pfData: pfDataForApi,
+          })
+        );
+      } else {
+        // --- ADD LOGIC ---
+        if (mainEmployeeId) {
+          dispatch(
+            addPfDetails({
+              employeeId: mainEmployeeId,
+              employeeCode: employeeCode, // 👈 PASS THE employeeCode HERE
+              pfData: pfDataForApi as PfDataPayload,
+            })
+          );
+        } else {
+          console.error("Main Employee ID is missing. Cannot add PF details.");
+        }
       }
     }
     setEditingSection(null);
@@ -650,6 +745,8 @@ export default function EmployeeDetailPage() {
         return (
           <PfEsiComponent
             title="PF, ESI & PT"
+            // onEdit={() => handleEdit("pf_esi_pt", currentEmployee.pf)}
+            data={currentEmployee} // 👈 Pass the employee data
             onEdit={() => handleEdit("pf_esi_pt", currentEmployee.pf)}
           />
         );
@@ -776,6 +873,28 @@ export default function EmployeeDetailPage() {
             amountApp: editingLoan.amountApp || editingLoan.amountReq,
             staffNote: editingLoan.staffNote || "",
           },
+        };
+        break;
+      case "pf_esi_pt": // 👇 Add this new case
+        const hasPfData = !!currentEmployee.pf?.id;
+        formProps = {
+          title: hasPfData
+            ? "Edit PF, ESI & PT Details"
+            : "Add PF, ESI & PT Details",
+          fields: pfEsiFields,
+          initialState: hasPfData
+            ? currentEmployee.pf
+            : {
+                // Default state for adding new details
+                employeePfEnable: false,
+                pfNum: "",
+                uanNum: "",
+                employeerPfEnable: false,
+                esiEnable: false,
+                esiNum: "",
+                professionalTax: false,
+                labourWelfare: false,
+              },
         };
         break;
       default:
@@ -959,6 +1078,7 @@ export default function EmployeeDetailPage() {
 
   const employeeName = `${currentEmployee.general.name.first} ${currentEmployee.general.name.last}`;
 
+  console.log("EmployeeDetailPage is rendering. PF Data:", currentEmployee.pf);
   return (
     <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">

@@ -69,7 +69,7 @@ const ResourceTable: React.FC<ResourceTableProps> = ({ resources, onEdit, onRele
     { key: "designation", header: "Designation" },
     { key: "allocatedHours", header: "Allocated Hours" },
     { key: "allocatedFrom", header: "Allocated From" },
-    { key: "allocatedTill", header: "Allocation Till" }, // Fixed key to match API response
+    { key: "allocatedtill", header: "Allocation Till" }, // Fixed key to match API response
     { key: "hoursLogged", header: "Hours Logged" },
     { key: "experience", header: "Experience" },
     {
