@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
-import axios, { isAxiosError } from 'axios';
+import { isAxiosError } from 'axios';
+// Correctly import the configured axios instance
+import { axiosInstance } from '../../services'; 
 
-// --- CONSTANTS & HELPERS ---
-const API_BASE_URL = 'http://172.50.5.49:3000/api/working-patterns/';
-const getAuthToken = (): string | null => localStorage.getItem('accessToken');
+// --- CONSTANTS ---
+const API_BASE_URL = '/api/working-patterns/';
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // --- TYPE DEFINITIONS ---
@@ -44,10 +45,6 @@ const initialState: WorkingPatternsState = {
 };
 
 // --- HELPER FUNCTIONS FOR DATA TRANSFORMATION ---
-
-/**
- * Transforms the API response (with day names as strings) into a UI-friendly format (with booleans).
- */
 const transformApiDataToUI = (apiData: WorkingPatternFromAPI[]): WorkingPattern[] => {
   const dayMap: { [key: string]: number } = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
   const transformWeek = (days: string[]): boolean[] => {
@@ -71,9 +68,6 @@ const transformApiDataToUI = (apiData: WorkingPatternFromAPI[]): WorkingPattern[
   }));
 };
 
-/**
- * Transforms the UI format (booleans) back into the API format (day names as strings).
- */
 const transformUIToApiSchedule = (pattern: NewWorkingPattern | WorkingPattern) => {
     const booleanToDays = (week: boolean[]) => week.map((isWorking, i) => isWorking ? daysOfWeek[i] : null).filter(Boolean) as string[];
     return {
@@ -87,10 +81,9 @@ const transformUIToApiSchedule = (pattern: NewWorkingPattern | WorkingPattern) =
 
 // --- ASYNC THUNKS ---
 export const fetchWorkingPatterns = createAsyncThunk('workingPatterns/fetch', async (_, { rejectWithValue }) => {
-  const token = getAuthToken();
-  if (!token) return rejectWithValue('Authentication token not found.');
   try {
-    const response = await axios.get(`${API_BASE_URL}get`, { headers: { Authorization: `Bearer ${token}` } });
+    // Updated: Uses axiosInstance, no need for manual token handling
+    const response = await axiosInstance.get(`${API_BASE_URL}get`);
     return transformApiDataToUI(response.data as WorkingPatternFromAPI[]);
   } catch (error) {
     if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to fetch patterns');
@@ -99,11 +92,10 @@ export const fetchWorkingPatterns = createAsyncThunk('workingPatterns/fetch', as
 });
 
 export const addWorkingPattern = createAsyncThunk('workingPatterns/add', async (newPattern: NewWorkingPattern, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
     const apiRequestBody = { name: newPattern.name, code: newPattern.code, schedule: transformUIToApiSchedule(newPattern) };
     try {
-        const response = await axios.post(`${API_BASE_URL}create`, apiRequestBody, { headers: { Authorization: `Bearer ${token}` } });
+        // Updated: Uses axiosInstance
+        const response = await axiosInstance.post(`${API_BASE_URL}create`, apiRequestBody);
         return { ...newPattern, id: response.data.id } as WorkingPattern;
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to create pattern');
@@ -112,11 +104,10 @@ export const addWorkingPattern = createAsyncThunk('workingPatterns/add', async (
 });
 
 export const updateWorkingPattern = createAsyncThunk('workingPatterns/update', async (pattern: WorkingPattern, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
     const apiRequestBody = { name: pattern.name, code: pattern.code, schedule: transformUIToApiSchedule(pattern) };
     try {
-        await axios.put(`${API_BASE_URL}update/${pattern.id}`, apiRequestBody, { headers: { Authorization: `Bearer ${token}` } });
+        // Updated: Uses axiosInstance
+        await axiosInstance.put(`${API_BASE_URL}update/${pattern.id}`, apiRequestBody);
         return pattern;
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update pattern');
@@ -124,12 +115,10 @@ export const updateWorkingPattern = createAsyncThunk('workingPatterns/update', a
     }
 });
 
-// Added for completeness
 export const deleteWorkingPattern = createAsyncThunk('workingPatterns/delete', async (id: string, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
     try {
-        await axios.delete(`${API_BASE_URL}delete/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        // Updated: Uses axiosInstance
+        await axiosInstance.delete(`${API_BASE_URL}delete/${id}`);
         return id;
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to delete pattern');
@@ -144,7 +133,6 @@ const workingPatternsSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    // Fulfilled cases are handled individually as their logic is unique
     builder
       .addCase(fetchWorkingPatterns.fulfilled, (state, action: PayloadAction<WorkingPattern[]>) => {
         state.status = 'succeeded';
@@ -165,13 +153,10 @@ const workingPatternsSlice = createSlice({
           state.status = 'succeeded';
           state.items = state.items.filter(item => item.id !== action.payload);
       })
-      // OPTIMIZATION: Use `addMatcher` to handle common pending and rejected states
-      // This will run for any async thunk from this slice that is in a 'pending' state
       .addMatcher(isPending(fetchWorkingPatterns, addWorkingPattern, updateWorkingPattern, deleteWorkingPattern), (state) => {
           state.status = 'loading';
           state.error = null;
       })
-      // This will run for any async thunk from this slice that is in a 'rejected' state
       .addMatcher(isRejected(fetchWorkingPatterns, addWorkingPattern, updateWorkingPattern, deleteWorkingPattern), (state, action) => {
           state.status = 'failed';
           state.error = action.payload as string;

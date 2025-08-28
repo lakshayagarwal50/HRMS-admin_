@@ -31,12 +31,8 @@
 
 // export default Header;
 
-
-
-
-// src/components/layout/Header.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, User as UserIcon, LogOut } from 'lucide-react';
+import { Bell, User as UserIcon } from 'lucide-react';
 
 // Define a type for the user data based on the API response
 interface User {
@@ -45,11 +41,45 @@ interface User {
   role: string;
 }
 
+// --- UI State Components ---
+
+// A more professional skeleton loader for the header
+const HeaderSkeleton: React.FC = () => (
+    <header className="bg-white shadow-sm fixed top-0 right-0 z-30 w-full lg:w-[calc(100%-18rem)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end items-center h-16">
+            <div className="flex items-center space-x-4 animate-pulse">
+                <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+                <div className="h-9 w-32 bg-gray-200 rounded-full"></div>
+            </div>
+        </div>
+    </header>
+);
+
+// A styled login prompt for the unauthenticated state
+const LoginPrompt: React.FC<{ onLogin: () => void; error: string | null; isLoading: boolean }> = ({ onLogin, error, isLoading }) => (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+        <div className="p-8 bg-white rounded-lg shadow-md text-center">
+            <h2 className="text-xl font-bold text-gray-800">Welcome</h2>
+            <p className="text-gray-600 mt-2">Please log in to continue.</p>
+            {error && <p className="text-red-500 mt-4 text-sm">{error}</p>}
+            <button 
+                onClick={onLogin} 
+                disabled={isLoading}
+                className="mt-6 w-full px-4 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:bg-purple-300"
+            >
+                {isLoading ? 'Logging in...' : 'Login as Admin'}
+            </button>
+        </div>
+    </div>
+);
+
+
 const Header: React.FC = () => {
   // State for user data, authentication, loading, and errors
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // State to manage the visibility of the profile dropdown
@@ -70,7 +100,6 @@ const Header: React.FC = () => {
         }
       } catch (e) {
         console.error("Failed to parse user data from localStorage", e);
-        // Clear potentially corrupted storage
         localStorage.clear();
       } finally {
         setIsLoading(false);
@@ -81,18 +110,13 @@ const Header: React.FC = () => {
 
   // Function to fetch user data by logging in
   const performLogin = async () => {
-    setIsLoading(true);
+    setIsLoginLoading(true);
     setError(null);
     try {
       const response = await fetch('http://172.50.5.116:3000/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: "Admin@superadmin.com",
-          password: "admin011"
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: "Admin@superadmin.com", password: "admin011" }),
       });
 
       if (!response.ok) {
@@ -107,11 +131,9 @@ const Header: React.FC = () => {
         role: data.role,
       };
       
-      // Update component state
       setUser(fetchedUser);
       setIsAuthenticated(true);
 
-      // Persist session to localStorage
       localStorage.setItem('user', JSON.stringify(fetchedUser));
       localStorage.setItem('accessToken', data.accessToken);
       if (data.refreshToken) {
@@ -122,26 +144,12 @@ const Header: React.FC = () => {
       setError(e.message || "Failed to log in. Please try again.");
       setIsAuthenticated(false);
       setUser(null);
-      // Clear any stale data from storage on failure
       localStorage.clear();
     } finally {
-      setIsLoading(false);
+      setIsLoginLoading(false);
     }
   };
-
-  // Handle logout action
-  const handleLogout = () => {
-    // Clear component state
-    setUser(null);
-    setIsAuthenticated(false);
-    setIsDropdownOpen(false);
-
-    // Clear session from localStorage
-    localStorage.removeItem('user');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-  };
-
+  
   // Close the dropdown if the user clicks outside of it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -150,51 +158,27 @@ const Header: React.FC = () => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handle loading state
   if (isLoading) {
-    return (
-      <header className="bg-white shadow-sm fixed top-0 right-0 z-30 w-full lg:w-[calc(100%-18rem)]">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end items-center h-16">
-            <p className="text-gray-500 animate-pulse">Loading...</p>
-         </div>
-      </header>
-    );
+    return <HeaderSkeleton />;
   }
 
-  // Handle error or logged-out state
   if (!isAuthenticated) {
-    return (
-        <div className="p-4 bg-gray-100 text-center">
-            {error && <p className="text-red-600 mb-2">{error}</p>}
-            <p className="text-gray-700">You are not logged in.</p>
-            <button 
-                onClick={performLogin} 
-                className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-            >
-                Login as Admin
-            </button>
-        </div>
-    );
+    return <LoginPrompt onLogin={performLogin} error={error} isLoading={isLoginLoading} />;
   }
 
-  // Render the header when authenticated
   return (
     <header className="bg-white shadow-sm fixed top-0 right-0 z-30 w-full lg:w-[calc(100%-18rem)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end items-center h-17">
         <div className="flex items-center space-x-4">
-          {/* Notification Button */}
           <button className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
             <span className="sr-only">View notifications</span>
             <Bell size={22} />
             <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" aria-hidden="true"></span>
           </button>
           
-          {/* Profile Section with Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -208,22 +192,22 @@ const Header: React.FC = () => {
               </span>
             </button>
 
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                  <p className="font-semibold">{user?.displayName || 'Welcome'}</p>
-                  <p className="text-xs text-gray-500 truncate">{user?.role || 'User Role'}</p>
+            {/* Dropdown Menu with transition */}
+            <div
+              className={`origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none transition ease-out duration-100 ${
+                isDropdownOpen ? 'transform opacity-100 scale-100' : 'transform opacity-0 scale-95'
+              }`}
+            >
+              {isDropdownOpen && (
+                <div className="py-1">
+                    <div className="px-4 py-2 text-sm text-gray-700 border-b">
+                        <p className="font-semibold">{user?.displayName || 'Welcome'}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.role || 'User Role'}</p>
+                    </div>
+                    {/* The Logout button has been removed from the header */}
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  <LogOut size={16} className="mr-2" />
-                  Logout
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -232,4 +216,3 @@ const Header: React.FC = () => {
 };
 
 export default Header;
-

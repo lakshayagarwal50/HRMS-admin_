@@ -38,6 +38,8 @@ import yearlyAttendanceReducer from "./slice/yearlyAttendanceSlice";
 import createEmployeeReducer from "./slice/createEmployeeSlice"; 
 import roleReducer from './slice/roleSlice';
 import reportReducer from "./slice/reportSlice";
+import notificationReducer from "./slice/notificationSlice"
+import eventsReducer from './slice/eventsSlice'
 
 export const store = configureStore({
   reducer: {
@@ -78,6 +80,8 @@ export const store = configureStore({
     createEmployee: createEmployeeReducer,
     roles: roleReducer, 
     reports: reportReducer,
+    notifications: notificationReducer, 
+    events: eventsReducer, 
   },
 });
 
