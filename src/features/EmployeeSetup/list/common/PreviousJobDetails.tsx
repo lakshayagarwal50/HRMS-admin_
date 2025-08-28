@@ -1,115 +1,4 @@
-// import React, { useState, useRef, useEffect } from "react";
-// import { MoreVertical, PenSquare } from "lucide-react";
-// import type { EmployeeDetail } from "../../../../store/slice/employeeSlice";
-// import Table, { type Column } from "../../../../components/common/Table";
-// import { SectionHeader, AddButton } from "../common/DetailItem";
-// import type { PreviousJob } from "../../../../store/slice/previousJobSlice";
 
-// // Dropdown menu for actions
-// const ActionCell: React.FC<{
-//   row: PreviousJob;
-//   onEdit: (job: PreviousJob) => void;
-// }> = ({ row, onEdit }) => {
-//   const [isOpen, setIsOpen] = useState(false);
-//   const dropdownRef = useRef<HTMLDivElement>(null);
-
-//   useEffect(() => {
-//     const handleClickOutside = (event: MouseEvent) => {
-//       if (
-//         dropdownRef.current &&
-//         !dropdownRef.current.contains(event.target as Node)
-//       ) {
-//         setIsOpen(false);
-//       }
-//     };
-//     document.addEventListener("mousedown", handleClickOutside);
-//     return () => document.removeEventListener("mousedown", handleClickOutside);
-//   }, []);
-
-//   const handleEditClick = (e: React.MouseEvent) => {
-//     e.stopPropagation();
-//     onEdit(row);
-//     setIsOpen(false);
-//   };
-
-//   return (
-//     <div className="relative" ref={dropdownRef}>
-//       <button
-//         onClick={() => setIsOpen(!isOpen)}
-//         className="p-2 rounded-full hover:bg-gray-100"
-//       >
-//         <MoreVertical size={16} />
-//       </button>
-//       {isOpen && (
-//         <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg focus:outline-none flex flex-col">
-//           <button
-//             onClick={handleEditClick}
-//             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:bg-[#f5f5f5]"
-//           >
-//             <PenSquare className="mr-2 h-4 w-4 inline" />
-//             Edit
-//           </button>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// // Define the columns for the table
-// const columns = (onEdit: (job: PreviousJob) => void): Column<PreviousJob>[] => [
-//   { key: "name", header: "Employer" },
-//   { key: "lastDate", header: "Last Date" },
-//   { key: "ctc", header: "CTC" },
-//   { key: "grossAmt", header: "Gross Amount" },
-//   { key: "taxableAmt", header: "Taxable Amount" },
-//   { key: "taxPaid", header: "Tax Paid" },
-//   { key: "employeePF", header: "Employee PF" },
-//   { key: "employerPF", header: "Employer PF" },
-//   { key: "professionalTax", header: "Professional Tax" },
-//   {
-//     key: "action",
-//     header: "Actions",
-//     render: (row) => <ActionCell row={row} onEdit={onEdit} />,
-//   },
-// ];
-
-// interface PreviousJobDetailsProps {
-//   data: EmployeeDetail;
-//   onAdd: () => void;
-//   onEdit: (job: PreviousJob) => void;
-// }
-
-// const PreviousJobDetails: React.FC<PreviousJobDetailsProps> = ({
-//   data,
-//   onAdd,
-//   onEdit,
-// }) => {
-//   const previousJobs = data.previous || [];
-//   const hasJobs = previousJobs && previousJobs.length > 0;
-
-//   const totalColumns = columns(onEdit);
-
-//   return (
-//     <div>
-//       <SectionHeader
-//         title="Previous Job Details"
-//         action={hasJobs ? <AddButton onClick={onAdd} /> : null}
-//       />
-//       {hasJobs ? (
-//         <Table data={previousJobs} columns={totalColumns} />
-//       ) : (
-//         <div className="bg-gray-50 p-6 rounded-lg border border-dashed text-center text-gray-500">
-//           <p>No previous job details available.</p>
-//           <div className="mt-4">
-//             <AddButton onClick={onAdd} />
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default PreviousJobDetails;
 import React, { useState, useRef, useEffect } from "react";
 import { MoreVertical, PenSquare, X } from "lucide-react";
 
@@ -120,14 +9,9 @@ import Table, { type Column } from "../../../../components/common/Table";
 import { SectionHeader, AddButton } from "../common/DetailItem";
 import GenericForm, {
   type FormField,
-} from "../../../../components/common/GenericForm"; // Make sure this path is correct
+} from "../../../../components/common/GenericForm"; 
 
-// --- Form and Modal Configuration ---
 
-/**
- * Defines the structure of the form fields for adding or editing a previous job.
- * This array is passed to the GenericForm component.
- */
 const previousJobFormFields: FormField[] = [
   { name: "name", label: "Employer Name", type: "text", required: true },
   {
@@ -222,10 +106,6 @@ const ActionCell: React.FC<{
 
 // --- Main Component ---
 
-/**
- * This component now manages its own modal state for adding/editing jobs.
- * The `onSave` prop is used to send the form data to the parent for processing.
- */
 interface PreviousJobDetailsProps {
   data: EmployeeDetail;
   onSave: (jobData: Partial<PreviousJob>, id?: string) => void;
