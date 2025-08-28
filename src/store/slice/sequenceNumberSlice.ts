@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
-import axios, { isAxiosError } from 'axios';
+import { isAxiosError } from 'axios';
+// Correctly import the configured axios instance
+import { axiosInstance } from '../../services'; 
 
-// --- CONSTANTS & HELPERS ---
-const API_BASE_URL = 'http://172.50.5.116:3000/api/sequenceNumber/';
-const getAuthToken = (): string | null => localStorage.getItem('accessToken');
+// --- CONSTANTS ---
+const API_BASE_URL = '/api/sequenceNumber/';
 
 // --- TYPE DEFINITIONS ---
 // This interface matches the structure of the data from your API
@@ -33,10 +34,9 @@ const initialState: SequenceNumbersState = {
 
 // --- ASYNC THUNKS ---
 export const fetchSequenceNumbers = createAsyncThunk('sequenceNumbers/fetch', async (_, { rejectWithValue }) => {
-  const token = getAuthToken();
-  if (!token) return rejectWithValue('Authentication token not found.');
   try {
-    const response = await axios.get(`${API_BASE_URL}get`, { headers: { Authorization: `Bearer ${token}` } });
+    // Updated: Uses axiosInstance, no need for manual token handling
+    const response = await axiosInstance.get(`${API_BASE_URL}get`);
     return response.data as SequenceNumber[];
   } catch (error) {
     if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to fetch sequence numbers');
@@ -45,10 +45,9 @@ export const fetchSequenceNumbers = createAsyncThunk('sequenceNumbers/fetch', as
 });
 
 export const addSequenceNumber = createAsyncThunk('sequenceNumbers/add', async (newSequence: NewSequenceNumber, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
     try {
-        const response = await axios.post(`${API_BASE_URL}create`, newSequence, { headers: { Authorization: `Bearer ${token}` } });
+        // Updated: Uses axiosInstance
+        const response = await axiosInstance.post(`${API_BASE_URL}create`, newSequence);
         // Construct the full object for the UI with the new ID
         return { ...newSequence, id: response.data.id } as SequenceNumber;
     } catch (error) {

@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk,  } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
@@ -8,8 +8,10 @@ const API_BASE_URL = '/api/roles/';
 // --- TYPE DEFINITIONS ---
 type Permissions = Record<string, Record<string, boolean>>;
 
+// This interface now handles both `id` and `roleId` from your API
 interface RoleFromAPI {
-  id: string;
+  id?: string;
+  roleId?: string; // Added to handle the response for a single role
   roleName: string;
   code: string;
   description: string;
@@ -30,7 +32,7 @@ export type RolePayload = Omit<Role, 'id'>;
 
 export interface RolesState {
   items: Role[];
-  selectedRole: Role | null; // To hold the role being edited
+  selectedRole: Role | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   selectedStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
@@ -46,7 +48,8 @@ const initialState: RolesState = {
 
 // --- DATA TRANSFORMATION ---
 const transformToUI = (apiData: RoleFromAPI): Role => ({
-    id: apiData.id,
+    // Corrected: Use `id` or `roleId` to ensure a consistent ID
+    id: apiData.id || apiData.roleId || '', 
     name: apiData.roleName,
     code: apiData.code,
     description: apiData.description,
@@ -54,7 +57,7 @@ const transformToUI = (apiData: RoleFromAPI): Role => ({
     permissions: apiData.permissions,
 });
 
-const transformToAPI = (uiData: RolePayload): Omit<RoleFromAPI, 'id'> => ({
+const transformToAPI = (uiData: RolePayload): Omit<RoleFromAPI, 'id' | 'roleId'> => ({
     roleName: uiData.name,
     code: uiData.code,
     description: uiData.description,
@@ -74,12 +77,15 @@ export const fetchRoles = createAsyncThunk('roles/fetch', async (_, { rejectWith
     }
 });
 
-// New thunk to fetch a single role for editing
 export const fetchRoleById = createAsyncThunk('roles/fetchById', async (id: string, { rejectWithValue }) => {
     try {
-        // Assuming a GET endpoint like /api/roles/get/:id
-        const response = await axiosInstance.get(`${API_BASE_URL}get/${id}`);
-        return transformToUI(response.data as RoleFromAPI);
+        const response = await axiosInstance.get(`${API_BASE_URL}get`, { params: { id } });
+        // The API returns an array with one object
+        const data = response.data as RoleFromAPI[];
+        if (data && data.length > 0) {
+            return transformToUI(data[0]);
+        }
+        return rejectWithValue('Role not found.');
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message);
         return rejectWithValue('Failed to fetch role details.');
@@ -109,15 +115,18 @@ export const updateRole = createAsyncThunk('roles/update', async (role: Role, { 
     }
 });
 
-export const toggleRoleStatus = createAsyncThunk('roles/toggleStatus', async (role: Role, { rejectWithValue }) => {
-    try {
-        await axiosInstance.delete(`${API_BASE_URL}delete/${role.id}`);
-        return { ...role, status: role.status === 'Active' ? 'Inactive' : 'Active' } as Role;
-    } catch (error) {
-        if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message);
-        return rejectWithValue('An unknown error occurred.');
+export const toggleRoleStatus = createAsyncThunk(
+    'roles/toggleStatus',
+    async (role: Role, { rejectWithValue }) => {
+        try {
+            await axiosInstance.delete(`${API_BASE_URL}delete/${role.id}`);
+            return { ...role, status: role.status === 'Active' ? 'Inactive' : 'Active' } as Role;
+        } catch (error) {
+            if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to change status');
+            return rejectWithValue('An unknown error occurred.');
+        }
     }
-});
+);
 
 
 // --- SLICE DEFINITION ---

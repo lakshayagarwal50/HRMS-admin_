@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
-import axios, { isAxiosError } from 'axios';
+import { isAxiosError } from 'axios';
+// Correctly import the configured axios instance
+import { axiosInstance } from '../../services'; 
 
-// --- CONSTANTS & HELPERS ---
-const API_BASE_URL = 'http://172.50.5.116:3000/api/webCheckinSettings/';
-const getAuthToken = (): string | null => localStorage.getItem('accessToken'); // A better way to get tokens
+// --- CONSTANTS ---
+const API_BASE_URL = '/api/webCheckinSettings/';
 
 // --- TYPE DEFINITIONS ---
 // This interface now matches the full structure from your GET API response
@@ -33,10 +34,9 @@ const initialState: WebCheckinSettingsState = {
  * FETCH: Fetches the current web check-in settings from the server.
  */
 export const fetchWebCheckinSettings = createAsyncThunk('webCheckinSettings/fetch', async (_, { rejectWithValue }) => {
-  const token = getAuthToken();
-  if (!token) return rejectWithValue('Authentication token not found.');
   try {
-    const response = await axios.get(`${API_BASE_URL}get`, { headers: { Authorization: `Bearer ${token}` } });
+    // Updated: Uses axiosInstance, no need for manual token handling
+    const response = await axiosInstance.get(`${API_BASE_URL}get`);
     return response.data as WebCheckinSettings;
   } catch (error) {
     if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to fetch settings');
@@ -49,9 +49,6 @@ export const fetchWebCheckinSettings = createAsyncThunk('webCheckinSettings/fetc
  * UPDATE: Updates the web check-in settings on the server.
  */
 export const updateWebCheckinSettings = createAsyncThunk('webCheckinSettings/update', async (settings: WebCheckinSettings, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
-    
     // The body only needs the start and end time
     const apiRequestBody = {
         shiftStartTime: settings.shiftStartTime,
@@ -59,7 +56,8 @@ export const updateWebCheckinSettings = createAsyncThunk('webCheckinSettings/upd
     };
 
     try {
-        await axios.put(`${API_BASE_URL}update`, apiRequestBody, { headers: { Authorization: `Bearer ${token}` } });
+        // Updated: Uses axiosInstance
+        await axiosInstance.put(`${API_BASE_URL}update`, apiRequestBody);
         // Return the updated settings object to the reducer on success
         return settings;
     } catch (error) {
