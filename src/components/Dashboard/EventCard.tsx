@@ -1,42 +1,87 @@
-import React from 'react';
-import { Eye } from 'lucide-react';
-import type { Event } from '../../types/index';
+import React, { useEffect } from 'react';
+import { Eye, ServerCrash, RefreshCw } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import type { AppDispatch, RootState } from '../../store/store';
+import { fetchEvents, } from '../../store/slice/eventsSlice';
 
-interface EventsCardProps {
-  events: Event[];
-}
-
-const EventsCard: React.FC<EventsCardProps> = ({ events }) => (
-  // The card is now a flex container with a fixed height to ensure a stable UI.
-  // - `flex flex-col` arranges the title and list vertically.
-  // - `h-[29rem]` gives the card a consistent height, matching the notification card.
-  <div className="bg-white rounded-lg shadow-md p-6 flex flex-col h-[29rem]">
-    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex-shrink-0">Current Events</h2>
-    
-    {/* This container will grow to fill the remaining space and scroll internally.
-      - `flex-grow` allows it to expand.
-      - `overflow-y-auto` adds a vertical scrollbar only when the content overflows.
-    */}
-    <div className="scroll-container flex-grow overflow-y-auto">
-      {events.map((event, index) => (
-        <div
-          key={event.id}
-          className={`flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-200 ${
-            index < events.length - 1 ? 'border-b border-gray-200' : ''
-          }`}
-        >
-          <div>
-            <p className="text-sm font-medium text-gray-900">{event.title}</p>
-            <p className="text-xs text-gray-500">{event.description}</p>
-          </div>
-          <a href="#" className="text-[#3C00F2] hover:text-[#2a008f] flex items-center space-x-1">
-            <Eye size={16} />
-            <span className="text-sm">View</span>
-          </a>
-        </div>
-      ))}
+// --- UI State Components ---
+const SkeletonLoader: React.FC = () => (
+    <div className="space-y-3 animate-pulse">
+        {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between p-4">
+                <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+                <div className="h-8 w-16 bg-gray-200 rounded-md"></div>
+            </div>
+        ))}
     </div>
-  </div>
 );
+
+const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ onRetry, error }) => (
+    <div className="text-center py-10 px-4">
+        <ServerCrash className="mx-auto h-10 w-10 text-red-400" />
+        <h3 className="mt-2 text-md font-semibold text-red-800">Could not load events</h3>
+        <p className="mt-1 text-xs text-red-600">{error || 'An unknown error occurred.'}</p>
+        <button type="button" onClick={onRetry} className="mt-4 inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+            <RefreshCw className="-ml-1 mr-2 h-4 w-4" />
+            Try Again
+        </button>
+    </div>
+);
+
+// --- MAIN COMPONENT ---
+const EventsCard: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { items: events, status, error } = useSelector((state: RootState) => state.events);
+
+  useEffect(() => {
+    if (status === 'idle') {
+      // Fetch the first 10 events on initial load
+      dispatch(fetchEvents({ page: 1, limit: 10 }));
+    }
+  }, [status, dispatch]);
+
+  const renderContent = () => {
+    if (status === 'loading' || status === 'idle') {
+        return <SkeletonLoader />;
+    }
+    if (status === 'failed') {
+        return <ErrorState onRetry={() => dispatch(fetchEvents({ page: 1, limit: 10 }))} error={error} />;
+    }
+    if (status === 'succeeded' && events.length === 0) {
+        return <div className="text-center py-10 text-gray-500 text-sm">No current events.</div>;
+    }
+    return (
+        events.map((event, index) => (
+            <div
+              key={event.id}
+              className={`flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-200 ${
+                index < events.length - 1 ? 'border-b border-gray-200' : ''
+              }`}
+            >
+              <div>
+                <p className="text-sm font-medium text-gray-900">{event.description}</p>
+                <p className="text-xs text-gray-500">{event.date}</p>
+              </div>
+              <a href="#" className="text-purple-600 hover:text-purple-800 flex items-center space-x-1 flex-shrink-0">
+                <Eye size={16} />
+                <span className="text-sm">View</span>
+              </a>
+            </div>
+        ))
+    );
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6 flex flex-col h-[29rem]">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4 flex-shrink-0">Current Events</h2>
+      <div className="scroll-container flex-grow overflow-y-auto">
+        {renderContent()}
+      </div>
+    </div>
+  );
+};
 
 export default EventsCard;
