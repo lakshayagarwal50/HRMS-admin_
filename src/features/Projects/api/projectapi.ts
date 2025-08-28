@@ -233,12 +233,29 @@ export const updateResourceAllocationApi = async (
   }
 };
 
+
 // DELETE /project/:id - Soft Delete Project
 export const deleteProjectApi = async (
   id: string
 ): Promise<{ message: string; projectId: string }> => {
   try {
     const response = await axiosInstance.delete(`/project/delete/${id}`);
+    return response.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+
+// DELETE /project/delete/resource/:id - Release/Delete a resource from a project
+export const releaseResourceApi = async (
+  resourceId: string
+): Promise<{ message: string; resourceId: string }> => {
+  try {
+    // Naye endpoint ka istemaal karein
+    const response = await axiosInstance.delete(
+      `/project/delete/resources/${resourceId}`
+    );
     return response.data;
   } catch (error) {
     throw handleApiError(error);
