@@ -1,149 +1,268 @@
-import React, { useState } from "react";
-import Table, { type Column } from "../../../../../components/common/Table"; // Adjust path as needed
-import { Link } from "react-router-dom";
-import EmployeeSnapshotFilters from "./component/EmployeeSnapshotFilters"; // Adjust path as needed
-import EmployeeReportTemplate from "./component/EmployeeReportTemplate"; // Adjust path as needed
+import React, { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
+import Table, { type Column } from "../../../../../components/common/Table";
+import EmployeeSnapshotFilters from "./component/EmployeeSnapshotFilters";
+import EmployeeReportTemplate from "./component/EmployeeReportTemplate";
+import type { AppDispatch, RootState } from "../../../../../store/store"; // Adjust path
+import { fetchEmployeeSnapshot } from "../../../../../store/slice/employeeSnapshotSlice"; // Adjust path
 
-// Define a comprehensive type for the employee data
+// --- INTERFACES and COLUMNS ---
 interface EmployeeData {
-  id: number;
   name: string;
-  employeeId: number;
+  employeeId: string;
   status: "Active" | "Inactive";
   joiningDate: string;
   designation: string;
   department: string;
   location: string;
   gender: string;
-  emailPrimary: string;
-  panNumber: string;
+  email: string;
+  pan: string | null;
   grossPaid: number;
-  lossOfPay: number;
-  taxPaid: number;
-  netPaid: number;
-  leavesAllowed: number;
-  leavesTaken: number;
-  leavesAdjusted: number;
-  leaveBalance: number;
+  lossOfPay: number | null;
+  taxPaid: number | null;
+  netPaid: number | null;
+  leaveType: string;
+  leavesAdjusted: number | null;
+  leaveBalance: number | null;
   workingPattern: string;
   phone: string;
 }
 
-// Generate some mock data for the table
-const mockData: EmployeeData[] = Array.from({ length: 15 }, (_, i) => ({
-  id: 10708 + i * 100,
-  name: [
-    "Chandan",
-    "Asad",
-    "Pankaj",
-    "Nanda",
-    "Karthik",
-    "Seema",
-    "Mukul",
-    "Latif",
-  ][i % 8],
-  employeeId: 4152 + i * 11,
-  status: i === 7 ? "Inactive" : "Active",
-  joiningDate: `${10 + (i % 18)} Oct 2022`,
-  designation: i % 3 === 0 ? "Medical Assistant" : "Web Designer",
-  department: i % 3 === 0 ? "Medical Assistant" : "Web Designer",
-  location: "Tripura",
-  gender: i % 2 === 0 ? "Female" : "Male",
-  emailPrimary: `user${i}@example.com`,
-  panNumber: `ABCDE1234${String.fromCharCode(65 + i)}`,
-  grossPaid: 15000 + i * 500,
-  lossOfPay: i % 4 === 0 ? 450 : 0,
-  taxPaid: 1500 + i * 50,
-  netPaid: 13050 + i * 450,
-  leavesAllowed: 15,
-  leavesTaken: 4 + i,
-  leavesAdjusted: 1,
-  leaveBalance: 10 - i,
-  workingPattern: "5 Days Week",
-  phone: `91555${12345 + i}`,
-}));
+const columns: Column<EmployeeData>[] = [
+  // ... your column definitions are correct and remain unchanged
+  { key: "name", header: "Name" },
+  { key: "employeeId", header: "Employee ID" },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => (
+      <span
+        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+          row.status === "Active"
+            ? "bg-green-100 text-green-800"
+            : "bg-red-100 text-red-800"
+        }`}
+      >
+        {row.status}
+      </span>
+    ),
+  },
+  { key: "joiningDate", header: "Joining Date" },
+  { key: "designation", header: "Designation" },
+  { key: "department", header: "Department" },
+  { key: "location", header: "Location" },
+  { key: "gender", header: "Gender" },
+  { key: "email", header: "Email" },
+  { key: "pan", header: "PAN Number" },
+  {
+    key: "grossPaid",
+    header: "Gross Paid",
+    render: (row) => `₹ ${row.grossPaid.toLocaleString()}`,
+  },
+  {
+    key: "lossOfPay",
+    header: "Loss of Pay",
+    render: (row) => `₹ ${row.lossOfPay?.toLocaleString() ?? "N/A"}`,
+  },
+  {
+    key: "taxPaid",
+    header: "Tax Paid",
+    render: (row) => `₹ ${row.taxPaid?.toLocaleString() ?? "N/A"}`,
+  },
+  {
+    key: "netPaid",
+    header: "Net Paid",
+    render: (row) => `₹ ${row.netPaid?.toLocaleString() ?? "N/A"}`,
+  },
+  { key: "leaveType", header: "Last Leave Type" },
+  { key: "leavesAdjusted", header: "Leaves Adjusted" },
+  { key: "leaveBalance", header: "Leave Balance" },
+  { key: "workingPattern", header: "Working Pattern" },
+  { key: "phone", header: "Phone Number" },
+];
 
-const employeeSnapshot: React.FC = () => {
+// ✅ NEW: SKELETON LOADER COMPONENT
+const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
+  return (
+    <div className="overflow-x-auto">
+      <div className="w-[1350px] space-y-4">
+        {/* Skeleton Header */}
+        <div className="flex space-x-4 p-4">
+          <div className="h-4 bg-gray-200 rounded w-1/12"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/12"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/12"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/12"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/12"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/12"></div>
+        </div>
+        {/* Skeleton Body */}
+        <div className="space-y-2 p-4 pt-0">
+          {Array.from({ length: rows }).map((_, index) => (
+            <div
+              key={index}
+              className="flex items-center space-x-4 p-2 animate-pulse"
+            >
+              <div className="h-5 bg-gray-200 rounded w-1/12"></div>
+              <div className="h-5 bg-gray-200 rounded w-1/12"></div>
+              <div className="h-5 bg-gray-200 rounded w-1/12"></div>
+              <div className="h-5 bg-gray-200 rounded w-2/12"></div>
+              <div className="h-5 bg-gray-200 rounded w-2/12"></div>
+              <div className="h-5 bg-gray-200 rounded w-3/12"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- PAGINATION COMPONENT ---
+const Pagination: React.FC<{
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
+  // ... Pagination component code remains the same
+  if (totalPages <= 1) {
+    return null;
+  }
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-700">
+      <span>
+        Showing {startItem} to {endItem} of {totalItems} items
+      </span>
+      <div className="flex items-center space-x-1">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-1 border rounded ${
+              currentPage === page
+                ? "bg-[#741CDD] text-white"
+                : "bg-white hover:bg-gray-100"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// --- MAIN COMPONENT ---
+const EmployeeSnapshot: React.FC = () => {
   const [view, setView] = useState<"table" | "editTemplate">("table");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<any>({});
 
-  // Define columns for the generic Table component
-  const columns: Column<EmployeeData>[] = [
-    { key: "name", header: "Name" },
-    { key: "employeeId", header: "Employee ID" },
-    {
-      key: "status",
-      header: "Status",
-      render: (row) => (
-        <span
-          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-            row.status === "Active"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {row.status}
-        </span>
-      ),
-    },
-    { key: "joiningDate", header: "Joining Date" },
-    { key: "designation", header: "Designation" },
-    { key: "department", header: "Department" },
-    { key: "location", header: "Location" },
-    { key: "gender", header: "Gender" },
-    { key: "emailPrimary", header: "Email Primary" },
-    { key: "panNumber", header: "Pan Number" },
-    {
-      key: "grossPaid",
-      header: "Gross Paid",
-      render: (row) => `₹ ${row.grossPaid.toLocaleString()}`,
-    },
-    {
-      key: "lossOfPay",
-      header: "Loss of pay",
-      render: (row) => `₹ ${row.lossOfPay.toLocaleString()}`,
-    },
-    {
-      key: "taxPaid",
-      header: "Tax Paid",
-      render: (row) => `₹ ${row.taxPaid.toLocaleString()}`,
-    },
-    {
-      key: "netPaid",
-      header: "Net Paid",
-      render: (row) => `₹ ${row.netPaid.toLocaleString()}`,
-    },
-    { key: "leavesAllowed", header: "Leaves Allowed" },
-    { key: "leavesTaken", header: "Leaves Taken" },
-    { key: "leavesAdjusted", header: "Leaves Adjusted" },
-    { key: "leaveBalance", header: "Leave Balance" },
-    { key: "workingPattern", header: "Working pattern" },
-    { key: "id", header: "ID" },
-    { key: "phone", header: "Phone Number" },
-  ];
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+
+  const dispatch = useDispatch<AppDispatch>();
+  const { employees, status, error, total, limit } = useSelector(
+    (state: RootState) => state.employeeSnapshot
+  );
+
+  useEffect(() => {
+    dispatch(
+      fetchEmployeeSnapshot({
+        page: currentPage,
+        limit,
+        filters: activeFilters,
+      })
+    );
+  }, [dispatch, currentPage, limit, JSON.stringify(activeFilters)]);
 
   const handleApplyFilters = (filters: any) => {
-    console.log("Applying filters:", filters);
-    // Add your data filtering logic here
+    if (JSON.stringify(filters) !== JSON.stringify(activeFilters)) {
+      setActiveFilters(filters);
+      setSearchParams({ page: "1" });
+    }
     setIsFilterOpen(false);
   };
 
-  // Conditionally render based on the view state
+  const totalPages = Math.ceil(total / limit) || 1;
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setSearchParams({ page: String(newPage) });
+    }
+  };
+
   if (view === "editTemplate") {
     return <EmployeeReportTemplate onBack={() => setView("table")} />;
   }
 
+  // ✅ UPDATED: renderContent function
+  const renderContent = () => {
+    // Show the skeleton loader on initial load and page changes
+    if (status === "loading") {
+      return <TableSkeleton rows={limit} />;
+    }
+
+    if (status === "failed") {
+      return (
+        <div className="text-center p-10 text-red-500">Error: {error}</div>
+      );
+    }
+
+    if (employees.length === 0) {
+      return <div className="text-center p-10">No employee data found.</div>;
+    }
+
+    return (
+      <>
+        <div className="overflow-x-auto">
+          <Table
+            data={employees}
+            columns={columns}
+            showSearch={false}
+            showPagination={false}
+            className="w-[1350px]"
+          />
+        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={total}
+          itemsPerPage={limit}
+          onPageChange={handlePageChange}
+        />
+      </>
+    );
+  };
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      {/* --- Header and Buttons Section --- */}
       <div className="flex justify-between items-start mb-6">
-        {/* Left Side: Title */}
         <h1 className="text-3xl font-bold text-gray-800">
           Employees Snapshot Report
         </h1>
-
-        {/* Right Side: Breadcrumbs and Action Buttons */}
         <div className="flex flex-col items-end space-y-3">
           <p className="text-sm text-gray-500">
             <Link to="/reports/all">Reports</Link>
@@ -175,21 +294,8 @@ const employeeSnapshot: React.FC = () => {
         </div>
       </div>
 
-      {/* --- Table Section --- */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="overflow-x-auto">
-          <Table
-            data={mockData}
-            columns={columns}
-            showSearch={false}
-            showPagination={true}
-            defaultItemsPerPage={10}
-            className="w-[1350px]"
-          />
-        </div>
-      </div>
+      <div className="bg-white p-6 rounded-lg shadow-sm">{renderContent()}</div>
 
-      {/* --- Filters Sidebar --- */}
       <EmployeeSnapshotFilters
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
@@ -199,4 +305,4 @@ const employeeSnapshot: React.FC = () => {
   );
 };
 
-export default employeeSnapshot;
+export default EmployeeSnapshot;

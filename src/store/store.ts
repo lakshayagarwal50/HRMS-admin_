@@ -37,11 +37,10 @@ import loginDetailsReducer from './slice/loginDetailsSlice';
 import yearlyAttendanceReducer from "./slice/yearlyAttendanceSlice";
 import createEmployeeReducer from "./slice/createEmployeeSlice"; 
 import roleReducer from './slice/roleSlice';
-import notificationReducer from "./slice/notificationSlice"
-import eventsReducer from './slice/eventsSlice'
-import employeeRatingDetailReducer from "./slice/employeeRatingDetailSlice";
-import dashboardReducer from './slice/dashboardSlice'
-
+import reportReducer from "./slice/reportSlice";
+import notificationReducer from "./slice/notificationSlice";
+import eventsReducer from './slice/eventsSlice';
+import employeeSnapshotReducer from './slice/employeeSnapshotSlice';
 
 export const store = configureStore({
   reducer: {
@@ -81,10 +80,10 @@ export const store = configureStore({
     yearlyAttendance: yearlyAttendanceReducer,
     createEmployee: createEmployeeReducer,
     roles: roleReducer, 
+    reports: reportReducer,
     notifications: notificationReducer, 
     events: eventsReducer, 
-    employeeRatingDetail: employeeRatingDetailReducer,
-    dashboard: dashboardReducer,
+    employeeSnapshot: employeeSnapshotReducer,
   },
 });
 

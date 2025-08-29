@@ -1,55 +1,379 @@
-// src/pages/AllReports.tsx
+// import React, { useState, useEffect } from "react";
+// import { Link, useSearchParams } from "react-router-dom";
+// import { Play, CalendarClock, Trash2, X } from "lucide-react";
 
-import React, { useState } from "react";
-import Table, { type Column } from "../../../components/common/Table"; // Adjust path if needed
-import { Play, CalendarClock, Trash2, X } from "lucide-react"; // 1. Import the X icon
-import { Link } from "react-router-dom";
+// // --- COMPONENT IMPORTS ---
+// import Table, { type Column } from "../../../components/common/Table";
+// import ScheduleReport from "./ScheduleReport";
+// import AlertModal from "../../../components/Modal/AlertModal";
+
+// // --- REDUX IMPORTS ---
+// import { useDispatch, useSelector } from "react-redux";
+// import type { AppDispatch, RootState } from "../../../store/store";
+// import { fetchAllReports, deleteReport,type Report } from "../../../store/slice/reportSlice";
+
+// // --- PAGINATION COMPONENT ---
+// const Pagination: React.FC<{
+//   currentPage: number;
+//   totalPages: number;
+//   totalItems: number;
+//   itemsPerPage: number;
+//   onPageChange: (page: number) => void;
+// }> = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
+//   if (totalPages <= 1) return null;
+
+//   const startItem = (currentPage - 1) * itemsPerPage + 1;
+//   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+//   return (
+//     <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-700">
+//       <span>
+//         Showing {startItem} to {endItem} of {totalItems} items
+//       </span>
+//       <div className="flex space-x-1">
+//         <button
+//           onClick={() => onPageChange(currentPage - 1)}
+//           disabled={currentPage === 1}
+//           className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+//         >
+//           Previous
+//         </button>
+//         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+//           <button
+//             key={page}
+//             onClick={() => onPageChange(page)}
+//             className={`px-3 py-1 border rounded ${
+//               currentPage === page
+//                 ? "bg-[#741CDD] text-white"
+//                 : "bg-white hover:bg-gray-100"
+//             }`}
+//           >
+//             {page}
+//           </button>
+//         ))}
+//         <button
+//           onClick={() => onPageChange(currentPage + 1)}
+//           disabled={currentPage === totalPages}
+//           className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+//         >
+//           Next
+//         </button>
+//       </div>
+//     </div>
+//   );
+// };
+
+// const AllReports: React.FC = () => {
+//   const dispatch = useDispatch<AppDispatch>();
+//   // SELECT PAGINATION STATE FROM REDUX
+//   const { reports, status, error, totalPages, totalItems } = useSelector(
+//     (state: RootState) => state.reports
+//   );
+
+//   // MANAGE PAGE STATE WITH URL SEARCH PARAMS
+//   const [searchParams, setSearchParams] = useSearchParams();
+//   const currentPage = parseInt(searchParams.get("page") || "1", 10);
+//   const [itemsPerPage] = useState(10);
+
+//   // UPDATE DATA FETCHING EFFECT
+//   useEffect(() => {
+//     dispatch(fetchAllReports({ page: currentPage, limit: itemsPerPage }));
+//   }, [dispatch, currentPage, itemsPerPage]);
+
+//   const [view, setView] = useState<"table" | "schedule">("table");
+//   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+//   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+//   const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
+
+//   const handleRun = (id: string) => alert(`Running report ${id}`);
+//   const handleEdit = (id: string) => alert(`Editing template for report ${id}`);
+
+//   const handleDeleteClick = (report: Report) => {
+//     setReportToDelete(report);
+//     setIsDeleteModalOpen(true);
+//   };
+
+//   const confirmDelete = async () => {
+//     if (!reportToDelete) return;
+
+//     try {
+//       // Dispatch the delete action and wait for it to complete
+//       await dispatch(deleteReport(reportToDelete.id)).unwrap();
+
+//       alert(`Report "${reportToDelete.name}" has been removed successfully.`);
+
+//       // **IMPORTANT**: Re-fetch the reports to update the list
+//       dispatch(fetchAllReports({ page: currentPage, limit: itemsPerPage }));
+//     } catch (err) {
+//       // The error is already in the Redux state, but you can also alert it
+//       alert(`Failed to delete report: ${err}`);
+//     } finally {
+//       // Always close the modal and reset the state
+//       setIsDeleteModalOpen(false);
+//       setReportToDelete(null);
+//     }
+//   };
+
+//   const handleSchedule = (report: Report) => {
+//     setSelectedReport(report);
+//     setView("schedule");
+//   };
+
+//   const handleFormSubmit = (formData: any) => {
+//     console.log(formData);
+//     setView("table");
+//   };
+
+//   // HANDLE PAGE CHANGE
+//   const handlePageChange = (newPage: number) => {
+//     setSearchParams({ page: String(newPage) });
+//     window.scrollTo(0, 0);
+//   };
+
+//   const columns: Column<Report>[] = [
+//     { key: "Snum", header: "S no.", className: "w-1/12" },
+//     { key: "name", header: "Name", className: "w-2/12" },
+//     {
+//       key: "description",
+//       header: "Description",
+//       className: "w-5/12 whitespace-normal",
+//     },
+//     {
+//       key: "action",
+//       header: "Action",
+//       className: "w-4/12",
+//       render: (row) => (
+//         <div className="flex items-center space-x-1">
+//           {/* Action Buttons */}
+//           <button
+//             onClick={() => handleRun(row.id)}
+//             className="flex items-center justify-center space-x-1 px-2 py-1 text-xs text-white bg-[#741CDD] rounded hover:bg-[#5f17b8]"
+//           >
+//             <Play size={12} />
+//             <span>Run</span>
+//           </button>
+//           <button
+//             onClick={() => handleDeleteClick(row)}
+//             className="flex items-center justify-center px-2 py-1 text-xs text-white bg-red-500 rounded hover:bg-red-600"
+//           >
+//             <Trash2 size={12} className="mr-1" />
+//             <span>Delete</span>
+//           </button>
+//           <button
+//             onClick={() => handleEdit(row.id)}
+//             className="flex items-center justify-center px-2 py-1 text-xs text-[#741CDD] bg-white border border-[#741CDD] rounded hover:bg-[#741CDD]/10"
+//           >
+//             <span>Edit Template</span>
+//           </button>
+//           <button
+//             onClick={() => handleSchedule(row)}
+//             className="flex items-center justify-center space-x-1 px-2 py-1 text-xs text-white bg-[#741CDD] rounded hover:bg-[#5f17b8]"
+//           >
+//             <CalendarClock size={12} />
+//             <span>Schedule Report</span>
+//           </button>
+//         </div>
+//       ),
+//     },
+//   ];
+
+//   const renderContent = () => {
+//     // Show loading on initial fetch only
+//     if (status === "loading" && reports.length === 0) {
+//       return <p className="text-center p-10">Loading reports...</p>;
+//     }
+//     if (status === "failed") {
+//       return <p className="text-center p-10 text-red-500">Error: {error}</p>;
+//     }
+//     return (
+//       <>
+//         <Table
+//           data={reports}
+//           columns={columns}
+//           showSearch={false}
+//           showPagination={false} // Disable internal table pagination
+//         />
+//         <Pagination
+//           currentPage={currentPage}
+//           totalPages={totalPages}
+//           totalItems={totalItems}
+//           itemsPerPage={itemsPerPage}
+//           onPageChange={handlePageChange}
+//         />
+//       </>
+//     );
+//   };
+
+//   return (
+//     <div className="p-8 bg-gray-50 min-h-screen">
+//       {view === "table" ? (
+//         <>
+//           <div className="flex justify-between items-center mb-6">
+//             <h1 className="text-3xl font-bold text-gray-800">All Reports</h1>
+//             <p className="text-sm text-gray-500">
+//               <Link to="/reports/all">Reports</Link> /{" "}
+//               <Link to="/reports/all">Standard Report</Link> / All Reports
+//             </p>
+//           </div>
+//           <div className="bg-white p-6 rounded-lg shadow-sm">
+//             {renderContent()}
+//           </div>
+//         </>
+//       ) : (
+//         <ScheduleReport
+//           reportName={selectedReport?.name || ""}
+//           reportId={selectedReport?.id || ""}
+//           onCancel={() => setView("table")}
+          
+//         />
+//       )}
+
+//       <AlertModal
+//         isOpen={isDeleteModalOpen}
+//         onClose={() => setIsDeleteModalOpen(false)}
+//         onConfirm={confirmDelete}
+//         title="Remove Report"
+//         icon={<X size={32} className="text-red-500" />}
+//       >
+//         <p>Are you sure you want to remove this report?</p>
+//       </AlertModal>
+//     </div>
+//   );
+// };
+
+// export default AllReports;
+import React, { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Play, CalendarClock, Trash2, X } from "lucide-react";
+import toast from "react-hot-toast"; // New: Import toast
+
+// --- COMPONENT IMPORTS ---
+import Table, { type Column } from "../../../components/common/Table";
 import ScheduleReport from "./ScheduleReport";
-import AlertModal from "../../../components/Modal/AlertModal"; // 2. Import the AlertModal component
+import AlertModal from "../../../components/Modal/AlertModal";
 
-// Define the type for our report data
-interface Report {
-  s_no: number;
-  name: string;
-  description: string;
-}
+// --- REDUX IMPORTS ---
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../../store/store";
+import {
+  fetchAllReports,
+  deleteReport,
+  type Report,
+} from "../../../store/slice/reportSlice";
 
-// Generate some mock data for the table
-const mockReports: Report[] = Array.from({ length: 30 }, (_, i) => ({
-  s_no: 5416 + i * 101,
-  name: i % 3 === 0 ? "Employee Snapshot" : "Payslip Summary Report",
-  description:
-    i % 2 === 0
-      ? "Get all useful detail for all employees with multiple filter you can download this as Excel and PDF also"
-      : "Use this report to check employees In and Out time with number of hours worked",
-}));
+// --- PAGINATION COMPONENT ---
+const Pagination: React.FC<{
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
+  if (totalPages <= 1) return null;
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  return (
+    <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-700">
+      <span>
+        Showing {startItem} to {endItem} of {totalItems} items
+      </span>
+      <div className="flex space-x-1">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-1 border rounded ${
+              currentPage === page
+                ? "bg-[#741CDD] text-white"
+                : "bg-white hover:bg-gray-100"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const AllReports: React.FC = () => {
-  // State for the page view (table vs. schedule form)
+  const dispatch = useDispatch<AppDispatch>();
+  const { reports, status, error, totalPages, totalItems } = useSelector(
+    (state: RootState) => state.reports
+  );
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const [itemsPerPage] = useState(10);
+
+  useEffect(() => {
+    dispatch(fetchAllReports({ page: currentPage, limit: itemsPerPage }));
+  }, [dispatch, currentPage, itemsPerPage]);
+
+  // New: useEffect to show a toast for any data fetching errors.
+  useEffect(() => {
+    if (status === "failed" && error) {
+      toast.error(error, { className: "bg-red-50 text-red-800" });
+    }
+  }, [status, error]);
+
   const [view, setView] = useState<"table" | "schedule">("table");
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-
-  // 3. Add state for the delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
 
-  const handleRun = (id: number) => alert(`Running report ${id}`);
-  const handleEdit = (id: number) => alert(`Editing template for report ${id}`);
+  // Modified: Replaced alerts with toasts for placeholder actions.
+  const handleRun = (id: string) =>
+    toast.success(`Running report ${id}...`, {
+      icon: "🚀",
+      className: "bg-blue-50 text-blue-800",
+    });
+  const handleEdit = (id: string) =>
+    toast("Opening template editor...", {
+      icon: "📝",
+      className: "bg-blue-50 text-blue-800",
+    });
 
-  // This function now opens the delete modal
   const handleDeleteClick = (report: Report) => {
     setReportToDelete(report);
     setIsDeleteModalOpen(true);
   };
 
-  // This function is called when the user confirms the deletion
-  const confirmDelete = () => {
-    if (reportToDelete) {
-      alert(`Report "${reportToDelete.name}" has been removed.`);
-      // In a real application, you would make an API call here to delete the data
+  // Modified: confirmDelete is now async and uses a full toast feedback loop.
+  const confirmDelete = async () => {
+    if (!reportToDelete) return;
+
+    const toastId = toast.loading("Deleting report...");
+    try {
+      await dispatch(deleteReport(reportToDelete.id)).unwrap();
+      toast.success(`Report "${reportToDelete.name}" deleted successfully.`, {
+        id: toastId,
+        className: "bg-green-50 text-green-800",
+      });
+      dispatch(fetchAllReports({ page: currentPage, limit: itemsPerPage }));
+    } catch (err: any) {
+      console.error("Failed to delete report:", err);
+      toast.error(err.message || "Failed to delete report.", {
+        id: toastId,
+        className: "bg-red-50 text-red-800",
+      });
+    } finally {
+      setIsDeleteModalOpen(false);
+      setReportToDelete(null);
     }
-    setIsDeleteModalOpen(false); // Close the modal
-    setReportToDelete(null); // Clear the selected report
   };
 
   const handleSchedule = (report: Report) => {
@@ -57,14 +381,22 @@ const AllReports: React.FC = () => {
     setView("schedule");
   };
 
+  // Modified: handleFormSubmit now provides a success toast.
   const handleFormSubmit = (formData: any) => {
-    alert("Form submitted! Check the console for the data.");
     console.log(formData);
+    toast.success("Report scheduled successfully!", {
+      className: "bg-green-50 text-green-800",
+    });
     setView("table");
   };
 
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({ page: String(newPage) });
+    window.scrollTo(0, 0);
+  };
+
   const columns: Column<Report>[] = [
-    { key: "s_no", header: "S no.", className: "w-1/12" },
+    { key: "Snum", header: "S no.", className: "w-1/12" },
     { key: "name", header: "Name", className: "w-2/12" },
     {
       key: "description",
@@ -78,32 +410,28 @@ const AllReports: React.FC = () => {
       render: (row) => (
         <div className="flex items-center space-x-1">
           <button
-            onClick={() => handleRun(row.s_no)}
-            className="flex items-center justify-center space-x-1 px-2 py-1 text-xs text-white bg-[#741CDD] rounded hover:bg-[#5f17b8] transition-colors cursor-pointer"
+            onClick={() => handleRun(row.id)}
+            className="flex items-center justify-center space-x-1 px-2 py-1 text-xs text-white bg-[#741CDD] rounded hover:bg-[#5f17b8]"
           >
             <Play size={12} />
             <span>Run</span>
           </button>
-
-          {/* 4. Update the onClick handler for the delete button */}
           <button
             onClick={() => handleDeleteClick(row)}
-            className="flex items-center justify-center px-2 py-1 text-xs text-white bg-red-500 rounded hover:bg-red-600 transition-colors cursor-pointer"
+            className="flex items-center justify-center px-2 py-1 text-xs text-white bg-red-500 rounded hover:bg-red-600"
           >
             <Trash2 size={12} className="mr-1" />
             <span>Delete</span>
           </button>
-
           <button
-            onClick={() => handleEdit(row.s_no)}
-            className="flex items-center justify-center px-2 py-1 text-xs text-[#741CDD] bg-white border border-[#741CDD] rounded hover:bg-[#741CDD]/10 transition-colors cursor-pointer"
+            onClick={() => handleEdit(row.id)}
+            className="flex items-center justify-center px-2 py-1 text-xs text-[#741CDD] bg-white border border-[#741CDD] rounded hover:bg-[#741CDD]/10"
           >
             <span>Edit Template</span>
           </button>
-
           <button
             onClick={() => handleSchedule(row)}
-            className="flex items-center justify-center space-x-1 px-2 py-1 text-xs text-white bg-[#741CDD] rounded hover:bg-[#5f17b8] transition-colors cursor-pointer"
+            className="flex items-center justify-center space-x-1 px-2 py-1 text-xs text-white bg-[#741CDD] rounded hover:bg-[#5f17b8]"
           >
             <CalendarClock size={12} />
             <span>Schedule Report</span>
@@ -112,6 +440,37 @@ const AllReports: React.FC = () => {
       ),
     },
   ];
+
+  const renderContent = () => {
+    if (status === "loading" && reports.length === 0) {
+      return <p className="text-center p-10">Loading reports...</p>;
+    }
+    // Modified: Removed inline error display as toasts now handle it.
+    if (status === "failed") {
+      return (
+        <p className="text-center p-10 text-gray-500">
+          Could not load reports. Please try again.
+        </p>
+      );
+    }
+    return (
+      <>
+        <Table
+          data={reports}
+          columns={columns}
+          showSearch={false}
+          showPagination={false}
+        />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+        />
+      </>
+    );
+  };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
@@ -125,24 +484,17 @@ const AllReports: React.FC = () => {
             </p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <Table
-              data={mockReports}
-              columns={columns}
-              showSearch={false}
-              defaultItemsPerPage={10}
-              itemsPerPageOptions={[5, 10, 15, 20]}
-            />
+            {renderContent()}
           </div>
         </>
       ) : (
         <ScheduleReport
           reportName={selectedReport?.name || ""}
+          reportId={selectedReport?.id || ""}
           onCancel={() => setView("table")}
-          onSubmit={handleFormSubmit}
+          onSubmit={handleFormSubmit} // Modified: Pass the submit handler
         />
       )}
-
-      {/* 5. Render the AlertModal at the end */}
       <AlertModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

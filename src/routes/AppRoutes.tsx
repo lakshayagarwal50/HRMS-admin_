@@ -130,6 +130,9 @@ const PaymentSalary = lazy(
 const PaymentTds = lazy(
   () => import("../features/payments/TDS/pages/TDS")
 );
+const Form16 = lazy(
+  () => import("../features/payroll/pages/Form16")
+);
 
 const AppRoutes = () => (
   <Suspense
@@ -167,6 +170,7 @@ const AppRoutes = () => (
             /> //create payslip
           }
         />
+        
         <Route
           path="/employees/list/detail/:employeeCode/:employeeId"
           element={<EmployeeDetailPage />}
@@ -292,6 +296,7 @@ const AppRoutes = () => (
         <Route path="/payroll/list" element={<PayrollList />} />
         <Route path="/payroll/crystal" element={<CrystalRunPage />} />
         <Route path="/payroll/crystal" element={<CrystalRunPage />} />
+          <Route path="/payroll/upload-form16" element ={<Form16/>}/>
         <Route path="/payroll/generate" element={<GeneratePayslipLayout />}>
           {/* These are the nested child routes for each individual step */}
           <Route path="ctc" element={<CtcStepPage />} />

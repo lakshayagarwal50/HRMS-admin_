@@ -1327,20 +1327,32 @@ export const updateResourceAllocation = createAsyncThunk(
   }
 );
 
+// export const releaseResource = createAsyncThunk(
+//   "project/releaseResource",
+//   async (resourceId: string, { rejectWithValue }) => {
+//     try {
+//       await projectApi.updateResourceAllocationApi(resourceId, {
+//         isDeleted: true,
+//       });
+//       return { resourceId };
+//     } catch (error) {
+//       return rejectWithValue(getErrorMessage(error));
+//     }
+//   }
+// );
+
 export const releaseResource = createAsyncThunk(
   "project/releaseResource",
   async (resourceId: string, { rejectWithValue }) => {
     try {
-      await projectApi.updateResourceAllocationApi(resourceId, {
-        isDeleted: true,
-      });
-      return { resourceId };
+      // Yahaan hum naye API function ko call kar rahe hain
+      const response = await projectApi.releaseResourceApi(resourceId);
+      return response; // API se mila response return karein
     } catch (error) {
       return rejectWithValue(getErrorMessage(error));
     }
   }
 );
-
 // ### Slice ###
 const projectSlice = createSlice({
   name: "project",
