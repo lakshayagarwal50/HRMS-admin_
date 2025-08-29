@@ -18,9 +18,9 @@ import { Users, FileText, Landmark, Wallet } from 'lucide-react';
 // Data definitions (in a real app, this would come from an API)
 const summaryCards: SummaryCardData[] = [
   { icon: Users, iconColor: "text-[#ffb11b]", title: "Active Employees", value: "150" },
-  { icon: FileText, iconColor: "text-[#3c00f2]", title: "Payslip Count", value: "1,200" },
-  { icon: Landmark, iconColor: "text-[#0ea5e9]", title: "Gross Paid 2024", value: "₹5,000,000" },
-  { icon: Wallet, iconColor: "text-[#22c55e]", title: "Net Paid 2024", value: "₹4,200,000" },
+  { icon: FileText, iconColor: "text-[#3c00f2]", title: "Payslip Count", value: "120" },
+  { icon: Landmark, iconColor: "text-[#0ea5e9]", title: "Gross Paid 2024", value: "₹80,000" },
+  { icon: Wallet, iconColor: "text-[#22c55e]", title: "Net Paid 2024", value: "₹50,000" },
 ];
 
 const notifications: Notification[] = [

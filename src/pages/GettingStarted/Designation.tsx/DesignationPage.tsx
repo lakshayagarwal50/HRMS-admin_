@@ -67,7 +67,7 @@ const DesignationPage: React.FC = () => {
   const [alertData, setAlertData] = useState<{
     isOpen: boolean;
     designation: Designation | null;
-    actionType: 'inactive' | 'active' | null;
+    actionType: 'active' | 'inactive' | null;
   }>({
     isOpen: false,
     designation: null,
@@ -131,11 +131,11 @@ const DesignationPage: React.FC = () => {
           </button>
           {activeDropdown === row.id && (
             <div ref={dropdownRef} className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-20">
-              <a href="#" onClick={(e) => { e.preventDefault(); handleEditClick(row); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
+              <button onClick={() => handleEditClick(row)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</button>
               {row.status === 'active' ? (
-                <a href="#" onClick={(e) => { e.preventDefault(); handleStatusChangeClick(row, 'inactive'); }} className="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100">Inactive</a>
+                <button onClick={() => handleStatusChangeClick(row, 'inactive')} className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100">Inactive</button>
               ) : (
-                <a href="#" onClick={(e) => { e.preventDefault(); handleStatusChangeClick(row, 'active'); }} className="block px-4 py-2 text-sm text-green-700 hover:bg-gray-100">Active</a>
+                <button onClick={() => handleStatusChangeClick(row, 'active')} className="block w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-gray-100">Active</button>
               )}
             </div>
           )}

@@ -39,6 +39,9 @@ import createEmployeeReducer from "./slice/createEmployeeSlice";
 import roleReducer from './slice/roleSlice';
 import notificationReducer from "./slice/notificationSlice"
 import eventsReducer from './slice/eventsSlice'
+import employeeRatingDetailReducer from "./slice/employeeRatingDetailSlice";
+import dashboardReducer from './slice/dashboardSlice'
+
 
 export const store = configureStore({
   reducer: {
@@ -80,6 +83,8 @@ export const store = configureStore({
     roles: roleReducer, 
     notifications: notificationReducer, 
     events: eventsReducer, 
+    employeeRatingDetail: employeeRatingDetailReducer,
+    dashboard: dashboardReducer,
   },
 });
 

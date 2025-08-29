@@ -211,7 +211,10 @@ const AppRoutes = () => (
           path="/rating/employees rating"
           element={<EmployeesRatingPage />}
         />
-        <Route path="/rating/detail/:id" element={<ViewRatingDetailPage />} />
+       <Route 
+  path="/rating/detail/:employeeId/:year" 
+  element={<ViewRatingDetailPage />} 
+/>
         <Route path="/reports/all" element={<AllReports />} />
         <Route path="/reports/create" element={<CreateReports />} />
         <Route path="/reports/scheduled" element={<ScheduledReports />} />

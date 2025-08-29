@@ -1,84 +1,12 @@
-// import React from 'react';
-// import { ChevronRight } from 'lucide-react';
-// import { Link, useParams } from 'react-router-dom';
-
-// // --- Component Imports ---
-// import AverageRating from '../../components/Rating/AverageRating'; // Adjust path if needed
-// import MonthlyPerformanceCalendar from '../../components/Rating//MonthlyPerformanceCalendar'; // Adjust path if needed
-
-// // --- Reusable Info Field Component ---
-// const InfoField: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-//     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-//         <label className="block text-xs font-medium text-gray-500">{label}</label>
-//         <p className="text-md font-semibold text-gray-900">{value}</p>
-//     </div>
-// );
-
-// // --- MAIN PAGE COMPONENT ---
-// const ViewRatingDetailPage: React.FC = () => {
-//   // In a real app, you would use the ID to fetch employee data
-//   const { employeeId } = useParams<{ employeeId: string }>();
-
-//   // Mock data for the employee
-//   const employeeData = {
-//       name: 'Nakul Seshadri',
-//       designation: 'Designer',
-//       department: 'Designing',
-//       experience: '5.5 Yrs'
-//   };
-
-//   return (
-//     <div className="w-full space-y-6">
-//       {/* Page Header */}
-//       <header>
-//         <div className="flex justify-between items-center flex-wrap gap-4">
-//           <div>
-//             <h1 className="text-2xl font-bold text-gray-900">Rating</h1>
-//             <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
-//               <Link to="/dashboard" className="hover:text-gray-700">Dashboard</Link>
-//               <ChevronRight size={16} className="mx-1" />
-//               <Link to="/rating" className="hover:text-gray-700">Rating</Link>
-//               <ChevronRight size={16} className="mx-1" />
-//               <Link to="/rating/employees rating" className="hover:text-gray-700">Employees rating</Link>
-//               <ChevronRight size={16} className="mx-1" />
-//               <span className="font-medium text-gray-800">View details</span>
-//             </nav>
-//           </div>
-//         </div>
-//       </header>
-
-//       {/* Main Content Area */}
-//       <main className="space-y-6">
-//         {/* Employee Info Section */}
-//         <div className="bg-white p-6 rounded-lg shadow-md">
-//             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-//                 <InfoField label="Name:" value={employeeData.name} />
-//                 <InfoField label="Designation" value={employeeData.designation} />
-//                 <InfoField label="Department" value={employeeData.department} />
-//                 <InfoField label="Experience" value={employeeData.experience} />
-//             </div>
-//         </div>
-
-//         {/* Average Rating Component */}
-//         <AverageRating />
-
-//         {/* Monthly Performance Calendar Component */}
-//         <MonthlyPerformanceCalendar />
-//       </main>
-//     </div>
-//   );
-// };
-
-// export default ViewRatingDetailPage;
-
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { ChevronRight, ChevronDown, ArrowRight, ServerCrash } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store/store';
-import { fetchEmployeeRatingById, clearSelectedRating } from '../../store/slice/employeesRatingSlice';
-import RatingModal from '../../components/Modal/RatingModal'; // Adjust path if needed
+// Updated imports to use the new slice
+import { fetchEmployeeRatingDetail, clearDetail } from '../../store/slice/employeeRatingDetailSlice'; 
+import EditRatingModal from '../../components/Modal/EditRatingModal'; // Adjust path
+import { RatingModal } from '../../components/Modal/RatingModal';
 
 // --- UI State Components ---
 const LoadingSkeleton: React.FC = () => (
@@ -115,44 +43,50 @@ const MonthCard: React.FC<{ month: { name: string; score: number }; onViewRating
 
 // --- MAIN PAGE COMPONENT ---
 const ViewRatingDetailPage: React.FC = () => {
-  const { employeeId } = useParams<{ employeeId: string }>();
+  const { employeeId, year } = useParams<{ employeeId: string, year: string }>();
   const dispatch = useDispatch<AppDispatch>();
-  const { selectedRating, selectedStatus, error } = useSelector((state: RootState) => state.employeesRating);
+  // Corrected: Select state from the new 'employeeRatingDetail' slice
+  const { data: ratingDetail, status, error } = useSelector((state: RootState) => state.employeeRatingDetail);
   
-  const [selectedYear, setSelectedYear] = useState('2025');
+  const [selectedYear, setSelectedYear] = useState(year || '2025');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedMonthData, setSelectedMonthData] = useState<{ name: string; score: number } | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedMonthData, setSelectedMonthData] = useState<any>(null);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
 
   useEffect(() => {
     if (employeeId) {
-      alert(employeeId)
-      dispatch(fetchEmployeeRatingById({ employeeId, year: selectedYear }));
+      // Corrected: Dispatch the correct thunk with both parameters
+      dispatch(fetchEmployeeRatingDetail({ employeeId, year: selectedYear }));
     }
     // Clear the selected rating when the component unmounts
     return () => {
-        dispatch(clearSelectedRating());
+        dispatch(clearDetail());
     }
   }, [dispatch, employeeId, selectedYear]);
 
-  const handleViewRatingClick = (month: { name: string; score: number }) => {
-    setSelectedMonthData(month);
-    setIsModalOpen(true);
+  const handleViewRatingClick = (monthName: string) => {
+    const monthData = ratingDetail?.ratings[monthName];
+    if (monthData) {
+        setSelectedMonthData({ name: `${monthName} ${selectedYear}`, data: monthData });
+        setIsModalOpen(true);
+    }
   };
   
-  // Memoize derived data to prevent recalculations
+  const handleEditClick = (project: any) => {
+      setSelectedProject(project);
+      setIsModalOpen(false); // Close the view modal
+      setIsEditModalOpen(true);
+  };
+
   const { averageSkills, monthlyPerformance } = useMemo(() => {
-    const ratings = selectedRating?.ratings || {};
+    const ratings = ratingDetail?.ratings || {};
     const skillTotals: { [key: string]: { total: number; count: number } } = {};
     const monthlyPerformanceData: { name: string; score: number }[] = [];
 
-    // Iterate over each month in the ratings object (e.g., "January", "February")
     for (const monthName in ratings) {
         const monthData = ratings[monthName];
-        
-        // Add to monthly performance data
-        monthlyPerformanceData.push({ name: `${monthName} ${selectedYear}`, score: monthData.monthlyAverage || 0 });
-
-        // Aggregate skill scores
+        monthlyPerformanceData.push({ name: monthName, score: monthData.monthlyAverage || 0 });
         monthData.projects?.forEach((project: any) => {
             for (const skillName in project.scores) {
                 if (!skillTotals[skillName]) {
@@ -164,29 +98,28 @@ const ViewRatingDetailPage: React.FC = () => {
         });
     }
     
-    // Calculate the average for each skill
     const averageSkillsData = Object.entries(skillTotals).map(([name, data]) => ({
-        name: name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()), // Format camelCase to Title Case
+        name: name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
         score: data.total / data.count,
     }));
 
     return { averageSkills: averageSkillsData, monthlyPerformance: monthlyPerformanceData };
-  }, [selectedRating, selectedYear]);
+  }, [ratingDetail]);
 
 
   const renderContent = () => {
-    if (selectedStatus === 'loading' || selectedStatus === 'idle') return <LoadingSkeleton />;
-    if (selectedStatus === 'failed') return <ErrorState message={error} />;
-    if (!selectedRating) return <NotFoundState />;
+    if (status === 'loading' || status === 'idle') return <LoadingSkeleton />;
+    if (status === 'failed') return <ErrorState message={error} />;
+    if (!ratingDetail) return <NotFoundState />;
 
     return (
         <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <InfoField label="Name:" value={selectedRating.employee} />
-                    <InfoField label="Designation" value={selectedRating.designation} />
-                    <InfoField label="Department" value={selectedRating.department} />
-                    <InfoField label="Experience" value={`${selectedRating.yearOfExperience} Yrs`} />
+                    <InfoField label="Name:" value={ratingDetail.empName} />
+                    <InfoField label="Designation" value={ratingDetail.designation} />
+                    <InfoField label="Department" value={ratingDetail.department} />
+                    <InfoField label="Experience" value={`${ratingDetail.yearOfExperience} Yrs`} />
                 </div>
             </div>
 
@@ -196,7 +129,7 @@ const ViewRatingDetailPage: React.FC = () => {
                     <span className="text-sm text-gray-500">January {selectedYear} - Till Now</span>
                 </div>
                 <div className="flex flex-col md:flex-row items-center gap-8">
-                    <div className="flex-shrink-0 w-32 h-32 bg-purple-100 text-purple-700 font-extrabold text-5xl rounded-full flex items-center justify-center">{selectedRating.overallAverageRating.toFixed(1)}</div>
+                    <div className="flex-shrink-0 w-32 h-32 bg-purple-100 text-purple-700 font-extrabold text-5xl rounded-full flex items-center justify-center">{ratingDetail.overallAverage.toFixed(1)}</div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-4 w-full">
                         {averageSkills.map(skill => <SkillBadge key={skill.name} name={skill.name} score={skill.score} />)}
                     </div>
@@ -210,7 +143,7 @@ const ViewRatingDetailPage: React.FC = () => {
                 </div>
                 {monthlyPerformance.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        {monthlyPerformance.map(month => <MonthCard key={month.name} month={month} onViewRating={() => handleViewRatingClick(month)} />)}
+                        {monthlyPerformance.map(month => <MonthCard key={month.name} month={month} onViewRating={() => handleViewRatingClick(month.name)} />)}
                     </div>
                 ) : <div className="text-center py-8 text-gray-500">No data for {selectedYear}.</div>}
             </div>
@@ -233,7 +166,20 @@ const ViewRatingDetailPage: React.FC = () => {
       <main>
         {renderContent()}
       </main>
-      <RatingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} month={selectedMonthData?.name || ''} />
+      <RatingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        monthData={selectedMonthData}
+        onEdit={handleEditClick}
+      />
+      <EditRatingModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        ratingData={selectedProject}
+        employeeId={employeeId}
+        year={selectedYear}
+        month={selectedMonthData?.name.split(' ')[0]}
+      />
     </div>
   );
 };

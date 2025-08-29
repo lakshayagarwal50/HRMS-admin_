@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { MoreHorizontal, ChevronRight, SlidersHorizontal, X, ServerCrash, RefreshCw } from 'lucide-react';
+import { MoreHorizontal, ChevronRight, SlidersHorizontal, X, ServerCrash, RefreshCw, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -53,27 +53,35 @@ const EmployeesRatingPage: React.FC = () => {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<RatingFilters | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [selectedYear, setSelectedYear] = useState('2025'); // State for the year selector
 
+  // This effect now re-runs whenever the selected year or filters change
   useEffect(() => {
-    dispatch(fetchEmployeeRatings(null));
-  }, [dispatch]);
+    const filters = {
+        year: selectedYear,
+        department: appliedFilters?.department || undefined,
+    };
+    dispatch(fetchEmployeeRatings(filters));
+  }, [dispatch, selectedYear, appliedFilters]);
 
   const handleApplyFilters = useCallback((filters: RatingFilters) => {
     setAppliedFilters(filters);
-    dispatch(fetchEmployeeRatings({ department: filters.department }));
-  }, [dispatch]);
+    // The useEffect will handle re-fetching
+  }, []);
 
   const handleClearFilters = useCallback(() => {
     setAppliedFilters(null);
-    dispatch(fetchEmployeeRatings(null));
-  }, [dispatch]);
+    // The useEffect will handle re-fetching
+  }, []);
 
   const handleRetry = useCallback(() => {
-      dispatch(fetchEmployeeRatings(appliedFilters ? { department: appliedFilters.department } : null));
-  }, [dispatch, appliedFilters]);
+      const filters = {
+        year: selectedYear,
+        department: appliedFilters?.department || undefined,
+    };
+    dispatch(fetchEmployeeRatings(filters));
+  }, [dispatch, appliedFilters, selectedYear]);
 
-  // The 'columns' array is now memoized without depending on 'activeDropdown'.
-  // This prevents it from being recreated on every dropdown click, fixing the infinite loop.
   const columns = useMemo<Column<EmployeeRating>[]>(() => [
     { key: 'employee', header: 'Employee' },
     { key: 'code', header: 'Code' },
@@ -93,9 +101,10 @@ const EmployeesRatingPage: React.FC = () => {
             <MoreHorizontal size={20} />
           </button>
           {activeDropdown === row.id && (
-            <div ref={dropdownRef} className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-20" onClick={()=>{dispatch(fetchEmployeeRatings("sa",12))}}>
+            <div ref={dropdownRef} className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-20">
+              {/* Corrected: Pass both the employee ID and the selected year in the URL */}
               <Link
-                to={`/rating/detail/${row.id}`}
+                to={`/rating/detail/${row.id}/${selectedYear}`}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 View Detail
@@ -105,7 +114,7 @@ const EmployeesRatingPage: React.FC = () => {
         </div>
       ),
     },
-  ], [activeDropdown]); // The render function will always get the latest activeDropdown state
+  ], [activeDropdown, selectedYear]); // Added selectedYear dependency
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -151,12 +160,21 @@ const EmployeesRatingPage: React.FC = () => {
             <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
               <Link to="/dashboard" className="hover:text-gray-700">Dashboard</Link>
               <ChevronRight size={16} className="mx-1" />
-              <span className="font-medium text-gray-800">Rating</span>
-               <ChevronRight size={16} className="mx-1" />
               <span className="font-medium text-gray-800">Employees rating</span>
             </nav>
           </div>
           <div className="flex items-center gap-4">
+            <div className="relative">
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="appearance-none w-full pl-3 pr-8 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white"
+                >
+                  <option>2024</option>
+                  <option>2025</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            </div>
             <button 
               onClick={() => setIsRequestModalOpen(true)}
               className="px-4 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700">
