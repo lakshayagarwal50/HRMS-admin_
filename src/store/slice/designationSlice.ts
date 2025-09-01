@@ -1,23 +1,28 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import axios, { isAxiosError } from 'axios';
+import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
+import { isAxiosError } from 'axios';
+import { axiosInstance } from '../../services';
 
 // --- CONSTANTS ---
-const API_BASE_URL = 'http://172.50.5.116:3000/api/designations/';
-
-// --- HELPER FUNCTION ---
-/**
- * Retrieves the Firebase ID token from local storage.
- * @returns {string | null} The token or null if not found.
- */
-const getAuthToken = (): string | null => {
-  return localStorage.getItem('accessToken'); // Make sure the key matches what you use in your auth logic
-};
-
+const API_BASE_URL = '/api/designations/';
 
 // --- TYPE DEFINITIONS ---
+
+// This interface matches the exact structure of the objects coming from your API
+interface DesignationFromAPI {
+  id: string;
+  designationName: string; // The API uses this field for the name
+  code: string;
+  description: string;
+  department: string;
+  status: 'active' | 'inactive';
+  createdBy: string;
+  createdAt: string;
+}
+
+// This is the shape of the data that your UI components will use
 export interface Designation {
   id: string;
-  name: string;
+  name: string; // Your UI components use 'name'
   code: string;
   description: string;
   department: string;
@@ -40,21 +45,25 @@ const initialState: DesignationsState = {
   error: null,
 };
 
+// --- DATA TRANSFORMATION ---
+/**
+ * Maps the API data structure to the UI data structure.
+ * This is the key fix: it maps `designationName` from the API to `name` for the UI.
+ */
+const transformApiToUi = (apiData: DesignationFromAPI[]): Designation[] => {
+    return apiData.map(item => ({
+        ...item,
+        name: item.designationName, // Map the name field
+    }));
+};
+
 // --- ASYNC THUNKS ---
 
-/**
- * Fetches all designations from the API.
- */
 export const fetchDesignations = createAsyncThunk('designations/fetchDesignations', async (_, { rejectWithValue }) => {
-  const token = getAuthToken();
-  if (!token) {
-    return rejectWithValue('Authentication token not found.');
-  }
   try {
-    const response = await axios.get(`${API_BASE_URL}get`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data as Designation[];
+    const response = await axiosInstance.get(`${API_BASE_URL}get`);
+    // Apply the transformation to the fetched data
+    return transformApiToUi(response.data as DesignationFromAPI[]);
   } catch (error: unknown) {
     if (isAxiosError(error)) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch designations');
@@ -63,14 +72,8 @@ export const fetchDesignations = createAsyncThunk('designations/fetchDesignation
   }
 });
 
-/**
- * Adds a new designation via the API.
- */
 export const addDesignation = createAsyncThunk('designations/addDesignation', async (newDesignation: NewDesignation, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) {
-      return rejectWithValue('Authentication token not found.');
-    }
+    // Map the UI 'name' back to 'designationName' for the API request
     const apiRequestBody = {
       designationName: newDesignation.name,
       code: newDesignation.code,
@@ -79,9 +82,7 @@ export const addDesignation = createAsyncThunk('designations/addDesignation', as
       status: newDesignation.status,
     };
     try {
-      const response = await axios.post(`${API_BASE_URL}create`, apiRequestBody, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axiosInstance.post(`${API_BASE_URL}create`, apiRequestBody);
       const createdDesignation: Designation = {
         ...newDesignation,
         id: response.data.id,
@@ -98,28 +99,19 @@ export const addDesignation = createAsyncThunk('designations/addDesignation', as
   }
 );
 
-/**
- * Updates an existing designation, including its status.
- */
 export const updateDesignation = createAsyncThunk('designations/updateDesignation', async (designation: Designation, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) {
-      return rejectWithValue('Authentication token not found.');
-    }
     try {
       const { id, name, code, description, department, status } = designation;
       
       const apiRequestBody = {
-        designationName: name,
+        designationName: name, // Map UI 'name' to 'designationName'
         code,
         description,
         department,
         status,
       };
 
-      await axios.put(`${API_BASE_URL}update/${id}`, apiRequestBody, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstance.put(`${API_BASE_URL}update/${id}`, apiRequestBody);
       
       return designation;
     } catch (error: unknown) {
@@ -139,38 +131,13 @@ const designationSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fetch Designations
-      .addCase(fetchDesignations.pending, (state) => {
-        state.status = 'loading';
-        state.error = null;
-      })
       .addCase(fetchDesignations.fulfilled, (state, action: PayloadAction<Designation[]>) => {
         state.status = 'succeeded';
         state.items = action.payload;
       })
-      .addCase(fetchDesignations.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload as string;
-      })
-
-      // Add Designation
-      .addCase(addDesignation.pending, (state) => {
-        state.status = 'loading';
-        state.error = null;
-      })
       .addCase(addDesignation.fulfilled, (state, action: PayloadAction<Designation>) => {
         state.status = 'succeeded';
         state.items.push(action.payload);
-      })
-      .addCase(addDesignation.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload as string;
-      })
-
-      // Update Designation
-      .addCase(updateDesignation.pending, (state) => {
-        state.status = 'loading';
-        state.error = null;
       })
       .addCase(updateDesignation.fulfilled, (state, action: PayloadAction<Designation>) => {
         state.status = 'succeeded';
@@ -179,11 +146,16 @@ const designationSlice = createSlice({
           state.items[index] = action.payload;
         }
       })
-      .addCase(updateDesignation.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload as string;
+      .addMatcher(isPending(fetchDesignations, addDesignation, updateDesignation), (state) => {
+          state.status = 'loading';
+          state.error = null;
+      })
+      .addMatcher(isRejected(fetchDesignations, addDesignation, updateDesignation), (state, action) => {
+          state.status = 'failed';
+          state.error = action.payload as string;
       });
   },
 });
 
 export default designationSlice.reducer;
+

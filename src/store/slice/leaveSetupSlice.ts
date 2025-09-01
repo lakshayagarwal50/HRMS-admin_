@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
-import axios, { isAxiosError } from 'axios';
+import { isAxiosError } from 'axios';
+import { axiosInstance } from '../../services'; // 1. Use axiosInstance
 
-// --- CONSTANTS & HELPERS ---
-const API_BASE_URL = 'http://172.50.5.116:3000/api/leaves/';
-const getAuthToken = (): string | null => localStorage.getItem('accessToken');
+// --- CONSTANTS ---
+const API_BASE_URL = '/api/leaves/';
 
 // --- TYPE DEFINITIONS ---
 // Shape of the data from the API
@@ -61,10 +61,9 @@ const transformUIToAPI = (uiData: NewLeaveSetup | LeaveSetup) => ({
 
 // --- ASYNC THUNKS ---
 export const fetchLeaveSetups = createAsyncThunk('leaveSetups/fetch', async (_, { rejectWithValue }) => {
-  const token = getAuthToken();
-  if (!token) return rejectWithValue('Authentication token not found.');
   try {
-    const response = await axios.get(`${API_BASE_URL}get`, { headers: { Authorization: `Bearer ${token}` } });
+    // 2. Use axiosInstance directly without manual token handling
+    const response = await axiosInstance.get(`${API_BASE_URL}get`);
     return (response.data as LeaveSetupFromAPI[]).map(transformAPIToUI);
   } catch (error) {
     if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to fetch setups');
@@ -73,11 +72,10 @@ export const fetchLeaveSetups = createAsyncThunk('leaveSetups/fetch', async (_, 
 });
 
 export const addLeaveSetup = createAsyncThunk('leaveSetups/add', async (newLeave: NewLeaveSetup, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
     try {
         const apiRequestBody = transformUIToAPI(newLeave);
-        const response = await axios.post(`${API_BASE_URL}create`, apiRequestBody, { headers: { Authorization: `Bearer ${token}` } });
+        // 3. Use axiosInstance for the POST request
+        const response = await axiosInstance.post(`${API_BASE_URL}create`, apiRequestBody);
         // Re-construct the full UI object with the new ID
         return { ...newLeave, id: response.data.result.id, status: 'active' } as LeaveSetup;
     } catch (error) {
@@ -87,11 +85,10 @@ export const addLeaveSetup = createAsyncThunk('leaveSetups/add', async (newLeave
 });
 
 export const updateLeaveSetup = createAsyncThunk('leaveSetups/update', async (leave: LeaveSetup, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
     try {
         const apiRequestBody = transformUIToAPI(leave);
-        await axios.put(`${API_BASE_URL}update/${leave.id}`, apiRequestBody, { headers: { Authorization: `Bearer ${token}` } });
+        // 4. Use axiosInstance for the PUT request
+        await axiosInstance.put(`${API_BASE_URL}update/${leave.id}`, apiRequestBody);
         return leave; // Return the updated object to the reducer
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update leave setup');
@@ -100,10 +97,9 @@ export const updateLeaveSetup = createAsyncThunk('leaveSetups/update', async (le
 });
 
 export const deleteLeaveSetup = createAsyncThunk('leaveSetups/delete', async (id: string, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
     try {
-        await axios.delete(`${API_BASE_URL}delete/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        // 5. Use axiosInstance for the DELETE request
+        await axiosInstance.delete(`${API_BASE_URL}delete/${id}`);
         return id; // Return the ID of the deleted item
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to delete leave setup');

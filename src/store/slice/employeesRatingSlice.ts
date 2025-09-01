@@ -1,11 +1,13 @@
-import { createSlice, createAsyncThunk, } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
 // --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/ratings/get';
+const API_BASE_URL = '/api/ratings/';
 
 // --- TYPE DEFINITIONS ---
+
+// Shape of the raw data coming directly from the API
 interface RatingFromAPI {
   id: string;
   empName: string;
@@ -14,9 +16,29 @@ interface RatingFromAPI {
   designation: string;
   yearOfExperience: number;
   overallAverage: number;
-  ratings?: Record<string, any>; 
+  ratings?: RatingsByMonth; 
 }
 
+export interface Scores {
+    clearGoals: number;
+    accountability: number;
+    teamwork: number;
+    technicalSkills: number;
+    communicationLevels: number;
+    conflictsWellManaged: number;
+}
+export interface ProjectRating {
+    projectName: string;
+    scores: Scores;
+    overallProjectRating: number;
+}
+export interface MonthData {
+    projects: ProjectRating[];
+    monthlyAverage: number;
+}
+export type RatingsByMonth = Record<string, MonthData>;
+
+// This is the clean, transformed shape of the data our UI components will use
 export interface EmployeeRating {
   id: string;
   employee: string;
@@ -25,13 +47,16 @@ export interface EmployeeRating {
   designation: string;
   yearOfExperience: number;
   overallAverageRating: number;
-  ratings?: Record<string, any>;
+  ratings: RatingsByMonth;
 }
 
-export interface RatingFilters {
-  year?: string;
-  employeeId?: string;
-  department?: string;
+export interface UpdateRatingPayload {
+    employeeId: string;
+    year: string;
+    month: string;
+    projectName: string;
+    scores: Scores;
+    areaOfDevelopment?: string;
 }
 
 export interface EmployeesRatingState {
@@ -60,44 +85,44 @@ const transformApiData = (apiData: RatingFromAPI[]): EmployeeRating[] => {
     designation: item.designation,
     yearOfExperience: item.yearOfExperience,
     overallAverageRating: item.overallAverage,
-    ratings: item.ratings,
+    ratings: item.ratings || {},
   }));
 };
 
 // --- ASYNC THUNKS ---
-export const fetchEmployeeRatings = createAsyncThunk(
-    'employeesRating/fetch', 
-    async (filters: RatingFilters | null, { rejectWithValue }) => {
-        try {
-            const token = "YOUR_FIREBASE_ID_TOKEN";
-            const response = await axiosInstance.get(API_BASE_URL, {
-                headers: { Authorization: `Bearer ${token}` },
-                params: filters || {},
-            });
-            return transformApiData(response.data.data as RatingFromAPI[]);
-        } catch (error) {
-            if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message);
-            return rejectWithValue('An unknown error occurred.');
-        }
+export const fetchEmployeeRatings = createAsyncThunk( 'employeesRating/fetch', async (filters: { department?: string; year?: string } | null, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`${API_BASE_URL}get`, { params: filters || {} });
+        return transformApiData(response.data.data);
+    } catch (error) {
+        if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message);
+        return rejectWithValue('An unknown error occurred.');
     }
-);
+});
 
-// This thunk now accepts an object with employeeId and year
-export const fetchEmployeeRatingById = createAsyncThunk(
-    'employeesRating/fetchById',
-    async ({ employeeId, year }: { employeeId: string; year: string }, { rejectWithValue }) => {
+export const fetchEmployeeRatingById = createAsyncThunk( 'employeesRating/fetchById', async ({ employeeId, year }: { employeeId: string; year: string }, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`${API_BASE_URL}get`, { params: { employeeId, year } });
+        const transformedData = transformApiData(response.data.data);
+        return transformedData[0];
+    } catch (error) {
+        if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message);
+        return rejectWithValue('Failed to fetch rating details.');
+    }
+});
+
+export const updateEmployeeRating = createAsyncThunk(
+    'employeesRating/update',
+    async (payload: UpdateRatingPayload, { rejectWithValue, dispatch }) => {
         try {
-            alert("hello")
-            const token = "YOUR_FIREBASE_ID_TOKEN";
-            const response = await axiosInstance.get(API_BASE_URL, {
-                headers: { Authorization: `Bearer ${token}` },
-                params: { employeeId, year }, // Pass both params to the API
-            });
-            const transformedData = transformApiData(response.data.data as RatingFromAPI[]);
-            return transformedData[0];
+            await axiosInstance.put(`${API_BASE_URL}update`, payload);
+            // After a successful update, re-fetch the data to ensure UI is in sync
+            const { employeeId, year } = payload;
+            // We return the result of the fetch thunk so the state is updated with the latest data
+            return await dispatch(fetchEmployeeRatingById({ employeeId, year })).unwrap();
         } catch (error) {
             if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message);
-            return rejectWithValue('Failed to fetch rating details.');
+            return rejectWithValue('Failed to update rating.');
         }
     }
 );
@@ -115,24 +140,39 @@ const employeesRatingSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchEmployeeRatings.pending, (state) => { state.status = 'loading'; })
       .addCase(fetchEmployeeRatings.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.items = action.payload;
-      })
-      .addCase(fetchEmployeeRatings.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload as string;
-      })
-      .addCase(fetchEmployeeRatingById.pending, (state) => {
-          state.selectedStatus = 'loading';
       })
       .addCase(fetchEmployeeRatingById.fulfilled, (state, action) => {
           state.selectedStatus = 'succeeded';
           state.selectedRating = action.payload;
       })
-      .addCase(fetchEmployeeRatingById.rejected, (state, action) => {
-          state.selectedStatus = 'failed';
+      .addCase(updateEmployeeRating.fulfilled, (state, action: PayloadAction<EmployeeRating>) => {
+          state.selectedStatus = 'succeeded';
+          state.selectedRating = action.payload;
+          // Also update the item in the main list if it exists
+          const index = state.items.findIndex(item => item.id === action.payload.id);
+          if (index !== -1) {
+              state.items[index] = action.payload;
+          }
+      })
+      // Use addMatcher for shared pending/rejected logic
+      .addMatcher(isPending(fetchEmployeeRatings, fetchEmployeeRatingById, updateEmployeeRating), (state, action) => {
+          // Differentiate between list loading and detail loading
+          if(action.type.includes('fetchById') || action.type.includes('update')) {
+              state.selectedStatus = 'loading';
+          } else {
+              state.status = 'loading';
+          }
+          state.error = null;
+      })
+      .addMatcher(isRejected(fetchEmployeeRatings, fetchEmployeeRatingById, updateEmployeeRating), (state, action) => {
+          if(action.type.includes('fetchById') || action.type.includes('update')) {
+              state.selectedStatus = 'failed';
+          } else {
+              state.status = 'failed';
+          }
           state.error = action.payload as string;
       });
   },

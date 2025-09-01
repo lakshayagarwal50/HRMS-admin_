@@ -3,7 +3,7 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
 // --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/dashboard/notification/get';
+const API_BASE_URL = '/api/eventNotification/notification/get';
 
 // --- TYPE DEFINITIONS ---
 // This interface now matches the structure of a single record from your API

@@ -1,10 +1,10 @@
 import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
-import axios, { isAxiosError } from 'axios';
+import { isAxiosError } from 'axios';
+import { axiosInstance } from '../../services';
 
 // --- CONSTANTS & HELPERS ---
 // Note the typo in "holidayConfiguraion" to match your API endpoint
-const API_BASE_URL = 'http://172.50.5.116:3000/api/holidayConfiguraion/';
-const getAuthToken = (): string | null => localStorage.getItem('accessToken'); // A better way to get tokens
+const API_BASE_URL = '/api/holidayConfiguraion/';
 
 // --- TYPE DEFINITIONS ---
 // This interface matches the structure of the data from your GET API
@@ -39,12 +39,8 @@ const initialState: HolidayConfigsState = {
  * FETCH: Fetches all holiday configurations from the server.
  */
 export const fetchHolidayConfigurations = createAsyncThunk('holidayConfigs/fetch', async (_, { rejectWithValue }) => {
-  const token = getAuthToken();
-  if (!token) return rejectWithValue('Authentication token not found.');
   try {
-    const response = await axios.get(`${API_BASE_URL}get`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.get(`${API_BASE_URL}get`);
     return response.data as HolidayConfiguration[];
   } catch (error) {
     if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to fetch configurations');
@@ -56,9 +52,6 @@ export const fetchHolidayConfigurations = createAsyncThunk('holidayConfigs/fetch
  * ADD: Creates a new holiday configuration on the server.
  */
 export const addHolidayConfiguration = createAsyncThunk('holidayConfigs/add', async (newConfig: NewHolidayConfiguration, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
-    
     // Map UI data shape to API body shape ("groupName" -> "name")
     const apiRequestBody = {
         name: newConfig.groupName,
@@ -67,7 +60,7 @@ export const addHolidayConfiguration = createAsyncThunk('holidayConfigs/add', as
     };
 
     try {
-        const response = await axios.post(`${API_BASE_URL}create`, apiRequestBody, { headers: { Authorization: `Bearer ${token}` } });
+        const response = await axiosInstance.post(`${API_BASE_URL}create`, apiRequestBody);
         // Construct the full object for the UI with the ID from the response
         return { 
             ...newConfig, 
@@ -85,9 +78,6 @@ export const addHolidayConfiguration = createAsyncThunk('holidayConfigs/add', as
  * UPDATE: Updates an existing holiday configuration on the server.
  */
 export const updateHolidayConfiguration = createAsyncThunk('holidayConfigs/update', async (config: HolidayConfiguration, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
-
     // Map UI data shape to API body shape ("groupName" -> "name")
     const apiRequestBody = {
         name: config.groupName,
@@ -96,7 +86,7 @@ export const updateHolidayConfiguration = createAsyncThunk('holidayConfigs/updat
     };
 
     try {
-        await axios.put(`${API_BASE_URL}update/${config.id}`, apiRequestBody, { headers: { Authorization: `Bearer ${token}` } });
+        await axiosInstance.put(`${API_BASE_URL}update/${config.id}`, apiRequestBody);
         // Return the original updated object to the reducer
         return config;
     } catch (error) {
@@ -109,10 +99,8 @@ export const updateHolidayConfiguration = createAsyncThunk('holidayConfigs/updat
  * DELETE: Deletes a holiday configuration from the server.
  */
 export const deleteHolidayConfiguration = createAsyncThunk('holidayConfigs/delete', async (id: string, { rejectWithValue }) => {
-    const token = getAuthToken();
-    if (!token) return rejectWithValue('Authentication token not found.');
     try {
-        await axios.delete(`${API_BASE_URL}delete/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        await axiosInstance.delete(`${API_BASE_URL}delete/${id}`);
         // Return the ID of the deleted item
         return id;
     } catch (error) {
@@ -156,7 +144,7 @@ const holidayConfigurationSlice = createSlice({
       })
       .addMatcher(isRejected(fetchHolidayConfigurations, addHolidayConfiguration, updateHolidayConfiguration, deleteHolidayConfiguration), (state, action) => {
           state.status = 'failed';
-          state.error = action.error.message || 'Failed to fetch holiday configuration';
+          state.error = action.payload as string;
       });
   },
 });
