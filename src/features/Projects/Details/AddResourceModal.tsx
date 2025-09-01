@@ -163,7 +163,7 @@ const AddResourceModal: React.FC<AddResourceModalProps> = ({ isOpen, onClose, mo
 
   const fields: FormField[] = [
     // In a real app, empCode/name would be a searchable dropdown.
-    { name: "empCode", label: "Employee Code", type: "text", required: true, disabled: mode === 'edit' },
+    { name: "empCode", label: "Emp Code", type: "text", required: true, disabled: mode === 'edit' },
     { name: "name", label: "Resource Name", type: "text", required: true, disabled: mode === 'edit' },
     { name: "department", label: "Department", type: "text", required: true, disabled: mode === 'edit' },
     { name: "designation", label: "Designation", type: "text", required: true, disabled: mode === 'edit' },
@@ -187,16 +187,11 @@ const AddResourceModal: React.FC<AddResourceModalProps> = ({ isOpen, onClose, mo
 
   return (
     <div className="fixed inset-0 flex items-center justify-end z-50 bg-black/50">
-      <div className="bg-white h-full w-full max-w-md shadow-xl p-6 flex flex-col">
-        <header className="flex justify-between items-center border-b pb-4 mb-4">
-          <h2 className="text-xl font-bold text-gray-800">
-            {mode === "add" ? "Add Resource" : "Edit Resource Allocation"}
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-        </header>
+      <div className="bg-white h-full w-full max-w-xl shadow-xl p-6 flex flex-col">
+     
         <div className="flex-grow overflow-y-auto">
           <GenericForm
-            title=""
+            title="Add Resource"
             fields={mode === 'add' ? fields : editFields}
             initialState={initialState}
             onSubmit={handleSubmit}

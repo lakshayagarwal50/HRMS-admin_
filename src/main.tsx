@@ -8,7 +8,7 @@ import { store } from "./store/store.ts";
 import { BrowserRouter } from "react-router-dom";
 import { setupAxiosInterceptors } from "./services/index.ts";
 import { checkAuthStatus } from "./features/auth/authSlice.ts";
-import ErrorBoundary from "./ErrorBoundary.tsx.tsx";
+import ErrorBoundary from "./ErrorBoundary.tsx";
 import { Toaster } from "react-hot-toast";
 // Setup Axios interceptors
 setupAxiosInterceptors(store);
