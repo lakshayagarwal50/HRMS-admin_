@@ -2,7 +2,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MoreVertical, PenSquare, X } from "lucide-react";
 
-// --- Local Imports ---
 import type { EmployeeDetail } from "../../../../store/slice/employeeSlice";
 import type { PreviousJob } from "../../../../store/slice/previousJobSlice";
 import Table, { type Column } from "../../../../components/common/Table";
@@ -36,9 +35,7 @@ const previousJobFormFields: FormField[] = [
   { name: "professionalTax", label: "Professional Tax", type: "number" },
 ];
 
-/**
- * The default state for the form when adding a new job.
- */
+
 const initialJobState: Partial<PreviousJob> = {
   name: "",
   employerAddress: "",
@@ -54,7 +51,7 @@ const initialJobState: Partial<PreviousJob> = {
 
 // --- Child Components ---
 
-// Dropdown menu for actions (No changes needed here)
+
 const ActionCell: React.FC<{
   row: PreviousJob;
   onEdit: (job: PreviousJob) => void;
@@ -115,34 +112,33 @@ const PreviousJobDetails: React.FC<PreviousJobDetailsProps> = ({
   data,
   onSave,
 }) => {
-  // State for controlling the modal's visibility and mode (add vs. edit)
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentJob, setCurrentJob] = useState<PreviousJob | null>(null);
 
-  // Handlers for modal actions
+  
   const handleAddNew = () => {
-    setCurrentJob(null); // No job data means we're in "Add" mode
+    setCurrentJob(null); 
     setIsModalOpen(true);
   };
 
   const handleEdit = (job: PreviousJob) => {
-    setCurrentJob(job); // Passing job data puts us in "Edit" mode
+    setCurrentJob(job); 
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setCurrentJob(null); // Clear state on close
+    setCurrentJob(null); 
   };
 
   const handleFormSubmit = (formData: Record<string, any>) => {
     console.log("Saving job data:", formData);
-    // The `id` of the job being edited is stored in `currentJob`
     onSave(formData, currentJob?.id);
     handleCloseModal();
   };
 
-  // Table column definitions
+  
   const columns = (
     onEdit: (job: PreviousJob) => void
   ): Column<PreviousJob>[] => [
@@ -164,12 +160,12 @@ const PreviousJobDetails: React.FC<PreviousJobDetailsProps> = ({
 
   const previousJobs = data.previous || [];
   const hasJobs = previousJobs && previousJobs.length > 0;
-  const totalColumns = columns(handleEdit); // Use the new handleEdit handler
+  const totalColumns = columns(handleEdit); 
   const isEditing = currentJob !== null;
 
   return (
     <>
-      {/* Main Content Area */}
+      
       <div>
         <SectionHeader
           title="Previous Job Details"
@@ -187,7 +183,7 @@ const PreviousJobDetails: React.FC<PreviousJobDetailsProps> = ({
         )}
       </div>
 
-      {/* Modal and Backdrop */}
+      
       <div
         className={`fixed inset-0 bg-black bg-black/50 z-40 transition-opacity duration-300 ease-in-out ${
           isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -199,7 +195,7 @@ const PreviousJobDetails: React.FC<PreviousJobDetailsProps> = ({
         className={`fixed top-0 right-0 h-full bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isModalOpen ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ width: "min(45%, 700px)" }} // Responsive width for the side panel
+        style={{ width: "min(45%, 700px)" }} 
       >
         {isModalOpen && (
           <GenericForm

@@ -2,12 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Table, { type Column } from "../../../../components/common/Table";
 import AttendanceSummaryReportFilters from "./component/AttendanceSummaryReportFilters";
-// --- CHANGE HERE: Import the actual template component ---
 import AttendanceSummaryReportTemplate from "./component/AttendanceSummaryReportTemplate";
 
-// --- CHANGE HERE: The placeholder component has been removed ---
-
-// (Interface, mockData, and helpers are unchanged)
 interface AttendanceRecord {
   id: number;
   name: string;
@@ -89,12 +85,10 @@ const AttendanceReport: React.FC = () => {
 
   const handleApplyFilters = (filters: any) => {
     console.log("Applying Attendance Report filters:", filters);
-    setIsFilterOpen(false); // Close modal on apply
+    setIsFilterOpen(false); 
   };
 
-  // Conditionally render the template editor
   if (view === "template") {
-    // --- CHANGE HERE: This now calls the imported component ---
     return <AttendanceSummaryReportTemplate onBack={() => setView("report")} />;
   }
 

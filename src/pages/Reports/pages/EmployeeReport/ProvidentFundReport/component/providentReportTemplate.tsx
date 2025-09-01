@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import Table, { type Column } from "../../../../../../components/common/Table"; // Adjust path as needed
+import Table, { type Column } from "../../../../../../components/common/Table"; 
 import { Check } from "lucide-react";
-import Modal from "../../../../../../components/common/NotificationModal"; // Adjust path as needed
+import Modal from "../../../../../../components/common/NotificationModal"; 
 import { Link } from "react-router-dom";
 
-// Define the type for each field in the template
 interface TemplateField {
   id: number;
   s_no: number;
@@ -14,7 +13,6 @@ interface TemplateField {
   isEnabled: boolean;
 }
 
-// Using the same fields as the employee template, as requested
 const initialFields: TemplateField[] = [
   {
     id: 1,

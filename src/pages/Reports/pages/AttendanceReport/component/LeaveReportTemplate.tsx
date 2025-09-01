@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
-import Table, { type Column } from "../../../../../components/common/Table"; // Adjust path as needed
-import Modal from "../../../../../components/common/NotificationModal"; // Adjust path as needed
+import Table, { type Column } from "../../../../../components/common/Table"; 
+import Modal from "../../../../../components/common/NotificationModal"; 
 
-// Define the type for each field in the template
 interface TemplateField {
   id: number;
   s_no: number;
@@ -14,7 +13,7 @@ interface TemplateField {
   isEnabled: boolean;
 }
 
-// Data specific to a Leave Report
+
 const initialFields: TemplateField[] = [
   {
     id: 1,

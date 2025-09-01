@@ -1,13 +1,10 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
-import { axiosInstance } from '../../services'; // Import the centralized instance
+import { axiosInstance } from '../../services'; 
 import { fetchEmployeeDetails } from './employeeSlice';
 
-// The base path for employee-related API calls
 const API_BASE_PATH = '/employees';
 
-// --- TYPE DEFINITIONS ---
-// (Interfaces remain unchanged)
 export interface PreviousJob {
   id: string;
   name: string;
@@ -59,9 +56,7 @@ const initialState: PreviousJobState = {
   error: null,
 };
 
-// --- ASYNC THUNKS ---
 
-// Async thunk for adding a new previous job
 export const addPreviousJob = createAsyncThunk<
   void,
   { empId: string; employeeCode: string; jobData: CreatePreviousJobPayload },
@@ -70,7 +65,6 @@ export const addPreviousJob = createAsyncThunk<
   'previousJob/addPreviousJob',
   async ({ empId, employeeCode, jobData }, { dispatch, rejectWithValue }) => {
     try {
-      // Use axiosInstance; auth headers are handled by the interceptor.
       await axiosInstance.post(`${API_BASE_PATH}/proviousJob/${empId}`, jobData);
       dispatch(fetchEmployeeDetails(employeeCode));
     } catch (error: unknown) {
@@ -82,7 +76,6 @@ export const addPreviousJob = createAsyncThunk<
   }
 );
 
-// Async thunk for editing an existing previous job
 export const editPreviousJob = createAsyncThunk<
   void,
   { empId: string; employeeCode: string; payload: EditPreviousJobPayload },
@@ -102,7 +95,6 @@ export const editPreviousJob = createAsyncThunk<
   }
 );
 
-// --- SLICE DEFINITION ---
 const previousJobSlice = createSlice({
   name: 'previousJob',
   initialState,

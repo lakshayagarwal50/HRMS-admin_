@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X, Rocket, Trash2 } from "lucide-react";
 
-// Define the shape of the filters state
+
 interface AttendanceFilters {
   name: string;
   status: "Active" | "Inactive";
@@ -15,7 +15,7 @@ interface AttendanceFilters {
   dateTo: string;
 }
 
-// Props for the component
+
 interface AttendanceSummaryReportFiltersProps {
   isOpen: boolean;
   onClose: () => void;
@@ -53,7 +53,7 @@ const AttendanceSummaryReportFilters: React.FC<
 
   return (
     <>
-      {/* Overlay */}
+      
       <div
         className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -62,14 +62,14 @@ const AttendanceSummaryReportFilters: React.FC<
         aria-hidden="true"
       ></div>
 
-      {/* Sidebar */}
+      
       <div
         className={`fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-xl z-50 transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
+          
           <div className="flex justify-between items-center p-6 border-b">
             <h2 className="text-xl font-semibold text-gray-800">
               Attendance Summary Report Filters
@@ -101,7 +101,7 @@ const AttendanceSummaryReportFilters: React.FC<
               <h3 className="font-semibold text-gray-600">Field</h3>
               <h3 className="font-semibold text-gray-600">Filter Value</h3>
 
-              {/* Form Fields from screenshot */}
+              
               {[
                 "Name",
                 "Designation",
