@@ -13,7 +13,6 @@ const initialState: YearlyAttendanceState = {
   error: null,
 };
 
-// Async thunk to fetch yearly attendance
 export const fetchYearlyAttendance = createAsyncThunk(
   "yearlyAttendance/fetchYearlyAttendance",
   async ({ year, empCode }: { year: number; empCode: string }, { rejectWithValue }) => {

@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSalaryComponents } from "../../../../store/slice/salarySlice"; // Adjust path as needed
-import type { AppDispatch, RootState } from "../../../../store/store"; // Adjust path as needed
+import { fetchSalaryComponents } from "../../../../store/slice/salarySlice";
+import type { AppDispatch, RootState } from "../../../../store/store"; 
 
-// Import your shared SectionHeader
+
 import { SectionHeader } from "../common/DetailItem";
 
-// Define the shape of a single component item
+
 interface ComponentItem {
   name: string;
   code: string;
@@ -14,7 +14,7 @@ interface ComponentItem {
   amount: string;
 }
 
-// Flexible interface to handle any key from the API
+
 interface SalaryComponents {
   [key: string]: ComponentItem[];
 }
@@ -23,7 +23,7 @@ interface SalaryDistributionProps {
   groupname: string;
 }
 
-// Format titles (EARNING → Earnings, STATUTORIES → Statutory Deductions, etc.)
+
 const formatTitle = (key: string): string => {
   if (!key) return "";
   const formatted = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
@@ -56,7 +56,7 @@ const SalaryDistribution: React.FC<SalaryDistributionProps> = ({
 
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        {/* Section title bar (kept purple like you had) */}
+        
         <div className="bg-purple-50 text-purple-800 font-semibold px-4 py-3 border-b border-purple-200">
           {title}
         </div>
@@ -138,7 +138,7 @@ const SalaryDistribution: React.FC<SalaryDistributionProps> = ({
 
   return (
     <div>
-      {/* ✅ Page Title, consistent with other detail sections */}
+      
       <SectionHeader title="Salary Distribution" action={null} />
 
       <div className="mt-4">{renderContent()}</div>

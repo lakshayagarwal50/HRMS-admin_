@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X, Play, Download } from "lucide-react";
 
-// Define the shape of the filters state
+
 interface LeaveFilters {
   name: string;
   status: "Active" | "Inactive";
@@ -11,7 +11,7 @@ interface LeaveFilters {
   dateTo: string;
 }
 
-// Props for the component
+
 interface LeaveReportFiltersProps {
   isOpen: boolean;
   onClose: () => void;
@@ -47,7 +47,7 @@ const LeaveReportFilters: React.FC<LeaveReportFiltersProps> = ({
 
   return (
     <>
-      {/* Overlay */}
+     
       <div
         className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -56,14 +56,14 @@ const LeaveReportFilters: React.FC<LeaveReportFiltersProps> = ({
         aria-hidden="true"
       ></div>
 
-      {/* Sidebar */}
+     
       <div
         className={`fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-xl z-50 transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
+          
           <div className="flex justify-between items-center p-6 border-b">
             <h2 className="text-xl font-semibold text-gray-800">
               Leave Report Filters
@@ -76,7 +76,7 @@ const LeaveReportFilters: React.FC<LeaveReportFiltersProps> = ({
             </button>
           </div>
 
-          {/* Action Buttons Section */}
+         
           <div className="flex justify-end items-center space-x-2 p-4 border-b">
             <button
               onClick={handleRunClick}
@@ -91,13 +91,13 @@ const LeaveReportFilters: React.FC<LeaveReportFiltersProps> = ({
             </button>
           </div>
 
-          {/* Form Body */}
+          
           <div className="p-6 overflow-y-auto flex-grow">
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
               <h3 className="font-semibold text-gray-600">Field</h3>
               <h3 className="font-semibold text-gray-600">Filter Value</h3>
 
-              {/* Name */}
+             
               <label className="text-sm text-gray-700 self-center">Name</label>
               <select
                 name="name"
@@ -108,7 +108,7 @@ const LeaveReportFilters: React.FC<LeaveReportFiltersProps> = ({
                 <option value="">Choose</option>
               </select>
 
-              {/* Status */}
+             
               <label className="text-sm text-gray-700 self-center">
                 Status
               </label>
@@ -137,7 +137,7 @@ const LeaveReportFilters: React.FC<LeaveReportFiltersProps> = ({
                 </label>
               </div>
 
-              {/* Leave Type */}
+              
               <label className="text-sm text-gray-700 self-center">
                 Leave Type
               </label>
@@ -152,7 +152,7 @@ const LeaveReportFilters: React.FC<LeaveReportFiltersProps> = ({
                 <option value="Casual">Casual Leave</option>
               </select>
 
-              {/* Date */}
+              
               <label className="text-sm text-gray-700 self-center">Date</label>
               <div className="grid grid-cols-3 gap-2">
                 <select

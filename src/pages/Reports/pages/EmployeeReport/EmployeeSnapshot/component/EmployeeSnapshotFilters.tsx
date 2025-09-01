@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { X, Play, Download, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
-import Modal from "../../../../../../components/common/NotificationModal"; // Adjust path
+import Modal from "../../../../../../components/common/NotificationModal"; 
 
-// --- Redux Imports ---
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../../../../../../store/store"; // Adjust path
-import { fetchDepartments } from "../../../../../../store/slice/departmentSlice"; // Adjust path
+import type { AppDispatch, RootState } from "../../../../../../store/store"; 
+import { fetchDepartments } from "../../../../../../store/slice/departmentSlice"; 
 import {
   fetchEmployeeDesignations,
   resetEmployeeDesignations,
-} from "../../../../../../store/slice/employeeDesignationSlice"; // Adjust path
+} from "../../../../../../store/slice/employeeDesignationSlice"; 
 
 interface EmployeeSnapshotFiltersProps {
   isOpen: boolean;
@@ -41,7 +40,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
   const [filters, setFilters] = useState(initialFiltersState);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  // --- Redux State and Dispatch ---
   const dispatch = useDispatch<AppDispatch>();
   const { items: departments } = useSelector(
     (state: RootState) => state.departments
@@ -49,8 +47,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
   const { items: designations } = useSelector(
     (state: RootState) => state.employeeDesignations
   );
-
-  // --- Data Fetching Effects ---
   useEffect(() => {
     if (isOpen) {
       dispatch(fetchDepartments());
@@ -65,7 +61,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
     }
   }, [filters.department, dispatch]);
 
-  // --- Handlers ---
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -73,7 +68,7 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
     setFilters((prev) => {
       const newFilters = { ...prev, [name]: value };
       if (name === "department") {
-        newFilters.designation = ""; // Reset designation when department changes
+        newFilters.designation = "";
       }
       return newFilters;
     });
@@ -118,7 +113,7 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
+          
           <div className="flex justify-between items-center p-6 border-b">
             <h2 className="text-xl font-semibold text-gray-800">
               Employee Snapshot Filters
@@ -131,7 +126,7 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
             </button>
           </div>
 
-          {/* Header Actions */}
+          
           <div className="flex justify-end items-center space-x-2 p-4 border-b">
             <button
               onClick={handleClear}
@@ -153,13 +148,13 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
             </button>
           </div>
 
-          {/* Form Body */}
+          
           <div className="p-6 overflow-y-auto flex-grow">
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
               <h3 className="font-semibold text-gray-600">Field</h3>
               <h3 className="font-semibold text-gray-600">Filter Value</h3>
 
-              {/* Status */}
+              
               <label className="text-sm text-gray-700 self-center">
                 Status
               </label>
@@ -186,7 +181,7 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 </label>
               </div>
 
-              {/* Joining Date */}
+              
               <label className="text-sm text-gray-700">Joining Date</label>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -205,7 +200,7 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 />
               </div>
 
-              {/* Gross Pay */}
+              
               <label className="text-sm text-gray-700">Gross Pay</label>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -226,7 +221,7 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 />
               </div>
 
-              {/* Loss Of Pay */}
+              
               <label className="text-sm text-gray-700">Loss Of Pay</label>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -247,7 +242,7 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 />
               </div>
 
-              {/* Tax Paid */}
+             
               <label className="text-sm text-gray-700">Tax Paid</label>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -268,7 +263,7 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 />
               </div>
 
-              {/* Department */}
+              
               <label className="text-sm text-gray-700">Department</label>
               <select
                 name="department"
@@ -284,7 +279,7 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 ))}
               </select>
 
-              {/* Designation */}
+              
               <label className="text-sm text-gray-700">Designation</label>
               <select
                 name="designation"
@@ -299,13 +294,13 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                     : "Choose Designation"}
                 </option>
                 {designations.map((des) => (
-                  <option key={des.id} value={des.name}>
-                    {des.name}
+                  <option key={des.id} value={des.name || des.designationName}>
+                    {des.name || des.designationName}
                   </option>
                 ))}
               </select>
 
-              {/* Location */}
+              
               <label className="text-sm text-gray-700">Location</label>
               <input
                 type="text"

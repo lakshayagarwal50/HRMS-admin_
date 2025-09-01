@@ -5,10 +5,9 @@ import { useDispatch, useSelector } from "react-redux";
 import Table, { type Column } from "../../../../../components/common/Table";
 import EmployeeSnapshotFilters from "./component/EmployeeSnapshotFilters";
 import EmployeeReportTemplate from "./component/EmployeeReportTemplate";
-import type { AppDispatch, RootState } from "../../../../../store/store"; // Adjust path
-import { fetchEmployeeSnapshot } from "../../../../../store/slice/employeeSnapshotSlice"; // Adjust path
+import type { AppDispatch, RootState } from "../../../../../store/store"; 
+import { fetchEmployeeSnapshot } from "../../../../../store/slice/employeeSnapshotSlice"; 
 
-// --- INTERFACES and COLUMNS ---
 interface EmployeeData {
   name: string;
   employeeId: string;
@@ -32,7 +31,6 @@ interface EmployeeData {
 }
 
 const columns: Column<EmployeeData>[] = [
-  // ... your column definitions are correct and remain unchanged
   { key: "name", header: "Name" },
   { key: "employeeId", header: "Employee ID" },
   {
@@ -84,12 +82,11 @@ const columns: Column<EmployeeData>[] = [
   { key: "phone", header: "Phone Number" },
 ];
 
-// ✅ NEW: SKELETON LOADER COMPONENT
 const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   return (
     <div className="overflow-x-auto">
       <div className="w-[1350px] space-y-4">
-        {/* Skeleton Header */}
+        
         <div className="flex space-x-4 p-4">
           <div className="h-4 bg-gray-200 rounded w-1/12"></div>
           <div className="h-4 bg-gray-200 rounded w-1/12"></div>
@@ -98,7 +95,7 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
           <div className="h-4 bg-gray-200 rounded w-2/12"></div>
           <div className="h-4 bg-gray-200 rounded w-3/12"></div>
         </div>
-        {/* Skeleton Body */}
+        
         <div className="space-y-2 p-4 pt-0">
           {Array.from({ length: rows }).map((_, index) => (
             <div
@@ -119,7 +116,6 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   );
 };
 
-// --- PAGINATION COMPONENT ---
 const Pagination: React.FC<{
   currentPage: number;
   totalPages: number;
@@ -127,7 +123,7 @@ const Pagination: React.FC<{
   itemsPerPage: number;
   onPageChange: (page: number) => void;
 }> = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
-  // ... Pagination component code remains the same
+  
   if (totalPages <= 1) {
     return null;
   }
@@ -174,7 +170,7 @@ const Pagination: React.FC<{
   );
 };
 
-// --- MAIN COMPONENT ---
+
 const EmployeeSnapshot: React.FC = () => {
   const [view, setView] = useState<"table" | "editTemplate">("table");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -184,7 +180,7 @@ const EmployeeSnapshot: React.FC = () => {
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
   const dispatch = useDispatch<AppDispatch>();
-  const { employees, status, error, total, limit } = useSelector(
+  const { employees, status, error, total, limit, templateId } = useSelector(
     (state: RootState) => state.employeeSnapshot
   );
 
@@ -215,12 +211,16 @@ const EmployeeSnapshot: React.FC = () => {
   };
 
   if (view === "editTemplate") {
-    return <EmployeeReportTemplate onBack={() => setView("table")} />;
+    return (
+      <EmployeeReportTemplate
+        onBack={() => setView("table")}
+        templateId={templateId}
+      />
+    );
   }
 
-  // ✅ UPDATED: renderContent function
+ 
   const renderContent = () => {
-    // Show the skeleton loader on initial load and page changes
     if (status === "loading") {
       return <TableSkeleton rows={limit} />;
     }
@@ -274,6 +274,7 @@ const EmployeeSnapshot: React.FC = () => {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setView("editTemplate")}
+              disabled={!templateId}
               className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer"
             >
               EDIT TEMPLATE

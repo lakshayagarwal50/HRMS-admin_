@@ -1,10 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-// 1. Import isAxiosError for specific error handling
 import { isAxiosError } from "axios";
-// 2. Import your configured axios instance
-import { axiosInstance } from "../../services"; // Make sure this path is correct!
+import { axiosInstance } from "../../services"; 
 
-// --- INTERFACES (No changes needed here) ---
 interface EmployeeData {
   name: string;
   employeeId: string;
@@ -34,6 +31,7 @@ interface EmployeeSnapshotState {
   page: number;
   limit: number;
   total: number;
+  templateId: string | null;
 }
 
 interface FetchedData {
@@ -41,9 +39,9 @@ interface FetchedData {
   page: number;
   limit: number;
   total: number;
+  templateId: string;
 }
 
-// --- INITIAL STATE (No changes needed here) ---
 const initialState: EmployeeSnapshotState = {
   employees: [],
   status: 'idle',
@@ -51,20 +49,20 @@ const initialState: EmployeeSnapshotState = {
   page: 1,
   limit: 10,
   total: 0,
+  templateId: null,
 };
 
-// --- REFACTORED ASYNC THUNK ---
 export const fetchEmployeeSnapshot = createAsyncThunk<
-  FetchedData, // This is the type of the successful return value
-  { page?: number; limit?: number; filters?: Record<string, any> }, // This is the type for the arguments
-  { rejectValue: string } // This is the type for the value returned by rejectWithValue
+  FetchedData, 
+  { page?: number; limit?: number; filters?: Record<string, any> }, 
+  { rejectValue: string } 
 >(
   'employeeSnapshot/fetchReport',
   async (params, { rejectWithValue }) => {
     const { page = 1, limit = 10, filters = {} } = params;
     
     try {
-      // 3. Use axiosInstance.get with the 'params' option
+      
       const response = await axiosInstance.get('/report/getAll/employeeSnapshot/employeeSnapshot', {
         params: {
           page,
@@ -75,7 +73,7 @@ export const fetchEmployeeSnapshot = createAsyncThunk<
 
       const data = response.data;
 
-      // The mapping logic remains the same
+      
       const mappedEmployees: EmployeeData[] = data.employees.map((emp: any) => ({
         name: emp.name,
         employeeId: emp.emp_id,
@@ -103,9 +101,10 @@ export const fetchEmployeeSnapshot = createAsyncThunk<
         page: data.page,
         limit: data.limit,
         total: data.total,
+        templateId: data.templateId, 
       };
     } catch (error: unknown) {
-      // 4. Implement robust error handling
+      
       if (isAxiosError(error) && error.response) {
         return rejectWithValue(error.response.data?.message || 'Failed to fetch employee snapshot report.');
       }
@@ -114,7 +113,7 @@ export const fetchEmployeeSnapshot = createAsyncThunk<
   }
 );
 
-// --- SLICE DEFINITION ---
+
 const employeeSnapshotSlice = createSlice({
   name: 'employeeSnapshot',
   initialState,
@@ -123,7 +122,7 @@ const employeeSnapshotSlice = createSlice({
     builder
       .addCase(fetchEmployeeSnapshot.pending, (state) => {
         state.status = 'loading';
-        state.error = null; // Also clear previous errors on new requests
+        state.error = null; 
       })
       .addCase(fetchEmployeeSnapshot.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -131,10 +130,11 @@ const employeeSnapshotSlice = createSlice({
         state.page = action.payload.page;
         state.limit = action.payload.limit;
         state.total = action.payload.total;
+        state.templateId = action.payload.templateId;
       })
       .addCase(fetchEmployeeSnapshot.rejected, (state, action) => {
         state.status = 'failed';
-        // 5. Get the error message from action.payload
+        
         state.error = action.payload || 'Something went wrong';
       });
   },

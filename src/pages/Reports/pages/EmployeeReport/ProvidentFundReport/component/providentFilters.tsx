@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { X, Play, Download } from "lucide-react";
-import Modal from "../../../../../../components/common/NotificationModal"; // Adjust the import path as needed
+import Modal from "../../../../../../components/common/NotificationModal"; 
 
 interface ProvidentFiltersProps {
   isOpen: boolean;
@@ -39,7 +39,7 @@ const ProvidentFilters: React.FC<ProvidentFiltersProps> = ({
 
   return (
     <>
-      {/* Overlay */}
+      
       <div
         className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -47,7 +47,7 @@ const ProvidentFilters: React.FC<ProvidentFiltersProps> = ({
         onClick={onClose}
       ></div>
 
-      {/* Sidebar */}
+      
       <div
         className={`fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-xl z-50 transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
@@ -67,7 +67,7 @@ const ProvidentFilters: React.FC<ProvidentFiltersProps> = ({
             </button>
           </div>
 
-          {/* Action Buttons (same as EmployeeSnapshotFilters) */}
+          
           <div className="flex justify-end items-center space-x-2 p-4 border-b">
             <button
               onClick={handleRunClick}
@@ -82,13 +82,12 @@ const ProvidentFilters: React.FC<ProvidentFiltersProps> = ({
             </button>
           </div>
 
-          {/* Form Body */}
           <div className="p-6 overflow-y-auto flex-grow">
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
               <h3 className="font-semibold text-gray-600">Field</h3>
               <h3 className="font-semibold text-gray-600">Filter Value</h3>
 
-              {/* Employee */}
+             
               <label className="text-sm text-gray-700 self-center">
                 Employee
               </label>
@@ -99,10 +98,10 @@ const ProvidentFilters: React.FC<ProvidentFiltersProps> = ({
                 className="p-2 border rounded-md text-sm"
               >
                 <option value="">Choose</option>
-                {/* Add employee options here */}
+                
               </select>
 
-              {/* Status */}
+              
               <label className="text-sm text-gray-700 self-center">
                 Status
               </label>
@@ -133,7 +132,7 @@ const ProvidentFilters: React.FC<ProvidentFiltersProps> = ({
         </div>
       </div>
 
-      {/* Confirmation Modal */}
+     
       <Modal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}

@@ -2,12 +2,10 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Table, { type Column } from "../../../../components/common/Table";
 import LeaveReportFilters from "./component/LeaveReportFilters";
-// --- CHANGE HERE: Import the actual template component ---
+
 import LeaveReportTemplate from "./component/LeaveReportTemplate";
 
-// --- CHANGE HERE: The placeholder component has been removed ---
 
-// (Interface, mockData, and helpers are unchanged)
 interface LeaveRecord {
   id: number;
   name: string;
@@ -108,10 +106,9 @@ const LeaveReport: React.FC = () => {
 
   const handleApplyFilters = (filters: any) => {
     console.log("Applying Leave Report filters:", filters);
-    setIsFilterOpen(false); // Close modal on apply
+    setIsFilterOpen(false); 
   };
 
-  // This logic now correctly renders the imported component
   if (view === "template") {
     return <LeaveReportTemplate onBack={() => setView("report")} />;
   }

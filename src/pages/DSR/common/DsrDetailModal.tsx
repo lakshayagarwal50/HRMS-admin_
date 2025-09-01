@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { X, Check, ChevronUp, ChevronDown } from "lucide-react";
-import type { DsrEntry } from "../../../store/slice/dsrSlice"; // Adjust path if needed
-import AlertModal from "../../../components/Modal/AlertModal"; // Adjust path if needed
-import DeclineReasonModal from "./DeclineReasonModal"; // Adjust path if needed
+import type { DsrEntry } from "../../../store/slice/dsrSlice"; 
+import AlertModal from "../../../components/Modal/AlertModal"; 
+import DeclineReasonModal from "./DeclineReasonModal"; 
 
 interface DsrDetailModalProps {
   isOpen: boolean;
@@ -35,7 +35,6 @@ const DsrDetailModal: React.FC<DsrDetailModalProps> = ({
   const [isDeclineConfirmOpen, setIsDeclineConfirmOpen] = useState(false);
   const [isReasonModalOpen, setIsReasonModalOpen] = useState(false);
 
-  // ✅ 1. Add state for the approve confirmation modal
   const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
 
   if (!details) return null;
@@ -45,10 +44,9 @@ const DsrDetailModal: React.FC<DsrDetailModalProps> = ({
     setIsReasonModalOpen(true);
   };
 
-  // ✅ 2. Add a handler for when the user confirms the approve action
   const handleConfirmApprove = () => {
     onApprove(details);
-    setIsApproveConfirmOpen(false); // Close the confirmation modal
+    setIsApproveConfirmOpen(false); 
   };
 
   const handleSubmitDeclineReason = (reason: string) => {
@@ -97,7 +95,6 @@ const DsrDetailModal: React.FC<DsrDetailModalProps> = ({
               <div className="flex justify-between items-center p-3 bg-gray-50">
                 <h3 className="font-semibold text-gray-700">Pythru Payroll</h3>
                 <div className="flex items-center gap-4">
-                  {/* ✅ 3. Update this button to open the approve confirmation modal */}
                   <button
                     onClick={() => setIsApproveConfirmOpen(true)}
                     className="hover:opacity-70"
@@ -178,7 +175,6 @@ const DsrDetailModal: React.FC<DsrDetailModalProps> = ({
         </div>
       </div>
 
-      {/* ✅ 4. Add a new AlertModal instance for the approve confirmation */}
       <AlertModal
         isOpen={isApproveConfirmOpen}
         onClose={() => setIsApproveConfirmOpen(false)}

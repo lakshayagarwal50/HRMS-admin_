@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import DeclarationReportTemplate from "./component/declarationReportTemplate";
 import EmployeeDeclarationFilters from "./component/employeeDeclarationFilters";
 
-// Define a type for the Employee Declarations data
 interface EmployeeDeclaration {
   id: number;
   name: string;
@@ -27,7 +26,6 @@ interface EmployeeDeclaration {
   _24B: number;
 }
 
-// Generate some mock data for the table
 const mockData: EmployeeDeclaration[] = Array.from({ length: 15 }, (_, i) => ({
   id: i + 1,
   name: [
@@ -57,7 +55,6 @@ const mockData: EmployeeDeclaration[] = Array.from({ length: 15 }, (_, i) => ({
   _24B: 0.0,
 }));
 
-// Helper to format numbers as currency
 const formatCurrency = (value: number) =>
   `₹ ${value.toLocaleString("en-IN", {
     minimumFractionDigits: 2,

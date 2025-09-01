@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Filter } from "lucide-react";
-import Table, { type Column } from "../../../components/common/Table"; // Adjust path if needed
+import Table, { type Column } from "../../../components/common/Table"; 
 
-// (Interface and mockData are unchanged)
 interface AuditLog {
   id: number;
   activityTime: string;
@@ -132,7 +131,6 @@ const AuditHistory: React.FC = () => {
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      {/* --- CHANGE HERE: Header layout updated --- */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Audit History</h1>
         <div className="flex items-center gap-4">
@@ -161,12 +159,7 @@ const AuditHistory: React.FC = () => {
         </div>
       </div>
 
-      {/* Placeholder for a filter component */}
-      {/* <AuditHistoryFilter
-        isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        onApplyFilters={() => {}}
-      /> */}
+     
     </div>
   );
 };
