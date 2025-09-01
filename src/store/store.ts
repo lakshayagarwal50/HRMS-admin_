@@ -41,6 +41,7 @@ import reportReducer from "./slice/reportSlice";
 import notificationReducer from "./slice/notificationSlice";
 import eventsReducer from './slice/eventsSlice';
 import employeeSnapshotReducer from './slice/employeeSnapshotSlice';
+import attendanceReportReducer from './slice/attendanceReportSlice';
 
 export const store = configureStore({
   reducer: {
@@ -84,6 +85,7 @@ export const store = configureStore({
     notifications: notificationReducer, 
     events: eventsReducer, 
     employeeSnapshot: employeeSnapshotReducer,
+    attendanceReport: attendanceReportReducer,
   },
 });
 
