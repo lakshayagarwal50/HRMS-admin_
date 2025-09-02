@@ -1,17 +1,50 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, type ChangeEvent } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, RefreshCw, ServerCrash, X } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '../../../store/store';
 import { fetchSalaryComponents, updateSalaryComponent, type UpdateComponentPayload } from '../../../store/slice/salaryComponentSlice';
 
+// --- UI State Components ---
+const FormSkeleton: React.FC = () => (
+    <div className="w-full bg-white p-6 rounded-lg shadow-md animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-6">
+                {[...Array(6)].map((_, i) => (
+                    <div key={i}>
+                        <div className="h-5 bg-gray-200 rounded w-1/4 mb-2"></div>
+                        <div className="h-10 bg-gray-200 rounded-md w-full"></div>
+                    </div>
+                ))}
+            </div>
+            <div className="space-y-4">
+                 <div className="h-40 bg-gray-200 rounded-lg"></div>
+                 <div className="h-24 bg-gray-200 rounded-lg"></div>
+            </div>
+        </div>
+    </div>
+);
+
+const ErrorState: React.FC<{ onRetry: () => void; message: string | null }> = ({ onRetry, message }) => (
+    <div className="text-center py-10 px-4 bg-red-50 border rounded-lg">
+        <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
+        <h3 className="mt-2 text-lg font-semibold text-red-800">Could Not Load Component</h3>
+        <p className="mt-1 text-sm text-red-600">{message || 'An unexpected error occurred.'}</p>
+        <button type="button" onClick={onRetry} className="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+            <RefreshCw className="-ml-1 mr-2 h-5 w-5" />
+            Try Again
+        </button>
+    </div>
+);
+
 // --- MAIN EDIT PAGE COMPONENT ---
 const EditSalaryComponentPage: React.FC = () => {
-    const { structureId, componentId, groupName } = useParams<{ structureId: string, componentId: string, groupName: string }>();
+    const { structureId, componentId } = useParams<{ structureId: string; componentId: string }>();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
 
-    const { data: componentData, status } = useSelector((state: RootState) => state.salaryComponents);
+    const { data: componentData, status, error } = useSelector((state: RootState) => state.salaryComponents);
 
     const componentToEdit = useMemo(() => {
         if (!componentData || !componentId) return null;
@@ -19,12 +52,13 @@ const EditSalaryComponentPage: React.FC = () => {
     }, [componentData, componentId]);
 
     const [formData, setFormData] = useState<any>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (structureId && (status === 'idle' || !componentToEdit)) {
+        if (structureId && (!componentData || !componentToEdit)) {
             dispatch(fetchSalaryComponents(structureId));
         }
-    }, [structureId, status, dispatch, componentToEdit]);
+    }, [structureId, componentData, componentToEdit, dispatch]);
     
     useEffect(() => {
         if (componentToEdit) {
@@ -35,32 +69,26 @@ const EditSalaryComponentPage: React.FC = () => {
                 showOnPayslip: componentToEdit.showOnPayslip,
                 taxable: componentToEdit.otherSetting.taxable,
                 isCtc: componentToEdit.otherSetting.CTC,
-                leaveDependent: componentToEdit.otherSetting.leaveBased,
-                adjustBalance: componentToEdit.otherSetting.adjustmentBalanced,
+                leaveBased: componentToEdit.otherSetting.leaveBased,
+                adjustmentBalanced: componentToEdit.otherSetting.adjustmentBalanced,
                 calculationType: componentToEdit.calculationType,
                 value: componentToEdit.value,
-                minAmount: '0', 
-                maxAmount: '0',
-                prorate: false, 
+                testAmount: componentToEdit.testAmount,
             });
         }
     }, [componentToEdit]);
 
-    const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         const isCheckbox = type === 'checkbox';
         const { checked } = e.target as HTMLInputElement;
-
-        if (name === "taxableOption") {
-            setFormData((prev: any) => ({ ...prev, taxable: value === 'taxable' }));
-        } else {
-            setFormData((prev: any) => ({ ...prev, [name]: isCheckbox ? checked : value }));
-        }
-    }, []);
+        setFormData((prev: any) => ({ ...prev, [name]: isCheckbox ? checked : value }));
+    };
     
-    const handleSubmit = useCallback((e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (componentId && formData) {
+            setIsSubmitting(true);
             const payload: UpdateComponentPayload = {
                 id: componentId,
                 name: formData.name,
@@ -69,113 +97,87 @@ const EditSalaryComponentPage: React.FC = () => {
                 showOnPayslip: formData.showOnPayslip,
                 calculationType: formData.calculationType,
                 value: formData.value,
+                testAmount: formData.testAmount,
                 otherSetting: {
                     taxable: formData.taxable,
-                    leaveBased: formData.leaveDependent,
+                    leaveBased: formData.leaveBased,
                     CTC: formData.isCtc,
-                    adjustmentBalanced: formData.adjustBalance,
+                    adjustmentBalanced: formData.adjustmentBalanced,
                 }
             };
-            dispatch(updateSalaryComponent(payload));
-            navigate(`/employee-salary-structures/${structureId}/components`);
+            try {
+                await dispatch(updateSalaryComponent(payload)).unwrap();
+                navigate(`/employee-salary-structures/${structureId}/components`);
+            } catch (err) {
+                console.error("Failed to update component:", err);
+            } finally {
+                setIsSubmitting(false);
+            }
         }
-    }, [dispatch, componentId, formData, navigate, structureId]);
+    };
+    
+    const renderContent = () => {
+        if (status === 'loading' || !formData) return <FormSkeleton />;
+        if (status === 'failed') return <ErrorState onRetry={() => { if (structureId) dispatch(fetchSalaryComponents(structureId)) }} message={error} />;
 
-    if (status === 'loading' || !formData) {
-        return <div className="p-6">Loading component data...</div>;
-    }
-
-    return (
-        <div className="w-full bg-gray-50 p-4 sm:p-6">
-            <header className="mb-6">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Salary Component(Group:{groupName})</h1>
-                <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
-                    <Link to="/dashboard" className="hover:text-gray-700">Dashboard</Link>
-                    <ChevronRight size={16} className="mx-1" />
-                    <Link to="/employee-salary-structures" className="hover:text-gray-700">Employee Salary Structures</Link>
-                    <ChevronRight size={16} className="mx-1" />
-                    <Link to={`/employee-salary-structures/${structureId}/components`} className="hover:text-gray-700">Components</Link>
-                    <ChevronRight size={16} className="mx-1" />
-                    <span className="font-medium text-gray-800">Edit component</span>
-                </nav>
-            </header>
-
-            <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        return (
+             <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md border space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                            <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500" required />
-                        </div>
-                        <div>
-                            <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">Code *</label>
-                            <input type="text" id="code" name="code" value={formData.code} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500" required />
-                        </div>
+                    <div>
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                        <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required />
+                    </div>
+                    <div>
+                        <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">Code *</label>
+                        <input type="text" id="code" name="code" value={formData.code} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required />
                     </div>
                     <div>
                         <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
-                        <select id="type" name="type" value={formData.type} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <select id="type" name="type" value={formData.type} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm">
                             <option value="EARNING">Earning</option>
                             <option value="DEDUCTION">Deduction</option>
                             <option value="REIMBURSEMENT">Reimbursement</option>
                         </select>
                     </div>
                     <div className="flex items-center pt-2">
-                        <input id="showOnPayslip" name="showOnPayslip" type="checkbox" checked={formData.showOnPayslip} onChange={handleInputChange} className="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"/>
+                        <input id="showOnPayslip" name="showOnPayslip" type="checkbox" checked={formData.showOnPayslip} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded"/>
                         <label htmlFor="showOnPayslip" className="ml-2 font-medium">Show on payslip</label>
                     </div>
 
                     <div className="space-y-3 pt-4 border-t">
-                        <h3 className="text-md font-semibold">Tax Calculation</h3>
-                        <div className="flex items-center space-x-6">
-                           <div className="flex items-center">
-                               <input id="taxable" name="taxableOption" type="radio" value="taxable" checked={formData.taxable === true} onChange={handleInputChange} className="h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500"/>
-                               <label htmlFor="taxable" className="ml-2">Taxable</label>
-                           </div>
-                           <div className="flex items-center">
-                               <input id="nonTaxable" name="taxableOption" type="radio" value="non-taxable" checked={formData.taxable === false} onChange={handleInputChange} className="h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500"/>
-                               <label htmlFor="nonTaxable" className="ml-2">Non-Taxable</label>
-                           </div>
+                        <h3 className="text-md font-semibold">Other Settings</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="flex items-center"><input id="taxable" name="taxable" type="checkbox" checked={formData.taxable} className="h-4 w-4 text-purple-600 rounded" disabled /><label htmlFor="taxable" className="ml-2 text-gray-500">Taxable</label></div>
+                           <div className="flex items-center"><input id="isCtc" name="isCtc" type="checkbox" checked={formData.isCtc} className="h-4 w-4 text-purple-600 rounded" disabled /><label htmlFor="isCtc" className="ml-2 text-gray-500">Part of CTC</label></div>
+                           <div className="flex items-center"><input id="leaveBased" name="leaveBased" type="checkbox" checked={formData.leaveBased} className="h-4 w-4 text-purple-600 rounded" disabled /><label htmlFor="leaveBased" className="ml-2 text-gray-500">Leave Based</label></div>
+                           <div className="flex items-center"><input id="adjustmentBalanced" name="adjustmentBalanced" type="checkbox" checked={formData.adjustmentBalanced} className="h-4 w-4 text-purple-600 rounded" disabled /><label htmlFor="adjustmentBalanced" className="ml-2 text-gray-500">Adjust Balance</label></div>
                         </div>
                     </div>
-
-                    <div className="space-y-3 pt-4 border-t">
-                       <div className="flex items-center"><input id="isCtc" name="isCtc" type="checkbox" checked={formData.isCtc} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"/><label htmlFor="isCtc" className="ml-2 font-medium">Part of CTC</label></div>
-                       <div className="flex items-center"><input id="leaveDependent" name="leaveDependent" type="checkbox" checked={formData.leaveDependent} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"/><label htmlFor="leaveDependent" className="ml-2 font-medium">Leave dependent</label></div>
-                       <div className="flex items-center"><input id="adjustBalance" name="adjustBalance" type="checkbox" checked={formData.adjustBalance} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"/><label htmlFor="adjustBalance" className="ml-2 font-medium">Adjust Balance Amount</label></div>
-                    </div>
-
+                    
                     <div className="space-y-4 pt-4 border-t">
-                        <div>
-                            <label htmlFor="calculationType" className="block text-sm font-medium text-gray-700 mb-1">Calculation Type</label>
-                            <select id="calculationType" name="calculationType" value={formData.calculationType} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                <option value="fixed">Fixed</option>
-                                <option value="formula">Formula</option>
-                            </select>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <h3 className="text-md font-semibold">Calculation</h3>
+                        <select id="calculationType" name="calculationType" value={formData.calculationType} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm">
+                            <option value="fixed">Fixed</option>
+                            <option value="formula">Formula</option>
+                        </select>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">Value/Formula</label>
-                                <input type="text" id="value" name="value" value={formData.value} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"/>
-                            </div>
-                            <div>
-                                <label htmlFor="minAmount" className="block text-sm font-medium text-gray-700 mb-1">Min Amount</label>
-                                <input type="text" id="minAmount" name="minAmount" value={formData.minAmount} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+                                <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">Value / Formula</label>
+                                <input type="text" id="value" name="value" value={formData.value} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
                             </div>
                              <div>
-                                <label htmlFor="maxAmount" className="block text-sm font-medium text-gray-700 mb-1">Max Amount</label>
-                                <input type="text" id="maxAmount" name="maxAmount" value={formData.maxAmount} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+                                <label htmlFor="testAmount" className="block text-sm font-medium text-gray-700 mb-1">Test Amount</label>
+                                <input type="text" id="testAmount" name="testAmount" value={formData.testAmount} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
                             </div>
                         </div>
                     </div>
-                     <div className="flex items-start pt-4 border-t">
-                        <input id="prorate" name="prorate" type="checkbox" checked={formData.prorate} onChange={handleInputChange} className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"/>
-                        <label htmlFor="prorate" className="ml-2 block text-sm font-medium text-gray-900">Prorate amount <span className="text-gray-500 font-normal">(Only if employee join or leave in middle of month, Amount will be prorated)</span></label>
-                    </div>
 
-                    <div className="flex justify-start gap-4 pt-6 border-t">
+                    <div className="flex justify-end gap-4 pt-6 border-t">
                         <button type="button" onClick={() => navigate(-1)} className="px-8 py-2 border rounded-md">Cancel</button>
-                        <button type="submit" className="px-8 py-2 bg-purple-600 text-white rounded-md">UPDATE</button>
+                        <button type="submit" disabled={isSubmitting} className="px-8 py-2 bg-purple-600 text-white rounded-md flex items-center disabled:bg-purple-400">
+                             {isSubmitting && <RefreshCw className="animate-spin mr-2" size={16} />}
+                            UPDATE
+                        </button>
                     </div>
                 </form>
 
@@ -193,8 +195,25 @@ const EditSalaryComponentPage: React.FC = () => {
                     <div><h4 className="font-semibold text-gray-800">Value/Formula:</h4><p>Make it 0 if you want to enter amount at the time creating payslip for employee. Otherwise fill be right amount if its fixed or Formula if its Formula field.</p><p className="mt-2">Ex. Formula:- [BASIC] * 50 / 100. Means this item will be 50% of BASIC item.</p></div>
                 </div>
             </main>
+        );
+    };
+
+    return (
+        <div className="w-full bg-gray-50 p-4 sm:p-6">
+            <header className="mb-6">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Edit Salary Component</h1>
+                <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
+                    <Link to="/employee-salary-structures" className="hover:text-gray-700">Salary Structures</Link>
+                    <ChevronRight size={16} className="mx-1" />
+                    <Link to={`/employee-salary-structures/${structureId}/components`} className="hover:text-gray-700">Components</Link>
+                    <ChevronRight size={16} className="mx-1" />
+                    <span className="font-medium text-gray-800">Edit</span>
+                </nav>
+            </header>
+            {renderContent()}
         </div>
     );
 };
 
 export default EditSalaryComponentPage;
+

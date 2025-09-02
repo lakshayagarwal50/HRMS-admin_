@@ -10,7 +10,7 @@ const API_BASE_URL = '/api/designations/';
 // This interface matches the exact structure of the objects coming from your API
 interface DesignationFromAPI {
   id: string;
-  designationName: string; // The API uses this field for the name
+  designationName: string; 
   code: string;
   description: string;
   department: string;
@@ -22,7 +22,7 @@ interface DesignationFromAPI {
 // This is the shape of the data that your UI components will use
 export interface Designation {
   id: string;
-  name: string; // Your UI components use 'name'
+  name: string; 
   code: string;
   description: string;
   department: string;
@@ -46,14 +46,10 @@ const initialState: DesignationsState = {
 };
 
 // --- DATA TRANSFORMATION ---
-/**
- * Maps the API data structure to the UI data structure.
- * This is the key fix: it maps `designationName` from the API to `name` for the UI.
- */
 const transformApiToUi = (apiData: DesignationFromAPI[]): Designation[] => {
     return apiData.map(item => ({
         ...item,
-        name: item.designationName, // Map the name field
+        name: item.designationName,
     }));
 };
 
@@ -62,7 +58,6 @@ const transformApiToUi = (apiData: DesignationFromAPI[]): Designation[] => {
 export const fetchDesignations = createAsyncThunk('designations/fetchDesignations', async (_, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.get(`${API_BASE_URL}get`);
-    // Apply the transformation to the fetched data
     return transformApiToUi(response.data as DesignationFromAPI[]);
   } catch (error: unknown) {
     if (isAxiosError(error)) {
@@ -73,7 +68,6 @@ export const fetchDesignations = createAsyncThunk('designations/fetchDesignation
 });
 
 export const addDesignation = createAsyncThunk('designations/addDesignation', async (newDesignation: NewDesignation, { rejectWithValue }) => {
-    // Map the UI 'name' back to 'designationName' for the API request
     const apiRequestBody = {
       designationName: newDesignation.name,
       code: newDesignation.code,
@@ -99,12 +93,16 @@ export const addDesignation = createAsyncThunk('designations/addDesignation', as
   }
 );
 
+/**
+ * Updates an existing designation. This is used for all updates,
+ * including changing the name, code, or toggling the status.
+ */
 export const updateDesignation = createAsyncThunk('designations/updateDesignation', async (designation: Designation, { rejectWithValue }) => {
     try {
       const { id, name, code, description, department, status } = designation;
       
       const apiRequestBody = {
-        designationName: name, // Map UI 'name' to 'designationName'
+        designationName: name,
         code,
         description,
         department,

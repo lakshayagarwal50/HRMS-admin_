@@ -1718,7 +1718,7 @@ const AttendanceDetailView = ({
                   return (
                     <td key={day} className="text-center border-l">
                       <div
-                        className={`w-full h-8 flex items-center justify-center ${color}`}
+                        className={`w-11 h-8 flex items-center justify-center ${color} m-0.5`} 
                       ></div>
                     </td>
                   );

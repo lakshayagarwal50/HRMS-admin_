@@ -220,7 +220,7 @@ const CreateRolePage: React.FC = () => {
                 </div>
 
                 <div className="flex justify-start gap-4 pt-6 border-t">
-                    <button type="button" onClick={() => navigate('/roles')} className="px-10 py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
+                    <button type="button" onClick={() => navigate('/role')} className="px-10 py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
                     <button type="submit" className="px-10 py-2.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">SUBMIT</button>
                 </div>
             </form>
