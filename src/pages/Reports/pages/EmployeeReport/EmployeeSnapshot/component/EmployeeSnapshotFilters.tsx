@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { X, Play, Download, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
-import Modal from "../../../../../../components/common/NotificationModal"; 
+import Modal from "../../../../../../components/common/NotificationModal";
 
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../../../../../../store/store"; 
-import { fetchDepartments } from "../../../../../../store/slice/departmentSlice"; 
+import type { AppDispatch, RootState } from "../../../../../../store/store";
+import { fetchDepartments } from "../../../../../../store/slice/departmentSlice";
 import {
   fetchEmployeeDesignations,
   resetEmployeeDesignations,
-} from "../../../../../../store/slice/employeeDesignationSlice"; 
+} from "../../../../../../store/slice/employeeDesignationSlice";
 
 interface EmployeeSnapshotFiltersProps {
   isOpen: boolean;
@@ -113,7 +113,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
         }`}
       >
         <div className="flex flex-col h-full">
-          
           <div className="flex justify-between items-center p-6 border-b">
             <h2 className="text-xl font-semibold text-gray-800">
               Employee Snapshot Filters
@@ -126,7 +125,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
             </button>
           </div>
 
-          
           <div className="flex justify-end items-center space-x-2 p-4 border-b">
             <button
               onClick={handleClear}
@@ -148,13 +146,11 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
             </button>
           </div>
 
-          
           <div className="p-6 overflow-y-auto flex-grow">
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
               <h3 className="font-semibold text-gray-600">Field</h3>
               <h3 className="font-semibold text-gray-600">Filter Value</h3>
 
-              
               <label className="text-sm text-gray-700 self-center">
                 Status
               </label>
@@ -181,7 +177,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 </label>
               </div>
 
-              
               <label className="text-sm text-gray-700">Joining Date</label>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -200,7 +195,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 />
               </div>
 
-              
               <label className="text-sm text-gray-700">Gross Pay</label>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -221,7 +215,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 />
               </div>
 
-              
               <label className="text-sm text-gray-700">Loss Of Pay</label>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -242,7 +235,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 />
               </div>
 
-             
               <label className="text-sm text-gray-700">Tax Paid</label>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -263,7 +255,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 />
               </div>
 
-              
               <label className="text-sm text-gray-700">Department</label>
               <select
                 name="department"
@@ -279,7 +270,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 ))}
               </select>
 
-              
               <label className="text-sm text-gray-700">Designation</label>
               <select
                 name="designation"
@@ -300,7 +290,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
                 ))}
               </select>
 
-              
               <label className="text-sm text-gray-700">Location</label>
               <input
                 type="text"

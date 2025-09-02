@@ -1,38 +1,18 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-
 import Table, { type Column } from "../../../../../components/common/Table";
 import EmployeeSnapshotFilters from "./component/EmployeeSnapshotFilters";
 import EmployeeReportTemplate from "./component/EmployeeReportTemplate";
-import type { AppDispatch, RootState } from "../../../../../store/store"; 
-import { fetchEmployeeSnapshot } from "../../../../../store/slice/employeeSnapshotSlice"; 
-
-interface EmployeeData {
-  name: string;
-  employeeId: string;
-  status: "Active" | "Inactive";
-  joiningDate: string;
-  designation: string;
-  department: string;
-  location: string;
-  gender: string;
-  email: string;
-  pan: string | null;
-  grossPaid: number;
-  lossOfPay: number | null;
-  taxPaid: number | null;
-  netPaid: number | null;
-  leaveType: string;
-  leavesAdjusted: number | null;
-  leaveBalance: number | null;
-  workingPattern: string;
-  phone: string;
-}
+import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
+import {
+  fetchEmployeeSnapshot,
+  type EmployeeData,
+} from "../../../../../store/slice/employeeSnapshotSlice";
 
 const columns: Column<EmployeeData>[] = [
   { key: "name", header: "Name" },
-  { key: "employeeId", header: "Employee ID" },
+  { key: "emp_id", header: "Employee ID" },
   {
     key: "status",
     header: "Status",
@@ -58,22 +38,22 @@ const columns: Column<EmployeeData>[] = [
   {
     key: "grossPaid",
     header: "Gross Paid",
-    render: (row) => `₹ ${row.grossPaid.toLocaleString()}`,
+    render: (row) => `₹ ${row.grossPaid?.toLocaleString("en-IN") ?? "N/A"}`,
   },
   {
     key: "lossOfPay",
     header: "Loss of Pay",
-    render: (row) => `₹ ${row.lossOfPay?.toLocaleString() ?? "N/A"}`,
+    render: (row) => `₹ ${row.lossOfPay?.toLocaleString("en-IN") ?? "N/A"}`,
   },
   {
     key: "taxPaid",
     header: "Tax Paid",
-    render: (row) => `₹ ${row.taxPaid?.toLocaleString() ?? "N/A"}`,
+    render: (row) => `₹ ${row.taxPaid?.toLocaleString("en-IN") ?? "N/A"}`,
   },
   {
     key: "netPaid",
     header: "Net Paid",
-    render: (row) => `₹ ${row.netPaid?.toLocaleString() ?? "N/A"}`,
+    render: (row) => `₹ ${row.netPaid?.toLocaleString("en-IN") ?? "N/A"}`,
   },
   { key: "leaveType", header: "Last Leave Type" },
   { key: "leavesAdjusted", header: "Leaves Adjusted" },
@@ -86,7 +66,6 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   return (
     <div className="overflow-x-auto">
       <div className="w-[1350px] space-y-4">
-        
         <div className="flex space-x-4 p-4">
           <div className="h-4 bg-gray-200 rounded w-1/12"></div>
           <div className="h-4 bg-gray-200 rounded w-1/12"></div>
@@ -95,7 +74,6 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
           <div className="h-4 bg-gray-200 rounded w-2/12"></div>
           <div className="h-4 bg-gray-200 rounded w-3/12"></div>
         </div>
-        
         <div className="space-y-2 p-4 pt-0">
           {Array.from({ length: rows }).map((_, index) => (
             <div
@@ -123,10 +101,7 @@ const Pagination: React.FC<{
   itemsPerPage: number;
   onPageChange: (page: number) => void;
 }> = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
-  
-  if (totalPages <= 1) {
-    return null;
-  }
+  if (totalPages <= 1) return null;
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
@@ -143,7 +118,6 @@ const Pagination: React.FC<{
         >
           Previous
         </button>
-
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
           <button
             key={page}
@@ -157,7 +131,6 @@ const Pagination: React.FC<{
             {page}
           </button>
         ))}
-
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
@@ -170,18 +143,16 @@ const Pagination: React.FC<{
   );
 };
 
-
 const EmployeeSnapshot: React.FC = () => {
   const [view, setView] = useState<"table" | "editTemplate">("table");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState<any>({});
-
   const [searchParams, setSearchParams] = useSearchParams();
-  const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
-  const dispatch = useDispatch<AppDispatch>();
-  const { employees, status, error, total, limit, templateId } = useSelector(
-    (state: RootState) => state.employeeSnapshot
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const dispatch = useAppDispatch();
+  const { employees, status, error, total, limit } = useAppSelector(
+    (state) => state.employeeSnapshot
   );
 
   useEffect(() => {
@@ -195,10 +166,8 @@ const EmployeeSnapshot: React.FC = () => {
   }, [dispatch, currentPage, limit, JSON.stringify(activeFilters)]);
 
   const handleApplyFilters = (filters: any) => {
-    if (JSON.stringify(filters) !== JSON.stringify(activeFilters)) {
-      setActiveFilters(filters);
-      setSearchParams({ page: "1" });
-    }
+    setActiveFilters(filters);
+    setSearchParams({ page: "1" });
     setIsFilterOpen(false);
   };
 
@@ -210,39 +179,40 @@ const EmployeeSnapshot: React.FC = () => {
     }
   };
 
-  if (view === "editTemplate") {
-    return (
-      <EmployeeReportTemplate
-        onBack={() => setView("table")}
-        templateId={templateId}
-      />
+  const handleBackFromTemplate = () => {
+    setView("table");
+    dispatch(
+      fetchEmployeeSnapshot({
+        page: currentPage,
+        limit,
+        filters: activeFilters,
+      })
     );
+  };
+
+  if (view === "editTemplate") {
+    return <EmployeeReportTemplate onBack={handleBackFromTemplate} />;
   }
 
- 
   const renderContent = () => {
     if (status === "loading") {
       return <TableSkeleton rows={limit} />;
     }
-
     if (status === "failed") {
       return (
         <div className="text-center p-10 text-red-500">Error: {error}</div>
       );
     }
-
-    if (employees.length === 0) {
+    if (employees.length === 0 && status === "succeeded") {
       return <div className="text-center p-10">No employee data found.</div>;
     }
-
     return (
       <>
         <div className="overflow-x-auto">
           <Table
             data={employees}
             columns={columns}
-            showSearch={false}
-            showPagination={false}
+            showPagination={false} 
             className="w-[1350px]"
           />
         </div>
@@ -274,7 +244,6 @@ const EmployeeSnapshot: React.FC = () => {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setView("editTemplate")}
-              disabled={!templateId}
               className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer"
             >
               EDIT TEMPLATE
@@ -294,9 +263,7 @@ const EmployeeSnapshot: React.FC = () => {
           </div>
         </div>
       </div>
-
       <div className="bg-white p-6 rounded-lg shadow-sm">{renderContent()}</div>
-
       <EmployeeSnapshotFilters
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
