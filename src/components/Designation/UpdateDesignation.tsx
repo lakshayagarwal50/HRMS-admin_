@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import SidePanelForm from '../common/SidePanelForm';
+import toast from 'react-hot-toast'; // 1. Import toast
 
-// --- Redux Imports ---
+// --- Component & Redux Imports ---
+import SidePanelForm from '../common/SidePanelForm';
 import { updateDesignation, type Designation } from '../../store/slice/designationSlice';
-import { fetchDepartments } from '../../store/slice/departmentSlice'; // Import department slice
+import { fetchDepartments } from '../../store/slice/departmentSlice';
 import type { RootState, AppDispatch } from '../../store/store';
 
 // --- PROPS DEFINITION ---
@@ -58,7 +59,6 @@ const FormSelect: React.FC<{
 const UpdateDesignation: React.FC<UpdateDesignationProps> = ({ isOpen, onClose, designationData }) => {
   const dispatch = useDispatch<AppDispatch>();
 
-  // 1. Get all departments and their loading status from the Redux store
   const { items: departments, status: departmentStatus } = useSelector((state: RootState) => state.departments);
 
   const [name, setName] = useState('');
@@ -66,14 +66,12 @@ const UpdateDesignation: React.FC<UpdateDesignationProps> = ({ isOpen, onClose, 
   const [description, setDescription] = useState('');
   const [department, setDepartment] = useState('');
 
-  // Effect to fetch departments if they are not already loaded
   useEffect(() => {
     if (isOpen && departmentStatus === 'idle') {
       dispatch(fetchDepartments());
     }
   }, [isOpen, departmentStatus, dispatch]);
 
-  // Effect to populate the form when designationData is available
   useEffect(() => {
     if (designationData) {
       setName(designationData.name || '');
@@ -83,10 +81,10 @@ const UpdateDesignation: React.FC<UpdateDesignationProps> = ({ isOpen, onClose, 
     }
   }, [designationData]);
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !department || !designationData) {
-      alert('Designation Name and Department are required.');
+      toast.error('Designation Name and Department are required.');
       return;
     }
     
@@ -98,8 +96,14 @@ const UpdateDesignation: React.FC<UpdateDesignationProps> = ({ isOpen, onClose, 
         department
     };
     
-    dispatch(updateDesignation(updatedData));
-    onClose();
+    // 2. Use async/await and try/catch for toast notifications
+    try {
+        await dispatch(updateDesignation(updatedData)).unwrap();
+        toast.success('Designation updated successfully!');
+        onClose();
+    } catch (error: any) {
+        toast.error(error || 'Failed to update designation.');
+    }
   };
 
   return (
@@ -115,7 +119,6 @@ const UpdateDesignation: React.FC<UpdateDesignationProps> = ({ isOpen, onClose, 
         <FormInput label="Code" value={code} onChange={(e) => setCode(e.target.value)} />
         <FormTextarea label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
         
-        {/* 2. The dropdown now maps over the full 'departments' array */}
         <FormSelect label="Select Department" value={department} onChange={(e) => setDepartment(e.target.value)} required>
             <option value="" disabled>-- Select a department --</option>
             {departmentStatus === 'loading' && <option>Loading...</option>}

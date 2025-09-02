@@ -84,9 +84,7 @@ const Table = <T extends object>({
               onChange={(e) => setSearchTerm(e.target.value)}
               className="border rounded-md pl-8 pr-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {/* <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
-              🔍
-            </span> */}
+            
           </div>
         )}
       </div>

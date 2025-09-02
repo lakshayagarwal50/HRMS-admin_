@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { MoreHorizontal, ChevronRight, Plus, X as AlertIcon, RefreshCw, ServerCrash } from 'lucide-react';
+import { Plus, MoreHorizontal, ChevronRight, X as AlertIcon, RefreshCw, ServerCrash } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // --- Redux Imports ---
-import { fetchDepartments, updateDepartment, deactivateDepartment, type Department } from '../../../store/slice/departmentSlice';
+import { fetchDepartments, updateDepartment, type Department } from '../../../store/slice/departmentSlice';
 import type { RootState, AppDispatch } from '../../../store/store';
 
 // --- Component Imports ---
@@ -72,7 +72,7 @@ const DepartmentPage: React.FC = () => {
   const [alertData, setAlertData] = useState<{
     isOpen: boolean;
     department: Department | null;
-    actionType: 'inactive' | 'active' | null;
+    actionType: 'active' | 'inactive' | null;
   }>({
     isOpen: false,
     department: null,
@@ -85,28 +85,29 @@ const DepartmentPage: React.FC = () => {
     }
   }, [departmentStatus, dispatch]);
 
-  const handleEditClick = (department: Department) => {
+  const handleEditClick = useCallback((department: Department) => {
     setEditingDepartment(department);
     setActiveDropdown(null);
-  };
+  }, []);
 
-  const handleStatusChangeClick = (department: Department, newStatus: 'active' | 'inactive') => {
+  const handleStatusChangeClick = useCallback((department: Department, newStatus: 'active' | 'inactive') => {
     setAlertData({ isOpen: true, department, actionType: newStatus });
     setActiveDropdown(null);
-  };
+  }, []);
 
-  const handleConfirmAction = () => {
+  // *** THIS IS THE CORRECTED PART ***
+  // This function now exclusively uses the `updateDepartment` action for all status changes.
+  const handleConfirmAction = useCallback(() => {
     if (!alertData.department || !alertData.actionType) return;
 
-    if (alertData.actionType === 'inactive') {
-      dispatch(deactivateDepartment(alertData.department));
-    } else {
-      const departmentToUpdate = { ...alertData.department, status: 'active' as const };
-      dispatch(updateDepartment(departmentToUpdate));
-    }
+    const departmentToUpdate = {
+      ...alertData.department,
+      status: alertData.actionType,
+    };
 
+    dispatch(updateDepartment(departmentToUpdate));
     setAlertData({ isOpen: false, department: null, actionType: null });
-  };
+  }, [alertData, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -118,7 +119,7 @@ const DepartmentPage: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const columns: Column<DepartmentDisplay>[] = [
+  const columns = useMemo<Column<DepartmentDisplay>[]>(() => [
     { key: 's_no', header: 'S.No' },
     { key: 'name', header: 'Name' },
     { key: 'code', header: 'Code' },
@@ -132,23 +133,23 @@ const DepartmentPage: React.FC = () => {
     { key: 'action', header: 'Action',
       render: (row) => (
         <div className="relative">
-          <button onClick={() => setActiveDropdown(activeDropdown === row.id ? null : row.id)} className="text-gray-500 hover:text-[#8A2BE2] p-1 rounded-full">
+          <button onClick={() => setActiveDropdown(activeDropdown === row.id ? null : row.id)} className="text-gray-500 hover:text-purple-600 p-1 rounded-full">
             <MoreHorizontal size={20} />
           </button>
           {activeDropdown === row.id && (
             <div ref={dropdownRef} className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-20">
-              <a href="#" onClick={(e) => { e.preventDefault(); handleEditClick(row); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
+              <button onClick={() => handleEditClick(row)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</button>
               {row.status === 'active' ? (
-                <a href="#" onClick={(e) => { e.preventDefault(); handleStatusChangeClick(row, 'inactive'); }} className="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100">Inactive</a>
+                <button onClick={() => handleStatusChangeClick(row, 'inactive')} className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100">Inactive</button>
               ) : (
-                <a href="#" onClick={(e) => { e.preventDefault(); handleStatusChangeClick(row, 'active'); }} className="block px-4 py-2 text-sm text-green-700 hover:bg-gray-100">Active</a>
+                <button onClick={() => handleStatusChangeClick(row, 'active')} className="block w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-gray-100">Active</button>
               )}
             </div>
           )}
         </div>
       ),
     },
-  ];
+  ], [activeDropdown, handleEditClick, handleStatusChangeClick]);
 
   const renderContent = () => {
     if ((departmentStatus === 'loading' || departmentStatus === 'idle') && departments.length === 0) {
@@ -193,7 +194,7 @@ const DepartmentPage: React.FC = () => {
               <span className="font-medium text-gray-800">Department</span>
             </nav>
           </div>
-          <button onClick={() => setCreatePanelOpen(true)} className="bg-[#8A2BE2] text-white px-4 py-2 rounded-md hover:bg-[#7a1fb8] flex items-center space-x-2">
+          <button onClick={() => setCreatePanelOpen(true)} className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 flex items-center space-x-2">
             <Plus size={20} />
             <span>ADD NEW</span>
           </button>

@@ -4,10 +4,10 @@ import { axiosInstance } from '../../services';
 
 // --- TYPE DEFINITIONS ---
 
-// This interface now matches the exact structure from your API response
+// This interface now matches the exact structure from your new API response
 interface ApiCounts {
-  totalEmployees: number;
-  totalPayslips: number;
+  totalActiveEmployees: number;
+  totalPayslipCounts: number;
   totalGrossPaid: number;
   totalNetPaid: number;
 }
@@ -40,10 +40,10 @@ export const fetchDashboardCounts = createAsyncThunk(
       const response = await axiosInstance.get('/api/totalCounts/get');
       const apiData = response.data as ApiCounts;
 
-      // Transform the API data into the format the UI expects
+      // Transform the new API data into the format the UI expects
       const transformedData: DashboardCounts = {
-        activeEmployees: apiData.totalEmployees,
-        payslipCount: apiData.totalPayslips,
+        activeEmployees: apiData.totalActiveEmployees,
+        payslipCount: apiData.totalPayslipCounts,
         grossPaid: apiData.totalGrossPaid,
         netPaid: apiData.totalNetPaid,
       };
@@ -80,3 +80,4 @@ const dashboardSlice = createSlice({
 });
 
 export default dashboardSlice.reducer;
+

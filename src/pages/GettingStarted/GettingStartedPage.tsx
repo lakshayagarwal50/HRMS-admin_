@@ -1,5 +1,4 @@
 import React from 'react';
-// 1. Import the Link component from react-router-dom
 import { Link } from 'react-router-dom';
 import {
   Clock,
@@ -20,7 +19,6 @@ import {
 interface CardItem {
   label: string;
   icon: React.ComponentType<{ className?: string; size?: number }>;
-  // The link property already exists, which is great!
   link?: string;
 }
 
@@ -28,7 +26,6 @@ const cardItems: CardItem[] = [
   { label: 'Working Patterns', icon: Clock , link: '/working-patterns' },
   { label: 'Payslip Components', icon: FileText ,link:'/payslip-components'},
   { label: 'Location', icon: MapPin , link: '/location'},
-  // This item has the link we will use for navigation
   { label: 'Department', icon: GitBranch , link: '/department'},
   { label: 'Designation', icon: UserCheck , link: '/designation'},
   { label: 'Role', icon: Tag , link: "/role"},

@@ -1,7 +1,6 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
-// Assuming you have a configured axios instance in your services folder
-import { axiosInstance } from '../../services'; 
+import { axiosInstance } from '../../services';
 
 // --- Base URL for the API endpoint ---
 const API_BASE_URL = '/api/departments/';
@@ -18,7 +17,7 @@ export interface Department {
 }
 
 export type NewDepartment = Omit<Department, 'id' | 'createdBy' | 'createdAt' | 'status'>;
-export type UpdateDepartmentPayload = { id: string } & Partial<NewDepartment>;
+export type UpdateDepartmentPayload = { id: string } & Partial<Omit<Department, 'id' | 'createdBy' | 'createdAt'>>;
 
 
 export interface DepartmentsState {
@@ -42,9 +41,7 @@ export const fetchDepartments = createAsyncThunk(
             const response = await axiosInstance.get(API_BASE_URL);
             return response.data as Department[];
         } catch (error) {
-            if (isAxiosError(error)) {
-                return rejectWithValue(error.response?.data?.message || 'Failed to fetch departments');
-            }
+            if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to fetch departments');
             return rejectWithValue('An unknown error occurred.');
         }
     }
@@ -54,13 +51,11 @@ export const addDepartment = createAsyncThunk(
     'departments/addDepartment', 
     async (newDepartment: NewDepartment, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.post(API_BASE_URL, newDepartment);
-            // Assuming the API returns the newly created department object
+            const payload = { ...newDepartment, status: 'active' };
+            const response = await axiosInstance.post(API_BASE_URL, payload);
             return response.data as Department;
         } catch (error) {
-            if (isAxiosError(error)) {
-                return rejectWithValue(error.response?.data?.message || 'Failed to add department');
-            }
+            if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to add department');
             return rejectWithValue('An unknown error occurred.');
         }
     }
@@ -68,31 +63,20 @@ export const addDepartment = createAsyncThunk(
 
 export const updateDepartment = createAsyncThunk(
     'departments/updateDepartment', 
-    async (department: UpdateDepartmentPayload, { rejectWithValue }) => {
+    async (department: UpdateDepartmentPayload, { dispatch, rejectWithValue }) => {
         try {
             const { id, ...data } = department;
-            const response = await axiosInstance.put(`${API_BASE_URL}${id}`, data);
-             // Assuming the API returns the updated department object
-            return response.data as Department;
-        } catch (error) {
-            if (isAxiosError(error)) {
-                return rejectWithValue(error.response?.data?.message || 'Failed to update department');
-            }
-            return rejectWithValue('An unknown error occurred.');
-        }
-    }
-);
+            await axiosInstance.put(`${API_BASE_URL}${id}`, data);
+            
+            // *** THE FIX ***
+            // After the update is successful, dispatch the action to re-fetch the entire list.
+            // This guarantees the UI will always show the latest data.
+            dispatch(fetchDepartments());
 
-export const deactivateDepartment = createAsyncThunk(
-    'departments/deactivateDepartment', 
-    async (id: string, { rejectWithValue }) => {
-        try {
-            await axiosInstance.delete(`${API_BASE_URL}${id}`);
-            return id; // Return the ID of the deactivated department
+            // We don't need to return data here because the fetch action will handle it.
+            return;
         } catch (error) {
-            if (isAxiosError(error)) {
-                return rejectWithValue(error.response?.data?.message || 'Failed to deactivate department');
-            }
+            if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update department');
             return rejectWithValue('An unknown error occurred.');
         }
     }
@@ -106,42 +90,29 @@ const departmentSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Cases for Fetching Data
-      .addCase(fetchDepartments.pending, (state) => {
-        state.status = 'loading';
-        state.error = null;
-      })
       .addCase(fetchDepartments.fulfilled, (state, action: PayloadAction<Department[]>) => {
         state.status = 'succeeded';
         state.items = action.payload;
       })
-      .addCase(fetchDepartments.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload as string;
-      })
-
-      // Case for Adding a Department
       .addCase(addDepartment.fulfilled, (state, action: PayloadAction<Department>) => {
         state.items.push(action.payload);
+        state.status = 'succeeded';
       })
-      
-      // Case for Updating a Department
-      .addCase(updateDepartment.fulfilled, (state, action: PayloadAction<Department>) => {
-        const index = state.items.findIndex((dep) => dep.id === action.payload.id);
-        if (index !== -1) {
-          state.items[index] = action.payload;
-        }
+      .addCase(updateDepartment.fulfilled, (state) => {
+        // The state will be updated by the `fetchDepartments` action,
+        // so we just set the status to 'loading' to show feedback.
+        state.status = 'loading';
       })
-      
-      // Case for Deactivating a Department
-      .addCase(deactivateDepartment.fulfilled, (state, action: PayloadAction<string>) => {
-        const index = state.items.findIndex((dep) => dep.id === action.payload);
-        if (index !== -1) {
-          // Update the status of the deactivated department
-          state.items[index].status = 'inactive';
-        }
+      .addMatcher(isPending(fetchDepartments, addDepartment), (state) => {
+          state.status = 'loading';
+          state.error = null;
+      })
+      .addMatcher(isRejected(fetchDepartments, addDepartment, updateDepartment), (state, action) => {
+          state.status = 'failed';
+          state.error = action.payload as string;
       });
   },
 });
 
 export default departmentSlice.reducer;
+

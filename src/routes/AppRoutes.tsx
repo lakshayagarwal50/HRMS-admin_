@@ -199,7 +199,7 @@ const AppRoutes = () => (
         <Route path="/leave/setup" element={<LeaveSetupPage />} />
         <Route path="/leave/request" element={<EmployeeLeaveRequest />} />
         <Route path="/holiday-calendar" element={<HolidayCalendarPage />} />
-        <Route path="/loanandandvance" element={<DisplayLoans />} />
+        <Route path="/loanandadvance" element={<DisplayLoans />} />
         <Route
           path="/loanandandvance/list/detail/:id"
           element={<LoanDetailPage />}
@@ -212,7 +212,7 @@ const AppRoutes = () => (
         <Route path="/projects/detail/:id" element={<ProjectsDetailsPage />} />
         <Route path="/rating/record" element={<RecordPage />} />
         <Route
-          path="/rating/employees rating"
+          path="/rating/employees-rating"
           element={<EmployeesRatingPage />}
         />
        <Route 
