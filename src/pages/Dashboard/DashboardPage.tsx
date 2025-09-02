@@ -7,21 +7,19 @@ import PayrollCard from "../../components/Dashboard/PayrollCard";
 import StatutoryCard from "../../components/Dashboard/StatutoryCard";
 import SummaryCard from "../../components/Dashboard/SummaryCard";
 import type { SummaryCardData, Notification, Event, PayrollEntry, StatutoryEntry } from "../../types/index";
+import type { AppDispatch, RootState } from '../../store/store';
+import { fetchDashboardCounts } from '../../store/slice/dashboardSlice';
 
 // Import Icons
 import { Users, FileText, Landmark, Wallet } from 'lucide-react';
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useMemo } from "react";
 
 
 // Import Components
 
 
 // Data definitions (in a real app, this would come from an API)
-const summaryCards: SummaryCardData[] = [
-  { icon: Users, iconColor: "text-[#ffb11b]", title: "Active Employees", value: "150" },
-  { icon: FileText, iconColor: "text-[#3c00f2]", title: "Payslip Count", value: "120" },
-  { icon: Landmark, iconColor: "text-[#0ea5e9]", title: "Gross Paid 2024", value: "₹80,000" },
-  { icon: Wallet, iconColor: "text-[#22c55e]", title: "Net Paid 2024", value: "₹50,000" },
-];
 
 const notifications: Notification[] = [
     { id: 1, name: "Ayush Chauhan", requestedBy: "HR Team", time: "2025-07-25 10:30 AM", status: "Pending" },
@@ -58,6 +56,50 @@ const statutoryData: StatutoryEntry[] = [
 ];
 
 const DashboardPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { counts, status } = useSelector((state: RootState) => state.dashboard);
+
+  useEffect(() => {
+    // Fetch data only if it hasn't been fetched yet
+    if (status === 'idle') {
+      dispatch(fetchDashboardCounts());
+    }
+  }, [status, dispatch]);
+  
+  // Dynamically create the summary cards data based on the Redux state
+  const summaryCards: SummaryCardData[] = useMemo(() => {
+    const isLoading = status === 'loading' || status === 'idle';
+    const hasError = status === 'failed';
+
+    const formatCurrency = (value: number) => `₹${new Intl.NumberFormat('en-IN').format(value)}`;
+
+    return [
+      { 
+        icon: Users, 
+        iconColor: "text-[#ffb11b]", 
+        title: "Active Employees", 
+        value: isLoading ? "Loading..." : hasError ? "N/A" : counts?.activeEmployees.toString() || '0'
+      },
+      { 
+        icon: FileText, 
+        iconColor: "text-[#3c00f2]", 
+        title: "Payslip Count", 
+        value: isLoading ? "Loading..." : hasError ? "N/A" : counts?.payslipCount.toString() || '0'
+      },
+      { 
+        icon: Landmark, 
+        iconColor: "text-[#0ea5e9]", 
+        title: "Gross Paid 2024", 
+        value: isLoading ? "Loading..." : hasError ? "N/A" : formatCurrency(counts?.grossPaid || 0)
+      },
+      { 
+        icon: Wallet, 
+        iconColor: "text-[#22c55e]", 
+        title: "Net Paid 2024", 
+        value: isLoading ? "Loading..." : hasError ? "N/A" : formatCurrency(counts?.netPaid || 0)
+      },
+    ];
+  }, [counts, status]);
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Row 1: Summary Cards */}

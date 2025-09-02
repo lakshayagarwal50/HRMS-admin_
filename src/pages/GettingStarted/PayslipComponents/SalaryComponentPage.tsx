@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback} from 'react';
 import { Plus, ChevronDown, ChevronRight, MoreHorizontal, X, ServerCrash, RefreshCw } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -15,7 +15,7 @@ import {
 
 
 // --- UI State Components ---
-const SkeletonSection: React.FC<{ title: string }> = ({ title }) => (
+const SkeletonSection: React.FC = () => (
     <div className="bg-white rounded-lg border shadow-sm animate-pulse">
         <div className="w-full flex justify-between items-center p-4 bg-gray-50 rounded-t-lg">
             <div className="h-6 bg-gray-200 rounded w-1/4"></div>
@@ -41,26 +41,73 @@ const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ o
     </div>
 );
 
+// --- Reusable Row Component (Optimized) ---
+const ComponentRow = React.memo(({ 
+    item, 
+    structureId, 
+    onDeleteClick, 
+    onToggleDropdown, 
+    isDropdownOpen 
+}: { 
+    item: SalaryComponent, 
+    structureId: string | undefined,
+    onDeleteClick: (item: SalaryComponent) => void,
+    onToggleDropdown: (id: string) => void,
+    isDropdownOpen: boolean
+}) => {
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // This helper function formats the keys from the API for display
+    const formatSettingKey = (key: string) => {
+        switch (key) {
+            case 'CTC': return 'Is CTC';
+            case 'leaveBased': return 'Leave Based';
+            case 'adjustmentBalanced': return 'Adjustable';
+            default: return key.charAt(0).toUpperCase() + key.slice(1);
+        }
+    };
+    
+    return (
+        <div className="grid grid-cols-5 gap-4 items-center py-3 px-4 border-b last:border-b-0">
+          <div>
+            <p className="font-semibold text-gray-800">{item.name}</p>
+            <p className="text-xs text-gray-500">{item.type}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+              {Object.entries(item.otherSetting).map(([key, value]) => (
+                  <div key={key} className="flex items-center" title={formatSettingKey(key)}>
+                      <span className={`w-2 h-2 rounded-full mr-2 ${value ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                      <span className="text-gray-600">{formatSettingKey(key)}</span>
+                  </div>
+              ))}
+          </div>
+          <span className="text-sm text-gray-700 font-mono">{item.value}</span>
+          <span className="text-sm font-semibold text-gray-800">₹ {Number(item.testAmount).toLocaleString()}</span>
+          <div className="relative text-right">
+            <button onClick={() => onToggleDropdown(item.id)} className="p-2 rounded-full hover:bg-gray-200">
+              <MoreHorizontal size={20} />
+            </button>
+            {isDropdownOpen && (
+              <div ref={dropdownRef} className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-xl z-20">
+                <Link to={`/employee-salary-structures/${structureId}/components/${item.id}`} className="block w-full text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">Edit</Link>
+                <button onClick={() => onDeleteClick(item)} className="block w-full text-center px-4 py-2 text-sm text-red-700 hover:bg-gray-100 rounded-b-lg">Delete</button>
+              </div>
+            )}
+          </div>
+        </div>
+    );
+});
+
 // --- Reusable Accordion Section ---
 const AccordionSection: React.FC<{
   title: string;
   components: SalaryComponent[];
   structureId: string | undefined;
   onDeleteClick: (component: SalaryComponent) => void;
-}> = ({ title, components, structureId, onDeleteClick }) => {
+  activeDropdown: string | null;
+  onToggleDropdown: (id: string) => void;
+}> = ({ title, components, structureId, onDeleteClick, activeDropdown, onToggleDropdown }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setActiveDropdown(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   if (components.length === 0) return null;
 
@@ -83,43 +130,14 @@ const AccordionSection: React.FC<{
             <span className="text-right">Action</span>
           </div>
           {components.map(item => (
-            <div key={item.id} className="grid grid-cols-5 gap-4 items-center py-3 px-4 border-b last:border-b-0">
-              <div>
-                <p className="font-semibold text-gray-800">{item.name}</p>
-                <p className="text-xs text-gray-500">{item.type}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                  <div className="flex items-center" title="Taxable">
-                      <span className={`w-2 h-2 rounded-full mr-2 ${item.otherSetting.taxable ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                      <span className="text-gray-600">Taxable</span>
-                  </div>
-                  <div className="flex items-center" title="Part of CTC">
-                      <span className={`w-2 h-2 rounded-full mr-2 ${item.otherSetting.CTC ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                      <span className="text-gray-600">Is CTC</span>
-                  </div>
-                  <div className="flex items-center" title="Leave Based">
-                      <span className={`w-2 h-2 rounded-full mr-2 ${item.otherSetting.leaveBased ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                      <span className="text-gray-600">Leave Based</span>
-                  </div>
-                  <div className="flex items-center" title="Adjustment Balanced">
-                      <span className={`w-2 h-2 rounded-full mr-2 ${item.otherSetting.adjustmentBalanced ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                      <span className="text-gray-600">Adjustable</span>
-                  </div>
-              </div>
-              <span className="text-sm text-gray-700 font-mono">{item.value}</span>
-              <span className="text-sm font-semibold text-gray-800">₹ {Number(item.testAmount).toLocaleString()}</span>
-              <div className="relative text-right">
-                <button onClick={() => setActiveDropdown(item.id)} className="p-2 rounded-full hover:bg-gray-200">
-                  <MoreHorizontal size={20} />
-                </button>
-                {activeDropdown === item.id && (
-                  <div ref={dropdownRef} className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-xl z-20">
-                    <Link to={`/employee-salary-structures/${structureId}/components/${item.id}`} className="block w-full text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">Edit</Link>
-                    <button onClick={() => onDeleteClick(item)} className="block w-full text-center px-4 py-2 text-sm text-red-700 hover:bg-gray-100 rounded-b-lg">Delete</button>
-                  </div>
-                )}
-              </div>
-            </div>
+              <ComponentRow 
+                key={item.id}
+                item={item}
+                structureId={structureId}
+                onDeleteClick={onDeleteClick}
+                onToggleDropdown={onToggleDropdown}
+                isDropdownOpen={activeDropdown === item.id}
+              />
           ))}
         </div>
       )}
@@ -135,6 +153,8 @@ const SalaryComponentPage: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [componentToDelete, setComponentToDelete] = useState<SalaryComponent | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (structureId) {
@@ -148,6 +168,7 @@ const SalaryComponentPage: React.FC = () => {
   const handleDeleteClick = useCallback((item: SalaryComponent) => {
     setComponentToDelete(item);
     setIsModalOpen(true);
+    setActiveDropdown(null);
   }, []);
 
   const handleConfirmDelete = useCallback(() => {
@@ -164,12 +185,26 @@ const SalaryComponentPage: React.FC = () => {
       }
   }, [dispatch, structureId]);
 
+  const handleToggleDropdown = useCallback((id: string) => {
+      setActiveDropdown(prev => (prev === id ? null : id));
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (pageRef.current && !pageRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const renderContent = () => {
     if (status === 'loading' || status === 'idle') {
       return (
         <div className="space-y-6">
-            <SkeletonSection title="EARNINGS" />
-            <SkeletonSection title="DEDUCTIONS" />
+            <SkeletonSection />
+            <SkeletonSection />
         </div>
       );
     }
@@ -184,6 +219,8 @@ const SalaryComponentPage: React.FC = () => {
           components={value.components}
           structureId={structureId}
           onDeleteClick={handleDeleteClick}
+          activeDropdown={activeDropdown}
+          onToggleDropdown={handleToggleDropdown}
         />
       ));
     }
@@ -191,7 +228,7 @@ const SalaryComponentPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-gray-50 p-6">
+    <div className="w-full bg-gray-50 p-6" ref={pageRef}>
       <header className="mb-6">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <div>

@@ -198,7 +198,7 @@ const UpsertRolePage: React.FC = () => {
         } else {
             dispatch(addRole(payload));
         }
-        navigate('/roles');
+        navigate('/role');
     }, [formData, dispatch, navigate, isEditMode, roleId, selectedRole]);
 
     if (isEditMode && selectedStatus === 'loading') {
@@ -214,7 +214,7 @@ const UpsertRolePage: React.FC = () => {
                 <div className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-900">{isEditMode ? 'Edit Role' : 'Create Role'}</h1>
                     <nav aria-label="Breadcrumb" className="flex items-center text-sm text-gray-500">
-                        <Link to="/roles" className="hover:text-gray-700">Roles</Link>
+                        <Link to="/role" className="hover:text-gray-700">Roles</Link>
                         <ChevronRight size={16} className="mx-1" />
                         <span className="font-medium text-gray-800">{isEditMode ? 'Edit' : 'Create'}</span>
                     </nav>
@@ -260,7 +260,7 @@ const UpsertRolePage: React.FC = () => {
                 </div>
 
                 <div className="flex justify-start gap-4 pt-6 border-t">
-                    <button type="button" onClick={() => navigate('/roles')} className="px-10 py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
+                    <button type="button" onClick={() => navigate('/role')} className="px-10 py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
                     <button type="submit" className="px-10 py-2.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">{isEditMode ? 'UPDATE' : 'SUBMIT'}</button>
                 </div>
             </form>

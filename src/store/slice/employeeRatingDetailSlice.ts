@@ -2,11 +2,8 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-// --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/ratings/';
+// --- TYPE DEFINITIONS to match your API response ---
 
-// --- TYPE DEFINITIONS ---
-// These types match the detailed structure of your API response
 export interface Scores {
     clearGoals: number;
     accountability: number;
@@ -15,18 +12,21 @@ export interface Scores {
     communicationLevels: number;
     conflictsWellManaged: number;
 }
+
 export interface ProjectRating {
     projectName: string;
+    managerId: string;
+    reviewerName: string;
     scores: Scores;
     overallProjectRating: number;
-    managerId?: string;
-    reviewerName?: string;
     areaOfDevelopment?: string;
 }
+
 export interface MonthData {
     projects: ProjectRating[];
     monthlyAverage: number;
 }
+
 export type RatingsByMonth = Record<string, MonthData>;
 
 export interface EmployeeRatingDetail {
@@ -41,85 +41,116 @@ export interface EmployeeRatingDetail {
     overallAverage: number;
 }
 
-// Helper to transform the raw API data into a more usable format
-function mapApiToEmployeeRatingDetail(api: any): EmployeeRatingDetail {
-    return {
-        empName: api.empName,
-        code: api.code,
-        department: api.department,
-        designation: api.designation,
-        yearOfExperience: api.yearOfExperience,
-        id: api.id,
-        year: String(api.year),
-        ratings: api.ratings || {},
-        overallAverage: Number(api.overallAverage ?? 0),
-    };
+// Type for the data sent when updating a rating
+export interface UpdateRatingPayload {
+    employeeId: string;
+    year: string;
+    month: string;
+    projectName: string;
+    scores: Partial<Scores>; // Use Partial as not all scores might be sent
+    areaOfDevelopment?: string;
 }
 
-// --- SLICE STATE ---
-export interface EmployeeRatingDetailState {
-    data: EmployeeRatingDetail | null;
-    status: 'idle' | 'loading' | 'succeeded' | 'failed';
-    error: string | null;
+
+interface EmployeeRatingDetailState {
+  data: EmployeeRatingDetail | null;
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  error: string | null;
 }
 
 const initialState: EmployeeRatingDetailState = {
-    data: null,
-    status: 'idle',
-    error: null,
+  data: null,
+  status: 'idle',
+  error: null,
 };
 
-// --- ASYNC THUNK ---
-export const fetchEmployeeRatingDetail = createAsyncThunk<
-    EmployeeRatingDetail,
-    { employeeId: string; year: string | number },
-    { rejectValue: string }
->("employeeRatingDetail/fetch", async ({ employeeId, year }, { rejectWithValue }) => {
-    try {
-        const response = await axiosInstance.get(`${API_BASE_URL}get`, {
-            params: { employeeId, year }
-        });
-
-        if (!response.data?.success || !Array.isArray(response.data.data) || response.data.data.length === 0) {
-            return rejectWithValue("No data found for this employee/year.");
-        }
-        
-        return mapApiToEmployeeRatingDetail(response.data.data[0]);
-    } catch (err) {
-        if (isAxiosError(err)) {
-            return rejectWithValue(err.response?.data?.message || "Failed to fetch details.");
-        }
-        return rejectWithValue("An unknown error occurred.");
-    }
+// --- DATA TRANSFORMATION ---
+const mapApiToEmployeeRatingDetail = (apiData: any): EmployeeRatingDetail => ({
+    empName: apiData.empName,
+    code: apiData.code,
+    department: apiData.department,
+    designation: apiData.designation,
+    yearOfExperience: apiData.yearOfExperience,
+    id: apiData.id,
+    year: String(apiData.year),
+    ratings: apiData.ratings || {},
+    overallAverage: Number(apiData.overallAverage || 0),
 });
+
+// --- ASYNC THUNKS ---
+export const fetchEmployeeRatingDetail = createAsyncThunk(
+  'employeeRatingDetail/fetch',
+  async ({ employeeId, year }: { employeeId: string; year: string }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get('/api/ratings/get', {
+        params: { employeeId, year },
+      });
+      if (!response.data?.success || !Array.isArray(response.data.data) || response.data.data.length === 0) {
+        return rejectWithValue('No data found for this employee/year.');
+      }
+      return mapApiToEmployeeRatingDetail(response.data.data[0]);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to fetch details');
+      }
+      return rejectWithValue('An unknown error occurred.');
+    }
+  }
+);
+
+export const updateEmployeeRating = createAsyncThunk(
+    'employeeRatingDetail/update',
+    async (payload: UpdateRatingPayload, { rejectWithValue, dispatch }) => {
+        try {
+            // *** THIS IS THE CORRECTED PART ***
+            // Using PUT method and the correct endpoint
+            await axiosInstance.put('/api/ratings/update', payload);
+            
+            // On success, re-fetch the data to ensure the UI is up-to-date
+            const { employeeId, year } = payload;
+            dispatch(fetchEmployeeRatingDetail({ employeeId, year }));
+            return; // Return nothing as re-fetch handles the state update
+        } catch (error) {
+            if (isAxiosError(error)) {
+                return rejectWithValue(error.response?.data?.message || 'Failed to update rating');
+            }
+            return rejectWithValue('An unknown error occurred.');
+        }
+    }
+);
+
 
 // --- SLICE DEFINITION ---
 const employeeRatingDetailSlice = createSlice({
-    name: 'employeeRatingDetail',
-    initialState,
-    reducers: {
-        clearDetail: (state) => {
-            state.data = null;
-            state.status = 'idle';
-            state.error = null;
-        }
+  name: 'employeeRatingDetail',
+  initialState,
+  reducers: {
+    clearDetail: (state) => {
+      state.data = null;
+      state.status = 'idle';
+      state.error = null;
     },
-    extraReducers: (builder) => {
-        builder
-            .addCase(fetchEmployeeRatingDetail.pending, (state) => {
-                state.status = 'loading';
-                state.error = null;
-            })
-            .addCase(fetchEmployeeRatingDetail.fulfilled, (state, action: PayloadAction<EmployeeRatingDetail>) => {
-                state.status = 'succeeded';
-                state.data = action.payload;
-            })
-            .addCase(fetchEmployeeRatingDetail.rejected, (state, action) => {
-                state.status = 'failed';
-                state.error = action.payload as string;
-            });
-    }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchEmployeeRatingDetail.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchEmployeeRatingDetail.fulfilled, (state, action: PayloadAction<EmployeeRatingDetail>) => {
+        state.status = 'succeeded';
+        state.data = action.payload;
+      })
+      .addCase(fetchEmployeeRatingDetail.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      })
+      .addCase(updateEmployeeRating.pending, (state) => {
+        // You can set a specific 'updating' status here if needed
+      });
+  },
 });
 
 export const { clearDetail } = employeeRatingDetailSlice.actions;
 export default employeeRatingDetailSlice.reducer;
+

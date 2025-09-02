@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
@@ -26,7 +26,7 @@ export interface SalaryComponent {
   groupId: string;
 }
 
-export type NewSalaryComponentPayload = Omit<SalaryComponent, 'id' | 'groupId' | 'isDefault' | 'isDeleted'>;
+export type NewSalaryComponentPayload = Omit<SalaryComponent, 'id' | 'groupId' | 'isDefault' | 'isDeleted' | 'createdAt'>;
 
 export interface AddComponentThunkArg {
     structureId: string;
@@ -121,30 +121,31 @@ const salaryComponentSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchSalaryComponents.pending, (state) => {
-        state.status = 'loading';
-      })
       .addCase(fetchSalaryComponents.fulfilled, (state, action: PayloadAction<SalaryComponentData>) => {
         state.status = 'succeeded';
         state.data = action.payload;
       })
-      .addCase(fetchSalaryComponents.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload as string;
-      })
+      // *** THIS IS THE CORRECTED PART ***
+      // This logic now correctly handles adding a component even if the initial state is empty.
       .addCase(addSalaryComponent.fulfilled, (state, action: PayloadAction<SalaryComponent>) => {
           const newComponent = action.payload;
-          if (state.data) {
-              if (state.data[newComponent.type]) {
-                  state.data[newComponent.type].components.push(newComponent);
-                  state.data[newComponent.type].count += 1;
-              } else {
-                  state.data[newComponent.type] = {
-                      count: 1,
-                      components: [newComponent],
-                  };
-              }
+          
+          // 1. Initialize state.data if it's null
+          if (!state.data) {
+              state.data = {};
           }
+
+          // 2. Safely add the component to the correct group
+          if (state.data[newComponent.type]) {
+              state.data[newComponent.type].components.push(newComponent);
+              state.data[newComponent.type].count += 1;
+          } else {
+              state.data[newComponent.type] = {
+                  count: 1,
+                  components: [newComponent],
+              };
+          }
+          state.status = 'succeeded'; // 3. Ensure status is updated
       })
       .addCase(updateSalaryComponent.fulfilled, (state, action: PayloadAction<SalaryComponent>) => {
           const updatedComponent = action.payload;
@@ -155,6 +156,7 @@ const salaryComponentSlice = createSlice({
                   group.components[index] = updatedComponent;
               }
           }
+           state.status = 'succeeded';
       })
       .addCase(deleteSalaryComponent.fulfilled, (state, action: PayloadAction<string>) => {
           const deletedId = action.payload;
@@ -165,9 +167,21 @@ const salaryComponentSlice = createSlice({
                   group.components = group.components.filter(c => c.id !== deletedId);
                   if (group.components.length < initialCount) {
                       group.count = group.components.length;
+                      break; // Exit loop once found and deleted
                   }
               }
           }
+          state.status = 'succeeded';
+      })
+      // --- OPTIMIZATION ---
+      // Use `addMatcher` to handle common pending and rejected states for all actions
+      .addMatcher(isPending(fetchSalaryComponents, addSalaryComponent, updateSalaryComponent, deleteSalaryComponent), (state) => {
+          state.status = 'loading';
+          state.error = null;
+      })
+      .addMatcher(isRejected(fetchSalaryComponents, addSalaryComponent, updateSalaryComponent, deleteSalaryComponent), (state, action) => {
+          state.status = 'failed';
+          state.error = action.payload as string;
       });
   },
 });

@@ -3,6 +3,16 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
 // --- TYPE DEFINITIONS ---
+
+// This interface now matches the exact structure from your API response
+interface ApiCounts {
+  totalEmployees: number;
+  totalPayslips: number;
+  totalGrossPaid: number;
+  totalNetPaid: number;
+}
+
+// This is the shape of the data that your UI components will use
 export interface DashboardCounts {
   activeEmployees: number;
   payslipCount: number;
@@ -27,17 +37,15 @@ export const fetchDashboardCounts = createAsyncThunk(
   'dashboard/fetchCounts',
   async (_, { rejectWithValue }) => {
     try {
-      const token = "YOUR_FIREBASE_ID_TOKEN"; // Replace with your token logic
-      const response = await axiosInstance.get('/api/totalCounts/activeEmployees/get', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const apiData = response.data as { total: number };
-      // Only activeEmployees is from API, others are static demo
+      const response = await axiosInstance.get('/api/totalCounts/get');
+      const apiData = response.data as ApiCounts;
+
+      // Transform the API data into the format the UI expects
       const transformedData: DashboardCounts = {
-        activeEmployees: apiData.total,
-        payslipCount: 120, // Demo
-        grossPaid: 80000,  // Demo
-        netPaid: 50000,    // Demo
+        activeEmployees: apiData.totalEmployees,
+        payslipCount: apiData.totalPayslips,
+        grossPaid: apiData.totalGrossPaid,
+        netPaid: apiData.totalNetPaid,
       };
       return transformedData;
     } catch (error) {
