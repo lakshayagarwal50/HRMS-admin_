@@ -1,8 +1,10 @@
+//imports
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
 import type { AppDispatch, RootState } from "../../../store/store";
+//are TypeScript types that you create from your Redux store to ensure your code is type-safe when interacting with Redux. They help you catch errors early and enable autocompletion in your editor
 import {
   updateScheduledReport,
   resetScheduleStatus,
@@ -10,10 +12,12 @@ import {
   type ScheduleReportData,
 } from "../../../store/slice/reportSlice";
 
+//it create arrays of strings for populating hour and minute selection dropdowns
 const frequencyOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
 const hourOptions = Array.from({ length: 24 }, (_, i) => `${i}`);
 const minuteOptions = Array.from({ length: 60 }, (_, i) => `${i}`);
 
+//This function takes a date string in the format "DD MMM YYYY" (e.g., "02 Sep 2025") and converts it into the YYYY-MM-DD format
 const formatDateForInput = (dateString: string): string => {
   if (!dateString) return "";
   const date = new Date(
@@ -23,6 +27,7 @@ const formatDateForInput = (dateString: string): string => {
   return date.toISOString().split("T")[0];
 };
 
+//(like the YYYY-MM-DD from an input field) and formats it into the "DD MMM YYYY" string
 const formatDateForAPI = (dateString: string): string => {
   if (!dateString) return "";
   const date = new Date(dateString);

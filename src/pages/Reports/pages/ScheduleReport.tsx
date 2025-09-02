@@ -1,14 +1,14 @@
-
+//imports
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import type { AppDispatch, RootState } from "../../../store/store"; 
+import type { AppDispatch, RootState } from "../../../store/store";
 import {
   scheduleReportAPI,
   resetScheduleStatus,
-} from "../../../store/slice/reportSlice"; 
-import { type ScheduleReportData } from "../../../store/slice/reportSlice"; 
+} from "../../../store/slice/reportSlice";
+import { type ScheduleReportData } from "../../../store/slice/reportSlice";
 
 const frequencyOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
 const hourOptions = Array.from({ length: 24 }, (_, i) => `${i}`);
@@ -31,6 +31,7 @@ const formatDateForAPI = (dateString: string) => {
   });
 };
 
+//main body
 const ScheduleReport: React.FC<ScheduleReportProps> = ({
   reportName,
   reportId,
@@ -104,7 +105,7 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
         className: "bg-green-50 text-green-800",
       });
       dispatch(resetScheduleStatus());
-      navigate("/reports/all");
+      navigate("/reports/scheduled");
     } catch (err: any) {
       console.error("Failed to schedule report:", err);
       toast.error(err.message || "Failed to schedule report.", {
