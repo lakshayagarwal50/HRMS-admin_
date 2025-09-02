@@ -64,11 +64,15 @@
 
 // src/components/GettingStarted/CreateDepartment.tsx
 
-import React, { useState } from 'react';
-import SidePanelForm from '../common/SidePanelForm';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import type { AppDispatch } from '../../store/store';
+import toast from 'react-hot-toast';
+
+// --- Component & Redux Imports ---
+import SidePanelForm from '../common/SidePanelForm';
 import { addDepartment, type NewDepartment } from '../../store/slice/departmentSlice';
+import type { AppDispatch } from '../../store/store';
+
 // --- PROPS DEFINITION ---
 interface CreateDepartmentProps {
   isOpen: boolean;
@@ -76,7 +80,6 @@ interface CreateDepartmentProps {
 }
 
 // --- REUSABLE INPUT COMPONENT ---
-// (This component remains unchanged)
 const FormInput: React.FC<{
   label: string; value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -97,26 +100,41 @@ const FormInput: React.FC<{
 // --- MAIN COMPONENT ---
 const CreateDepartment: React.FC<CreateDepartmentProps> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
+
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
+  
+  // Clear form when the panel is closed
+  useEffect(() => {
+      if(!isOpen) {
+          setName('');
+          setCode('');
+          setDescription('');
+      }
+  }, [isOpen]);
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      alert('Department Name is required.');
+      toast.error('Department Name is required.');
       return;
     }
 
     const newDepartment: NewDepartment = {
-      name: name,
-      code: code,
-      description: description,
-      status: 'active', // Default status for new departments
+      name,
+      code,
+      description,
+      status: 'active',
     };
 
-    dispatch(addDepartment(newDepartment));
-    onClose(); // Close the panel after submission
+    try {
+        await dispatch(addDepartment(newDepartment)).unwrap();
+        toast.success('Department created successfully!');
+        onClose();
+    } catch (error: any) {
+        toast.error(error || 'Failed to create department.');
+    }
   };
 
   return (
@@ -136,3 +154,4 @@ const CreateDepartment: React.FC<CreateDepartmentProps> = ({ isOpen, onClose }) 
 };
 
 export default CreateDepartment;
+

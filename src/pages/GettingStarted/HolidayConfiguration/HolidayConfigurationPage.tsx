@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Plus, MoreHorizontal, RefreshCw, ServerCrash } from 'lucide-react';
+import { Plus, MoreHorizontal, RefreshCw, ServerCrash, ChevronRight } from 'lucide-react';
 
-// --- Redux Imports ---
 import {
   fetchHolidayConfigurations,
   addHolidayConfiguration,
@@ -12,15 +11,14 @@ import {
 } from '../../../store/slice/holidayconfigurationSlice'; 
 import type { RootState, AppDispatch } from '../../../store/store'; 
 
-// --- Component Imports ---
 import Table, { type Column } from "../../../components/common/Table"; 
 import AlertModal from '../../../components/Modal/AlertModal'; 
 import SidePanelForm from '../../../components/common/SidePanelForm';
+import { Link } from 'react-router-dom';
 
-// --- TYPE DEFINITION for display data ---
+
 type HolidayConfigDisplay = HolidayConfiguration & { s_no: number };
 
-// --- UI State Components ---
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -56,7 +54,6 @@ const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
     </div>
 );
 
-// --- Create Form Component ---
 const CreateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState('');
@@ -98,7 +95,7 @@ const CreateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => voi
   );
 };
 
-// --- Update Form Component ---
+
 const UpdateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => void; configData: HolidayConfiguration | null; }> = ({ isOpen, onClose, configData }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState('');
@@ -243,8 +240,16 @@ const HolidayConfigurationPage: React.FC = () => {
       <header className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Holiday Configuration</h1>
-          <nav aria-label="Breadcrumb" className="text-sm text-gray-500">
-            Dashboard / Getting Started / Holiday Configuration
+          <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
+          <Link to="/dashboard" className="hover:text-gray-700">
+                Dashboard
+          </Link>
+          <ChevronRight className="w-4 h-4 mx-1" />
+          <Link to="/getting-started" className="hover:text-gray-700">
+                Getting Started
+          </Link>
+          <ChevronRight className="w-4 h-4 mx-1" />
+           <span className="font-medium text-gray-800">Holiday Configuration</span>
           </nav>
         </div>
         <button

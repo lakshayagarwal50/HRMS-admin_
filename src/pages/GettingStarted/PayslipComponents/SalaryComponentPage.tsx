@@ -234,9 +234,10 @@ const SalaryComponentPage: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Salary Components</h1>
             <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
-              <Link to="/employee-salary-structures" className="hover:text-gray-700">Salary Structures</Link>
+              <Link to="/payslip-components" className="hover:text-gray-700">Employee Salary Structures</Link>
               <ChevronRight size={16} className="mx-1" />
-              <span className="font-medium text-gray-800">Components</span>
+              <Link to="" className="hover:text-gray-700">Salary Structures</Link>
+    
             </nav>
           </div>
           <Link to={`/employee-salary-structures/${structureId}/add-component`} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700">
