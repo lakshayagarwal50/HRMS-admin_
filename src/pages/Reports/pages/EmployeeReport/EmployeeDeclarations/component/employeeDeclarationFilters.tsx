@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { X, Play, Download } from "lucide-react";
-import Modal from "../../../../../../components/common/NotificationModal"; // Adjust the import path as needed
+import Modal from "../../../../../../components/common/NotificationModal"; 
 
 interface EmployeeDeclarationFiltersProps {
   isOpen: boolean;
@@ -39,7 +39,7 @@ const EmployeeDeclarationFilters: React.FC<EmployeeDeclarationFiltersProps> = ({
 
   return (
     <>
-      {/* Overlay */}
+      
       <div
         className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -82,13 +82,13 @@ const EmployeeDeclarationFilters: React.FC<EmployeeDeclarationFiltersProps> = ({
             </button>
           </div>
 
-          {/* Form Body */}
+          
           <div className="p-6 overflow-y-auto flex-grow">
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
               <h3 className="font-semibold text-gray-600">Field</h3>
               <h3 className="font-semibold text-gray-600">Filter Value</h3>
 
-              {/* Employee */}
+              
               <label className="text-sm text-gray-700 self-center">
                 Employee
               </label>
@@ -102,7 +102,7 @@ const EmployeeDeclarationFilters: React.FC<EmployeeDeclarationFiltersProps> = ({
                 {/* Add employee options here */}
               </select>
 
-              {/* Status */}
+              
               <label className="text-sm text-gray-700 self-center">
                 Status
               </label>
@@ -133,7 +133,7 @@ const EmployeeDeclarationFilters: React.FC<EmployeeDeclarationFiltersProps> = ({
         </div>
       </div>
 
-      {/* Confirmation Modal */}
+      
       <Modal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}

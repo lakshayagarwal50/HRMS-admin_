@@ -1,14 +1,12 @@
 import React from "react";
 import type { EmployeeDetail } from "../../../../store/slice/employeeSlice";
 import { SectionHeader } from "../common/DetailItem";
-import ActivityItem, { type Activity } from "./ActivityItem"; // Import the new component
+import ActivityItem, { type Activity } from "./ActivityItem"; 
 
 interface EmployeeActivitiesProps {
   data: EmployeeDetail;
 }
 
-// MOCK DATA: Replace this with your actual data from props
-// This is just to demonstrate how the component works.
 const mockActivities: Activity[] = [
   {
     id: "1",
@@ -46,9 +44,7 @@ const mockActivities: Activity[] = [
 ];
 
 const EmployeeActivities: React.FC<EmployeeActivitiesProps> = ({ data }) => {
-  // IMPORTANT: You should get the activities from your props, like this:
-  // const activities = data.activities || [];
-  // For now, we'll use the mock data.
+  
   const activities = mockActivities;
   const hasActivities = activities.length > 0;
 

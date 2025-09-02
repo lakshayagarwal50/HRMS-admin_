@@ -43,6 +43,7 @@ import eventsReducer from './slice/eventsSlice';
 import employeeSnapshotReducer from './slice/employeeSnapshotSlice';
 import employeeRatingDetailReducer from './slice/employeeRatingDetailSlice'
 import dashboardReducer from "./slice/dashboardSlice";
+import attendanceReportReducer from './slice/attendanceReportSlice';
 
 export const store = configureStore({
   reducer: {
@@ -88,6 +89,7 @@ export const store = configureStore({
     employeeSnapshot: employeeSnapshotReducer,
     employeeRatingDetail: employeeRatingDetailReducer, 
     dashboard: dashboardReducer,
+    attendanceReport: attendanceReportReducer,
   },
 });
 

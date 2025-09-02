@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
-import { axiosInstance } from '../../services'; // Adjust the import path as needed
+import { axiosInstance } from '../../services'; 
 import { fetchEmployeeDetails } from './employeeSlice';
 
-// --- INTERFACES ---
+
 
 export interface PfDataPayload {
   employeePfEnable: boolean;
@@ -30,7 +30,7 @@ const initialState: PfState = {
   error: null,
 };
 
-// --- ASYNC THUNKS ---
+
 
 export const addPfDetails = createAsyncThunk<
   ApiResponse,
@@ -44,7 +44,6 @@ export const addPfDetails = createAsyncThunk<
         `/employees/pf/${employeeId}`,
         pfData
       );
-      // Refetch all employee details to update the UI with the new PF data
       dispatch(fetchEmployeeDetails(employeeCode));
       return response.data as ApiResponse;
     } catch (error: unknown) {
@@ -68,7 +67,6 @@ export const updatePfDetails = createAsyncThunk<
         `/employees/pf/${pfId}`,
         pfData
       );
-      // Refetch all employee details to show the updated PF data
       dispatch(fetchEmployeeDetails(employeeCode));
       return response.data as ApiResponse;
     } catch (error: unknown) {
@@ -80,7 +78,6 @@ export const updatePfDetails = createAsyncThunk<
   }
 );
 
-// --- SLICE DEFINITION ---
 
 const pfSlice = createSlice({
   name: 'pf',

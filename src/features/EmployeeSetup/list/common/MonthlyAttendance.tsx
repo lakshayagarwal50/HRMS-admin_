@@ -1,229 +1,11 @@
-// import React, { useState, useEffect } from "react";
-// import { Link } from "react-router-dom";
-// import { axiosInstance } from "../../../../services"; // Adjust path as needed
-// import UpdateAttendanceModal from "../modal/UpdateAttendanceModal";
 
-// // --- TYPES & CONFIGURATION ---
-// type AttendanceStatus = "P" | "W" | "L" | "HD" | "H" | "AB";
-
-// interface MonthlyApiResponse {
-//   empCode: string;
-//   year: number;
-//   month: number;
-//   days: {
-//     [day: string]: AttendanceStatus;
-//   };
-// }
-
-// const attendanceConfig: Record<
-//   AttendanceStatus,
-//   { color: string; label: string }
-// > = {
-//   P: { color: "bg-green-100 text-green-800", label: "Present" },
-//   W: { color: "bg-yellow-100 text-yellow-800", label: "Weekoff" },
-//   L: { color: "bg-red-100 text-red-800", label: "Leave" },
-//   HD: { color: "bg-blue-100 text-blue-800", label: "HalfDay" },
-//   H: { color: "bg-cyan-100 text-cyan-800", label: "Holiday" },
-//   AB: { color: "bg-gray-200 text-gray-700", label: "Absent" },
-// };
-
-// const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-// const calendarMonths = [
-//   "Jan",
-//   "Feb",
-//   "Mar",
-//   "Apr",
-//   "May",
-//   "Jun",
-//   "Jul",
-//   "Aug",
-//   "Sep",
-//   "Oct",
-//   "Nov",
-//   "Dec",
-// ];
-
-// // --- MAIN COMPONENT ---
-// interface MonthlyAttendanceProps {
-//   employee: { name: string; employeeCode: string };
-//   year: number;
-//   month: string;
-//   onBack: () => void;
-// }
-
-// const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
-//   employee,
-//   year,
-//   month,
-//   onBack,
-// }) => {
-//   const [attendanceDays, setAttendanceDays] = useState<
-//     MonthlyApiResponse["days"]
-//   >({});
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
-//   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-//   const [dateToUpdate, setDateToUpdate] = useState("");
-
-//   const fetchMonthlyData = async () => {
-//     setLoading(true);
-//     setError(null);
-//     const monthIndex = calendarMonths.indexOf(month) + 1;
-//     try {
-//       const response = await axiosInstance.get<MonthlyApiResponse>(
-//         `/employees/getMonthly/${employee.employeeCode}`,
-//         { params: { year, month: monthIndex } }
-//       );
-//       setAttendanceDays(response.data.days);
-//     } catch (err) {
-//       setError("Failed to fetch monthly attendance.");
-//       console.error(err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchMonthlyData();
-//   }, [employee, year, month]);
-
-//   const handleUpdateSubmit = (formData: any) => {
-//     console.log(`Updating attendance for ${dateToUpdate}:`, formData);
-//     // After a successful update, re-fetch the data to show changes
-//     fetchMonthlyData();
-//     setIsUpdateModalOpen(false);
-//   };
-
-//   const handleOpenUpdateModal = (day: number) => {
-//     const monthIndex = calendarMonths.indexOf(month) + 1;
-//     const dateString = `${year}-${String(monthIndex).padStart(2, "0")}-${String(
-//       day
-//     ).padStart(2, "0")}`;
-//     setDateToUpdate(dateString);
-//     setIsUpdateModalOpen(true);
-//   };
-
-//   const monthIndex = calendarMonths.indexOf(month);
-//   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-//   const firstDayOfWeek = new Date(year, monthIndex, 1).getDay();
-
-//   const renderGrid = () => {
-//     if (loading)
-//       return (
-//         <div className="text-center p-12 col-span-7">
-//           Loading Monthly View...
-//         </div>
-//       );
-//     if (error)
-//       return (
-//         <div className="text-center p-12 text-red-500 col-span-7">{error}</div>
-//       );
-
-//     const gridCells = [];
-//     for (let i = 0; i < firstDayOfWeek; i++) {
-//       gridCells.push(
-//         <div
-//           key={`empty-${i}`}
-//           className="border border-gray-100 rounded-md"
-//         ></div>
-//       );
-//     }
-//     for (let day = 1; day <= daysInMonth; day++) {
-//       const status = attendanceDays[day];
-//       const config = status ? attendanceConfig[status] : null;
-//       gridCells.push(
-//         <div
-//           key={day}
-//           className={`border rounded-md p-2 text-center text-white cursor-pointer ${
-//             config?.color.replace("bg-", "bg-").replace("-100", "-500") ??
-//             "bg-gray-50"
-//           }`}
-//           onClick={() => handleOpenUpdateModal(day)}
-//         >
-//           <div className="font-bold text-lg">
-//             {day.toString().padStart(2, "0")}
-//           </div>
-//           <div className="text-xs font-semibold">{config?.label ?? "-"}</div>
-//         </div>
-//       );
-//     }
-//     return gridCells;
-//   };
-
-//   return (
-//     <div>
-//       <header className="mb-6">
-//         <h1 className="text-2xl font-bold text-gray-900">
-//           {`${month}-${year} Attendance for Employee ${employee.employeeCode} | ${employee.name}`}
-//         </h1>
-//         {/* <p className="text-sm text-gray-500 mt-1">
-//           <Link to="/dashboard" className="hover:text-[#741CDD]">
-//             Dashboard
-//           </Link>{" "}
-//           /<span className="mx-1">Employee Setup</span> /
-//           <span className="mx-1">Detail</span> /
-//           <span className="text-[#741CDD] font-medium">Attendance</span>
-//         </p> */}
-//         <p className="text-sm text-gray-500 mt-1">
-//           <Link to="/dashboard" className="hover:text-[#741CDD]">
-//             Dashboard
-//           </Link>
-//           <span className="mx-2">/</span>
-//           {/* Note: Linking Employee Setup to the list page as it's a more common UX pattern. */}
-//           <Link to="/dashboard" className="hover:text-[#741CDD]">
-//             Employee Setup
-//           </Link>
-
-//           <span className="mx-2">/Monthly Attendance</span>
-//           {/* <Link to={`/employees/list`} className="hover:text-[#741CDD]">
-//             Monthly Attendance
-//           </Link> */}
-//         </p>
-//       </header>
-
-//       <div className="bg-white p-6 rounded-lg shadow-md">
-//         <div className="grid grid-cols-7 gap-2 text-center font-semibold text-sm text-gray-600 mb-4">
-//           {daysOfWeek.map((day) => (
-//             <div key={day}>{day}</div>
-//           ))}
-//         </div>
-//         <div className="grid grid-cols-7 gap-2">{renderGrid()}</div>
-//       </div>
-
-//       <div className="mt-8 flex items-center space-x-4">
-//         <button
-//           onClick={() => handleOpenUpdateModal(1)} // Opens modal for the 1st of the month
-//           className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors"
-//         >
-//           UPDATE
-//         </button>
-//         <button
-//           onClick={onBack}
-//           className="bg-gray-200 text-gray-800 font-semibold py-2 px-8 rounded-lg hover:bg-gray-300 transition-colors"
-//         >
-//           BACK
-//         </button>
-//       </div>
-
-//       <UpdateAttendanceModal
-//         isOpen={isUpdateModalOpen}
-//         onClose={() => setIsUpdateModalOpen(false)}
-//         onSuccess={handleUpdateSubmit}
-//         employeeCode={employee.employeeCode}
-//         date={dateToUpdate}
-//       />
-//     </div>
-//   );
-// };
-
-// export default MonthlyAttendance;
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { axiosInstance } from "../../../../services"; // Adjust path as needed
+import { axiosInstance } from "../../../../services"; 
 import UpdateAttendanceModal from "../modal/UpdateAttendanceModal";
-import toast from "react-hot-toast"; // New: Import toast
+import toast from "react-hot-toast"; 
 
-// --- TYPES & CONFIGURATION ---
+
 type AttendanceStatus = "P" | "W" | "L" | "HD" | "H" | "AB";
 
 interface MonthlyApiResponse {
@@ -263,7 +45,6 @@ const calendarMonths = [
   "Dec",
 ];
 
-// --- MAIN COMPONENT ---
 interface MonthlyAttendanceProps {
   employee: { name: string; employeeCode: string };
   year: number;
@@ -281,16 +62,14 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
     MonthlyApiResponse["days"]
   >({});
   const [loading, setLoading] = useState(true);
-  // Modified: The 'error' state is no longer needed.
-  // const [error, setError] = useState<string | null>(null);
+  
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
-  // Modified: This state is no longer needed as the modal handles its own date input.
-  // const [dateToUpdate, setDateToUpdate] = useState("");
+  
 
   const fetchMonthlyData = async () => {
     setLoading(true);
-    // setError(null); // No longer needed
+    
     const monthIndex = calendarMonths.indexOf(month) + 1;
     try {
       const response = await axiosInstance.get<MonthlyApiResponse>(
@@ -299,7 +78,7 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
       );
       setAttendanceDays(response.data.days);
     } catch (err) {
-      // Modified: Replaced setError with a toast notification.
+      
       toast.error("Failed to fetch monthly attendance.", {
         className: "bg-red-50 text-red-800",
       });
@@ -313,17 +92,17 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
     fetchMonthlyData();
   }, [employee, year, month]);
 
-  // Modified: handleUpdateSubmit now provides a success toast.
+  
   const handleUpdateSubmit = () => {
     toast.success("Attendance updated successfully!", {
       className: "bg-green-50 text-green-800",
     });
-    // After a successful update, re-fetch the data to show changes
+   
     fetchMonthlyData();
     setIsUpdateModalOpen(false);
   };
 
-  // Modified: This function now just opens the modal.
+  
   const handleOpenUpdateModal = () => {
     setIsUpdateModalOpen(true);
   };
@@ -339,7 +118,7 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
           Loading Monthly View...
         </div>
       );
-    // Modified: Removed the error display as toasts now handle it.
+    
 
     const gridCells = [];
     for (let i = 0; i < firstDayOfWeek; i++) {
@@ -360,7 +139,7 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
             config?.color.replace("bg-", "bg-").replace("-100", "-500") ??
             "bg-gray-50"
           }`}
-          onClick={handleOpenUpdateModal} // Simplified this call
+          onClick={handleOpenUpdateModal} 
         >
           <div className="font-bold text-lg">
             {day.toString().padStart(2, "0")}
@@ -401,7 +180,7 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
 
       <div className="mt-8 flex items-center space-x-4">
         <button
-          onClick={handleOpenUpdateModal} // Simplified this call
+          onClick={handleOpenUpdateModal} 
           className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors"
         >
           UPDATE
@@ -419,7 +198,7 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
         onClose={() => setIsUpdateModalOpen(false)}
         onSuccess={handleUpdateSubmit}
         employeeCode={employee.employeeCode}
-        // Modified: Removed the 'date' prop as the modal does not require it.
+        
       />
     </div>
   );
