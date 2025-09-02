@@ -98,6 +98,7 @@ const API_URL = '/api/designations/get';
 
 // 🧩 Designation Type
 export interface Designation {
+  designationName: string;
   id: string;
   name: string;
   code: string;

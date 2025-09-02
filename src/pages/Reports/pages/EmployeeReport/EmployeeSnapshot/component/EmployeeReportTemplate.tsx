@@ -1,139 +1,165 @@
 
-import React, { useState } from "react";
-import { Check } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import toast from "react-hot-toast";
-import { axiosInstance } from "../../../../../../services";
-import { isAxiosError } from "axios";
+import { Check } from "lucide-react";
+import { toast } from "react-toastify";
 import Table, { type Column } from "../../../../../../components/common/Table";
 import Modal from "../../../../../../components/common/NotificationModal";
-
+import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
+import {
+  updateEmployeeSnapshotTemplate,
+  fetchTemplateSettings,
+  type SnapshotTemplateConfig,
+} from "../../../../../../store/slice/employeeSnapshotSlice";
 
 interface TemplateField {
   id: number;
   s_no: number;
   name: string;
+  label: string;
   isEnabled: boolean;
 }
 
-const newFieldNames = [
-  "name",
-  "emp_id",
-  "status",
-  "joining_date",
-  "designation",
-  "department",
-  "location",
-  "gender",
-  "email",
-  "pan",
-  "gross_salary",
-  "lossOfPay",
-  "taxPaid",
-  "netPay",
-  "leave",
-  "leaveAdjustment",
-  "leaveBalance",
-  "workingPattern",
-  "phone",
+const masterFieldList: TemplateField[] = [
+  { id: 1, s_no: 1, name: "name", label: "Name", isEnabled: true },
+  { id: 2, s_no: 2, name: "emp_id", label: "Employee ID", isEnabled: true },
+  { id: 3, s_no: 3, name: "status", label: "Status", isEnabled: true },
+  {
+    id: 4,
+    s_no: 4,
+    name: "joining_date",
+    label: "Joining Date",
+    isEnabled: true,
+  },
+  {
+    id: 5,
+    s_no: 5,
+    name: "designation",
+    label: "Designation",
+    isEnabled: true,
+  },
+  { id: 6, s_no: 6, name: "department", label: "Department", isEnabled: true },
+  { id: 7, s_no: 7, name: "location", label: "Location", isEnabled: true },
+  { id: 8, s_no: 8, name: "gender", label: "Gender", isEnabled: true },
+  { id: 9, s_no: 9, name: "email", label: "Email", isEnabled: true },
+  { id: 10, s_no: 10, name: "pan", label: "PAN Number", isEnabled: true },
+  {
+    id: 11,
+    s_no: 11,
+    name: "gross_salary",
+    label: "Gross Salary",
+    isEnabled: true,
+  },
+  {
+    id: 12,
+    s_no: 12,
+    name: "lossOfPay",
+    label: "Loss of Pay",
+    isEnabled: true,
+  },
+  { id: 13, s_no: 13, name: "taxPaid", label: "Tax Paid", isEnabled: true },
+  { id: 14, s_no: 14, name: "netPay", label: "Net Pay", isEnabled: true },
+  {
+    id: 15,
+    s_no: 15,
+    name: "leave",
+    label: "Last Leave Type",
+    isEnabled: true,
+  },
+  {
+    id: 16,
+    s_no: 16,
+    name: "leaveAdjustment",
+    label: "Leaves Adjusted",
+    isEnabled: true,
+  },
+  {
+    id: 17,
+    s_no: 17,
+    name: "leaveBalance",
+    label: "Leave Balance",
+    isEnabled: true,
+  },
+  {
+    id: 18,
+    s_no: 18,
+    name: "workingPattern",
+    label: "Working Pattern",
+    isEnabled: true,
+  },
+  { id: 19, s_no: 19, name: "phone", label: "Phone Number", isEnabled: true },
 ];
-
-const initialFields: TemplateField[] = newFieldNames.map((name, index) => ({
-  id: index + 1,
-  s_no: index + 1,
-  name: name,
-  isEnabled: true, 
-}));
-
 
 interface EmployeeReportTemplateProps {
   onBack: () => void;
-  templateId: string | null;
 }
 
 const EmployeeReportTemplate: React.FC<EmployeeReportTemplateProps> = ({
   onBack,
-  templateId,
 }) => {
-  const [fields, setFields] = useState<TemplateField[]>(initialFields);
-  const [modalState, setModalState] = useState({
-    isOpen: false,
-    title: "",
-    message: "",
-    onConfirm: () => {},
-    type: "warning" as "warning" | "info" | "success" | "error",
-  });
+  const [fields, setFields] = useState<TemplateField[]>(masterFieldList);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const dispatch = useAppDispatch();
 
+  const { templateId, templateData, status } = useAppSelector(
+    (state) => state.employeeSnapshot
+  );
+
+  useEffect(() => {
+    if (templateId) {
+      dispatch(fetchTemplateSettings(templateId));
+    }
+  }, [dispatch, templateId]);
+
+  useEffect(() => {
+    if (templateData) {
+      const updatedFields = masterFieldList.map((field) => ({
+        ...field,
+        isEnabled: templateData[field.name] ?? false,
+      }));
+      setFields(updatedFields);
+    }
+  }, [templateData]);
 
   const handleCheckboxChange = (id: number) => {
-    setFields(
-      fields.map((field) =>
+    setFields((prevFields) =>
+      prevFields.map((field) =>
         field.id === id ? { ...field, isEnabled: !field.isEnabled } : field
       )
     );
   };
 
-  const closeModal = () => setModalState({ ...modalState, isOpen: false });
+  const handleUpdateClick = () => setIsModalOpen(true);
 
-  const handleUpdateClick = () => {
-    setModalState({
-      isOpen: true,
-      title: "Do you want to continue with saving?",
-      message:
-        "This will update report template settings and sequence as you select",
-      onConfirm: confirmUpdate,
-      type: "warning",
-    });
+  const confirmRefresh = () => {
+    if (templateId) {
+      dispatch(fetchTemplateSettings(templateId));
+      toast.info("Template has been reset to the last saved state.");
+    }
   };
 
-  const handleRefreshClick = () => {
-    setFields(initialFields);
-    toast.success("Template has been reset to default.");
-  };
-
-  const confirmUpdate = async () => {
-    closeModal();
+  const confirmUpdate = () => {
     if (!templateId) {
-      toast.error("Template ID is missing. Cannot update.");
+      toast.error("Template ID not found.");
+      setIsModalOpen(false);
       return;
     }
-
-    const updatedTemplate = fields.reduce((acc, field) => {
+    const payload: SnapshotTemplateConfig = fields.reduce((acc, field) => {
       acc[field.name] = field.isEnabled;
       return acc;
-    }, {} as Record<string, boolean>);
+    }, {} as SnapshotTemplateConfig);
 
-    const toastId = toast.loading("Updating template...");
+    dispatch(updateEmployeeSnapshotTemplate({ id: templateId, data: payload }))
+      .unwrap()
+      .then(() => onBack && onBack())
+      .catch((err) => console.error("Template update failed:", err));
 
-    try {
-      const response = await axiosInstance.patch(
-        `/report/updateTemplate/employeeSnapshot/${templateId}`,
-        updatedTemplate
-      );
-
-      toast.success(response.data.message || "Template updated successfully!", {
-        id: toastId,
-      });
-      onBack();
-    } catch (error) {
-      if (isAxiosError(error)) {
-        toast.error(
-          error.response?.data?.message || "Failed to update template.",
-          { id: toastId }
-        );
-      } else {
-        toast.error("An unknown error occurred.", { id: toastId });
-      }
-    }
+    setIsModalOpen(false);
   };
 
   const columns: Column<TemplateField>[] = [
     { key: "s_no", header: "S no.", className: "w-1/12" },
-    {
-      key: "name",
-      header: "Field Name",
-      className: "w-9/12 font-mono text-sm",
-    },
+    { key: "label", header: "Field Name", className: "w-9/12" },
     {
       key: "action",
       header: "Enable / Disable",
@@ -146,7 +172,7 @@ const EmployeeReportTemplate: React.FC<EmployeeReportTemplateProps> = ({
             onChange={() => handleCheckboxChange(row.id)}
             className="sr-only peer"
           />
-          <div className="w-6 h-6 border-2 border-gray-300 rounded-md flex items-center justify-center peer-checked:bg-[#741CDD] peer-checked:border-[#741CDD]">
+          <div className="w-6 h-6 border-2 border-gray-300 rounded-md flex items-center justify-center peer-checked:bg-[#741CDD] peer-checked:border-[#741CDD] transition-colors">
             <Check
               size={16}
               className={`text-white ${
@@ -171,26 +197,24 @@ const EmployeeReportTemplate: React.FC<EmployeeReportTemplateProps> = ({
           Employee Snapshot Report Template
         </p>
       </div>
-
       <div className="bg-white p-6 rounded-lg shadow-sm flex-grow">
         <Table
           data={fields}
           columns={columns}
           showSearch={false}
           showPagination={false}
-          defaultItemsPerPage={fields.length}
         />
       </div>
-
       <div className="mt-8 flex items-center space-x-4">
         <button
           onClick={handleUpdateClick}
-          className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors"
+          disabled={status === "loading"}
+          className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          UPDATE
+          {status === "loading" ? "UPDATING..." : "UPDATE"}
         </button>
         <button
-          onClick={handleRefreshClick}
+          onClick={confirmRefresh}
           className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors"
         >
           REFRESH
@@ -202,14 +226,13 @@ const EmployeeReportTemplate: React.FC<EmployeeReportTemplateProps> = ({
           BACK
         </button>
       </div>
-
       <Modal
-        isOpen={modalState.isOpen}
-        onClose={closeModal}
-        onConfirm={modalState.onConfirm}
-        title={modalState.title}
-        message={modalState.message}
-        type={modalState.type}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmUpdate}
+        title="Confirm Update"
+        message="This will save the current template settings for the Employee Snapshot report. Are you sure?"
+        type="warning"
         confirmButtonText="CONFIRM"
         cancelButtonText="CANCEL"
       />
