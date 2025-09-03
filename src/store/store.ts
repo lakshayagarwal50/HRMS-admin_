@@ -44,6 +44,7 @@ import employeeSnapshotReducer from './slice/employeeSnapshotSlice';
 import employeeRatingDetailReducer from './slice/employeeRatingDetailSlice'
 import dashboardReducer from "./slice/dashboardSlice";
 import attendanceReportReducer from './slice/attendanceReportSlice';
+import leaveReportReducer from "./slice/leaveReportSlice";
 
 export const store = configureStore({
   reducer: {
@@ -90,6 +91,7 @@ export const store = configureStore({
     employeeRatingDetail: employeeRatingDetailReducer, 
     dashboard: dashboardReducer,
     attendanceReport: attendanceReportReducer,
+    leaveReport: leaveReportReducer,
   },
 });
 
