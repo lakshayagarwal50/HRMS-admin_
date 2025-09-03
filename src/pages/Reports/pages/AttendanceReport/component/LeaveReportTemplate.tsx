@@ -154,7 +154,7 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({ onBack, templ
           value={row.value || row.label}
           onChange={(e) => handleLabelChange(row.id, e.target.value)}
           className="w-full p-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-purple-500"
-          // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+        
           disabled={loading === 'pending'}
         />
       ),
@@ -170,7 +170,7 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({ onBack, templ
             checked={row.isEnabled}
             onChange={() => handleCheckboxChange(row.id)}
             className="sr-only peer"
-            // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+          
             disabled={loading === 'pending'}
           />
           <div className="w-6 h-6 border-2 border-gray-300 rounded-md flex items-center justify-center peer-checked:bg-[#741CDD] peer-checked:border-[#741CDD] transition-colors">
@@ -197,7 +197,7 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({ onBack, templ
           columns={columns}
           showSearch={false}
           showPagination={false}
-          // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+   
           isLoading={loading === 'pending' && !template}
         />
       </div>
@@ -206,7 +206,7 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({ onBack, templ
         <button
           onClick={handleUpdateClick}
           className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
-          // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+          
           disabled={loading === 'pending' || !templateId}
         >
           {loading === 'pending' ? "UPDATING..." : "UPDATE"}
@@ -214,7 +214,7 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({ onBack, templ
         <button
           onClick={handleRefreshClick}
           className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
-          // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+         
           disabled={loading === 'pending' || !templateId}
         >
           REFRESH
@@ -222,7 +222,6 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({ onBack, templ
         <button
           onClick={onBack}
           className="bg-gray-200 text-gray-800 font-semibold py-2 px-8 rounded-lg hover:bg-gray-300 transition-colors"
-          // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
           disabled={loading === 'pending'}
         >
           BACK
