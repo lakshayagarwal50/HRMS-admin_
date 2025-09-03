@@ -74,6 +74,7 @@ const CreateSequenceNumber: React.FC<CreateSequenceNumberProps> = ({ isOpen, onC
             <input
               id="type"
               name="type"
+              placeholder='eg: employee'
               list="type-options"
               value={type}
               onChange={(e) => setType(e.target.value as SequenceType)}
@@ -89,6 +90,7 @@ const CreateSequenceNumber: React.FC<CreateSequenceNumberProps> = ({ isOpen, onC
             <label className="block text-sm font-medium text-gray-700 mb-1">Prefix</label>
             <input
               type="text"
+              placeholder='eg: EMP'
               value={prefix}
               onChange={(e) => setPrefix(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
@@ -98,6 +100,7 @@ const CreateSequenceNumber: React.FC<CreateSequenceNumberProps> = ({ isOpen, onC
             <label className="block text-sm font-medium text-gray-700 mb-1">Next Available Number</label>
             <input
               type="number"
+              placeholder='eg: 1001'
               value={nextAvailableNumber}
               onChange={(e) => setNextAvailableNumber(Number(e.target.value))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"

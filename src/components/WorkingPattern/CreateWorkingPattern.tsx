@@ -5,6 +5,7 @@ import SidePanelForm from '../common/SidePanelForm'; // Adjust path if needed
 // --- Redux Imports ---
 import { addWorkingPattern, type NewWorkingPattern } from '../../store/slice/workingPatternsSlice'; // Adjust path
 import type { AppDispatch } from '../../store/store'; // Adjust path
+import { toast } from 'react-toastify';
 
 // --- PROPS DEFINITION ---
 interface CreateWorkingPatternProps {
@@ -60,7 +61,7 @@ const CreateWorkingPattern: React.FC<CreateWorkingPatternProps> = ({ isOpen, onC
     setters[week-1](newWeek);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       alert('Pattern Name is required.');
@@ -71,14 +72,21 @@ const CreateWorkingPattern: React.FC<CreateWorkingPatternProps> = ({ isOpen, onC
     
     // Dispatch the Redux action to add the new pattern
     dispatch(addWorkingPattern(newPattern));
-    onClose();
+     try {
+        await dispatch(addWorkingPattern(newPattern)).unwrap();
+        toast.success('Designation updated successfully!');
+        onClose();
+    } catch (error: any) {
+        toast.error(error || 'Failed to update designation.');
+    }
+   
   };
 
   return (
     <SidePanelForm isOpen={isOpen} onClose={onClose} title="Add New Working Pattern" onSubmit={handleFormSubmit} submitText="Submit">
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          <FormInput label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+          <FormInput label="Name" value={name}  onChange={(e) => setName(e.target.value)} required />
           <FormInput label="Code" value={code} onChange={(e) => setCode(e.target.value)} />
         </div>
         <div className="p-4 border rounded-md space-y-4">

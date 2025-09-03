@@ -10,6 +10,7 @@ import {
   type WebCheckinSettings,
 } from '../../../store/slice/webCheckinSettingsSlice'; // Adjust path
 import type { RootState, AppDispatch } from '../../../store/store'; // Adjust path
+import toast from 'react-hot-toast';
 
 // --- UI State Components ---
 const FormSkeleton: React.FC = () => (
@@ -84,14 +85,22 @@ const WebCheckinSettingsPage: React.FC = () => {
     }
   }, [settings]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const updatedSettings: WebCheckinSettings = {
-      shiftStartTime: startTime,
-      shiftEndTime: endTime,
-    };
-    dispatch(updateWebCheckinSettings(updatedSettings));
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const updatedSettings: WebCheckinSettings = {
+    shiftStartTime: startTime,
+    shiftEndTime: endTime,
   };
+
+  try {
+    await dispatch(updateWebCheckinSettings(updatedSettings)).unwrap();
+    toast.success('Web check-in settings updated successfully!');
+  } catch (error) {
+    toast.error('Failed to update web check-in settings.');
+  }
+};
+
 
   const handleCancel = () => {
     navigate('/getting-started');

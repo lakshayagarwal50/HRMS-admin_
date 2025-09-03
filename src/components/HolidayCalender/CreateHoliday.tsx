@@ -7,6 +7,7 @@ import SidePanelForm from '../../components/common/SidePanelForm';
 import { addHolidayCalendarEntry, type NewHolidayCalendarEntry } from '../../store/slice/holidayCalendarSlice';
 import { fetchHolidayConfigurations,} from '../../store/slice/holidayconfigurationSlice';
 import type { RootState, AppDispatch } from '../../store/store';
+import toast from 'react-hot-toast';
 
 // --- PROPS DEFINITION ---
 interface CreateHolidayFormProps {
@@ -60,20 +61,25 @@ const CreateHolidayForm: React.FC<CreateHolidayFormProps> = ({ isOpen, onClose }
   };
   
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!type || !name || !date || selectedGroups.length === 0) {
-      alert('Please fill all required fields.');
-      return;
-    }
-    const newEntry: NewHolidayCalendarEntry = {
-      name,
-      type,
-      date,
-      holidayGroups: selectedGroups,
-    };
-    dispatch(addHolidayCalendarEntry(newEntry));
-    onClose();
+  e.preventDefault();
+
+  if (!type || !name || !date || selectedGroups.length === 0) {
+    toast.error('Please fill all required fields.');
+    return;
+  }
+
+  const newEntry: NewHolidayCalendarEntry = {
+    name,
+    type,
+    date,
+    holidayGroups: selectedGroups,
   };
+
+  dispatch(addHolidayCalendarEntry(newEntry));
+  toast.success('Holiday calendar entry added successfully!');
+  onClose();
+};
+
 
   return (
     <SidePanelForm
@@ -98,7 +104,7 @@ const CreateHolidayForm: React.FC<CreateHolidayFormProps> = ({ isOpen, onClose }
         {/* Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} required className="w-full p-2 border border-gray-300 rounded-md"/>
+          <input type="text" value={name} placeholder='Name of Festival' onChange={e => setName(e.target.value)} required className="w-full p-2 border border-gray-300 rounded-md"/>
         </div>
 
         {/* Date */}

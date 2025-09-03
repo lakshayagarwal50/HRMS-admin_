@@ -32,7 +32,7 @@ const initialState: DepartmentsState = {
   error: null,
 };
 
-// --- ASYNC THUNKS ---
+// --- ASYNCHRONOUS THUNKS ---
 
 export const fetchDepartments = createAsyncThunk(
     'departments/fetchDepartments', 
@@ -49,11 +49,12 @@ export const fetchDepartments = createAsyncThunk(
 
 export const addDepartment = createAsyncThunk(
     'departments/addDepartment', 
-    async (newDepartment: NewDepartment, { rejectWithValue }) => {
+    async (newDepartment: NewDepartment, { dispatch, rejectWithValue }) => {
         try {
             const payload = { ...newDepartment, status: 'active' };
-            const response = await axiosInstance.post(API_BASE_URL, payload);
-            return response.data as Department;
+            await axiosInstance.post(API_BASE_URL, payload);
+            // *** THE FIX ***: After adding, re-fetch the entire list.
+            dispatch(fetchDepartments());
         } catch (error) {
             if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to add department');
             return rejectWithValue('An unknown error occurred.');
@@ -67,14 +68,8 @@ export const updateDepartment = createAsyncThunk(
         try {
             const { id, ...data } = department;
             await axiosInstance.put(`${API_BASE_URL}${id}`, data);
-            
-            // *** THE FIX ***
-            // After the update is successful, dispatch the action to re-fetch the entire list.
-            // This guarantees the UI will always show the latest data.
+            // *** THE FIX ***: After updating, re-fetch the entire list.
             dispatch(fetchDepartments());
-
-            // We don't need to return data here because the fetch action will handle it.
-            return;
         } catch (error) {
             if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update department');
             return rejectWithValue('An unknown error occurred.');
@@ -94,16 +89,15 @@ const departmentSlice = createSlice({
         state.status = 'succeeded';
         state.items = action.payload;
       })
-      .addCase(addDepartment.fulfilled, (state, action: PayloadAction<Department>) => {
-        state.items.push(action.payload);
-        state.status = 'succeeded';
+      // We no longer need to manually add/update the state here, as the fetch action handles it.
+      // We can just set the status to 'loading' to provide immediate UI feedback.
+      .addCase(addDepartment.fulfilled, (state) => {
+        state.status = 'loading'; 
       })
       .addCase(updateDepartment.fulfilled, (state) => {
-        // The state will be updated by the `fetchDepartments` action,
-        // so we just set the status to 'loading' to show feedback.
         state.status = 'loading';
       })
-      .addMatcher(isPending(fetchDepartments, addDepartment), (state) => {
+      .addMatcher(isPending(fetchDepartments, addDepartment, updateDepartment), (state) => {
           state.status = 'loading';
           state.error = null;
       })

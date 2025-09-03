@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../../store/store';
-import { addRole, updateRole, fetchRoleById, clearSelectedRole, type RolePayload, type Role } from '../../../store/slice/roleSlice';
+import { addRole, updateRole, fetchRoleById, clearSelectedRole, type RolePayload, type role } from '../../../store/slice/roleSlice';
+import toast from 'react-hot-toast';
 
 // --- TYPE DEFINITIONS ---
 type Permission = { name: string; enabled: boolean; };
@@ -182,28 +183,38 @@ const UpsertRolePage: React.FC = () => {
         });
     }, []);
 
-    const handleSubmit = useCallback((e: React.FormEvent) => {
-        e.preventDefault();
-        
-        const payload: RolePayload = {
-            name: formData.name,
-            code: formData.code,
-            description: formData.description,
-            status: selectedRole?.status || 'Active', // Preserve existing status or default to Active
-            permissions: transformPermissionsForAPI(formData.permissions),
-        };
+ const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
 
-        if (isEditMode && roleId) {
-            dispatch(updateRole({ id: roleId, ...payload }));
-        } else {
-            dispatch(addRole(payload));
-        }
-        navigate('/role');
-    }, [formData, dispatch, navigate, isEditMode, roleId, selectedRole]);
+    const payload: RolePayload = {
+        name: formData.name,
+        code: formData.code,
+        description: formData.description,
+        status: selectedRole?.status || 'Active',
+        permissions: transformPermissionsForAPI(formData.permissions),
+    };
 
-    if (isEditMode && selectedStatus === 'loading') {
-        return <div className="p-6 text-center">Loading Role Details...</div>;
+    if (isEditMode && roleId) {
+        dispatch(updateRole({ id: roleId, ...payload }))
+            .then(() => {
+                toast.success('Role updated successfully!');
+                navigate('/role');
+            })
+            .catch(() => {
+                toast.error('Failed to update role.');
+            });
+    } else {
+        dispatch(addRole(payload))
+            .then(() => {
+                toast.success('Role added successfully!');
+                navigate('/role');
+            })
+            .catch(() => {
+                toast.error('Failed to add role.');
+            });
     }
+}, [formData, dispatch, navigate, isEditMode, roleId, selectedRole]);
+
 
     const permissionKeysCol1 = ['myHolidays', 'holidayConfiguration', 'holidayCalendar', 'leaves', 'leaveSetup', 'myLeaves', 'teamLeaveRequests', 'employeeLeaveRequests', 'dsr', 'myDSR', 'teamDSRRequests', 'employeesDSRRequests', 'attendance', 'myAttendance', 'teamAttendanceSummary', 'employeesAttendanceSummary', 'ratings', 'ratingConfiguration', 'myMonthlyRatings', 'myPerformance', 'rateTeamMembers', 'loanAndAdvances', 'myLoanAndAdvances', 'employeesLoanAdvancesRequests', 'projects', 'myProjects', 'allProjects', 'payslips', 'myPayslips', 'employeesPayslips', 'declaration', 'myDeclaration', 'employeesDeclaration', 'reports'];
     const permissionKeysCol2 = ['myForm16', 'employeesForm16', 'employeeSetUp', 'allEmployees', 'employeesGeneralInfo', 'employeesProfessionalInfo', 'employeesBankDetails', 'employeesPFESI_PT', 'employeesPreviousJobDetails', 'employeesSalaryDistribution', 'employeesActivities', 'projectsColumn2', 'myProfile', 'myGeneralInfo', 'myProfessionalInfo', 'myBankDetails', 'myPFESI_PT', 'myPreviousJobDetails', 'payroll', 'crystalRun', 'masterConfiguration', 'workingPattern', 'department', 'designation', 'roles', 'locations', 'payslipComponents', 'organizationSettings', 'sequenceNumber', 'payrollConfiguration', 'webCheckInSettings'];
@@ -225,15 +236,15 @@ const UpsertRolePage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Role Name</label>
-                        <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
+                        <input type="text" id="name" name="name" placeholder='eg: HR' value={formData.name} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
                     </div>
                     <div>
                         <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">Code</label>
-                        <input type="text" id="code" name="code" value={formData.code} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
+                        <input type="text" id="code" name="code" placeholder='eg: 1001' value={formData.code} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
                     </div>
                     <div className="md:col-span-2">
                         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea id="description" name="description" value={formData.description} onChange={handleInputChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
+                        <textarea id="description" name="description" placeholder='this is description area' value={formData.description} onChange={handleInputChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
                     </div>
                 </div>
 

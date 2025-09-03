@@ -5,6 +5,7 @@ import SidePanelForm from '../../components/common/SidePanelForm'; // Adjust pat
 // --- Redux Imports ---
 import { updateLocation, type Location } from '../../store/slice/locationSlice'; // Adjust path
 import type { AppDispatch } from '../../store/store'; // Adjust path
+import toast from 'react-hot-toast';
 
 // --- PROPS DEFINITION ---
 interface UpdateLocationProps {
@@ -54,25 +55,31 @@ const UpdateLocation: React.FC<UpdateLocationProps> = ({ isOpen, onClose, locati
     }
   }, [locationData]);
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!locationData) return;
+ const handleFormSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!locationData) return;
 
-    if (!city.trim() || !state.trim()) {
-      alert('City and State are required.');
-      return;
-    }
-    
-    const updatedLocation: Location = { 
-        ...locationData, 
-        city, 
-        code, 
-        state 
-    };
+  if (!city.trim() || !state.trim()) {
+    toast.error('City and State are required.');
+    return;
+  }
 
-    dispatch(updateLocation(updatedLocation));
-    onClose();
+  const updatedLocation: Location = {
+    ...locationData,
+    city,
+    code,
+    state,
   };
+
+  try {
+    await dispatch(updateLocation(updatedLocation)).unwrap();
+    toast.success('Location updated successfully!');
+    onClose();
+  } catch (error) {
+    toast.error('Failed to update location.');
+  }
+};
+
 
   return (
     <SidePanelForm

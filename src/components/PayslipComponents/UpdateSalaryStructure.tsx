@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SidePanelForm from '../../components/common/SidePanelForm'; // Adjust path if needed
+import toast from 'react-hot-toast';
 
 // --- TYPE DEFINITIONS ---
 // This should match the type in your main page component
@@ -33,14 +34,15 @@ const UpdateSalaryStructure: React.FC<UpdateSalaryStructureProps> = ({ isOpen, o
     }
   }, [isOpen, structureData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      alert('Name is required.');
-      return;
-    }
-    onSubmit({ groupName: name, code, description });
-  };
+   const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!name.trim()) {
+    toast.error('Name is required.');
+    return;
+  }
+  onSubmit({ groupName: name, code, description });
+  toast.success('Group Update successfully!');
+};
 
   return (
     <SidePanelForm
