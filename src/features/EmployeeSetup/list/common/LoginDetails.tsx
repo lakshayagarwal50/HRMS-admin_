@@ -1,0 +1,180 @@
+
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast"; 
+import type { AppDispatch, RootState } from "../../../../store/store"; 
+import {
+  addLoginDetails,
+  updateLoginDetails,
+  setLoginDetails,
+  type CreateLoginDetailsPayload,
+  type LoginDetails as LoginDetailsType,
+} from "../../../../store/slice/loginDetailsSlice";
+import AddLoginDetailsModal from "../modal/AddLoginDetailsModal"; 
+import EditLoginDetailsModal from "../modal/EditLoginDetailsModal"; 
+
+import { SectionHeader, EditButton } from "../common/DetailItem"; 
+
+interface LoginDetailsProps {
+  employee: any;
+}
+
+const ResponsiveDetailItem: React.FC<{
+  label: string;
+  value: React.ReactNode;
+}> = ({ label, value }) => (
+  <div className="py-3 border-b border-gray-200 last:border-b-0 md:flex md:justify-between md:items-center">
+    <p className="text-sm text-gray-600 mb-1 md:mb-0">{label}</p>
+    <p className="text-sm font-medium text-gray-800 md:text-right">{value}</p>
+  </div>
+);
+
+const LoginDetails: React.FC<LoginDetailsProps> = ({ employee }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { details, loading, error } = useSelector(
+    (state: RootState) => state.loginDetails || {}
+  );
+
+  const generalId = employee?.general?.id;
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  useEffect(() => {
+    dispatch(setLoginDetails(employee?.general?.loginDetails || null));
+  }, [employee, dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error, { className: "bg-red-50 text-red-800" });
+    }
+  }, [error]);
+
+  const empCode = employee?.general?.empCode;
+
+  const handleAddSubmit = async (data: CreateLoginDetailsPayload) => {
+    if (!generalId) {
+      toast.error("Cannot add login details: Employee ID is missing.", {
+        className: "bg-red-50 text-red-800",
+      });
+      return;
+    }
+    const toastId = toast.loading("Adding login details...");
+    try {
+      await dispatch(
+        addLoginDetails({ employeeId: generalId, empCode, payload: data })
+      ).unwrap();
+      toast.success("Login details added successfully!", {
+        id: toastId,
+        className: "bg-green-50 text-green-800",
+      });
+      setIsAddModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to add login details:", err);
+      toast.error(err.message || "Failed to add login details.", {
+        id: toastId,
+        className: "bg-red-50 text-red-800",
+      });
+    }
+  };
+
+  const handleEditSubmit = async (data: Partial<LoginDetailsType>) => {
+    if (!generalId) {
+      toast.error("Cannot update login details: Employee ID is missing.", {
+        className: "bg-red-50 text-red-800",
+      });
+      return;
+    }
+    const toastId = toast.loading("Updating login details...");
+    try {
+      await dispatch(
+        updateLoginDetails({ employeeId: generalId, empCode, payload: data })
+      ).unwrap();
+      toast.success("Login details updated successfully!", {
+        id: toastId,
+        className: "bg-green-50 text-green-800",
+      });
+      setIsEditModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to update login details:", err);
+      toast.error(err.message || "Failed to update login details.", {
+        id: toastId,
+        className: "bg-red-50 text-red-800",
+      });
+    }
+  };
+
+  const actionButton = details ? (
+    <EditButton onClick={() => setIsEditModalOpen(true)} />
+  ) : (
+    <button
+      onClick={() => setIsAddModalOpen(true)}
+      className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
+    >
+      + Add Login Details
+    </button>
+  );
+
+  return (
+    <div className="mt-6">
+      <SectionHeader title="Login Details" action={actionButton} />
+
+      <div className="space-y-2">
+        {details ? (
+          <>
+            <ResponsiveDetailItem label="Username" value={details.username} />
+            <ResponsiveDetailItem
+              label="Login Enabled"
+              value={
+                <span
+                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    details.loginEnable
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {details.loginEnable ? "Enabled" : "Disabled"}
+                </span>
+              }
+            />
+            <ResponsiveDetailItem
+              label="Account Locked"
+              value={
+                <span
+                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    details.accLocked
+                      ? "bg-red-100 text-red-800"
+                      : "bg-green-100 text-green-800"
+                  }`}
+                >
+                  {details.accLocked ? "Locked" : "Unlocked"}
+                </span>
+              }
+            />
+          </>
+        ) : (
+          <div className="text-center py-6 text-sm text-gray-500">
+            No login details have been added for this employee.
+          </div>
+        )}
+      </div>
+
+      <AddLoginDetailsModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddSubmit}
+        loading={loading === "pending"}
+      />
+
+      <EditLoginDetailsModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={handleEditSubmit}
+        loading={loading === "pending"}
+        initialData={details}
+      />
+    </div>
+  );
+};
+
+export default LoginDetails;

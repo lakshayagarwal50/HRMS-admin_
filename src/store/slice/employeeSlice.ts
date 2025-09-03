@@ -1,0 +1,336 @@
+
+
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { isAxiosError } from 'axios';
+import { axiosInstance } from '../../services/index'; 
+import type { Employee } from '../../types';
+import type { BankDetails } from './bankSlice';
+
+export interface FilterState {
+  startDate: string;
+  endDate: string;
+  department: string;
+  designation: string;
+  location: string;
+}
+
+export interface GeneralInfo {
+  status: string;
+  empCode: string;
+  name: { first: string; title: string; last: string };
+  id: string;
+  phoneNum: { code: string; num: string };
+  primaryEmail: string;
+  gender: string;
+}
+
+export interface ProfessionalInfo {
+  workWeek: string;
+  ctcAnnual: string;
+  id: string;
+  designation: string;
+  holidayGroup: string;
+  joiningDate: string;
+  payslipComponent: string;
+  location: string;
+  reportingManager: string;
+  department: string;
+}
+
+export interface PaybackTerm {
+  installment: string;
+  date: string;
+  remaining: string;
+}
+
+export interface LoanDetails {
+  id: string;
+  amountReq: string;
+  amountApp?: string;
+  reqDate: string;
+  paybackTerm?: PaybackTerm;
+  note?: string;
+  staffNote?: string;
+  status: 'pending' | 'approved' | 'declined' | 'cancelled';
+  cancelReason?: string;
+  empName: string;
+  activity?: string[];
+  balance: string;
+}
+
+export interface PfData {
+  id?: string;
+  employeePfEnable: boolean;
+  pfNum: string | null;
+  employeerPfEnable: boolean;
+  uanNum: string | null;
+  esiEnable: boolean;
+  esiNum: string | null;
+  professionalTax: boolean;
+  labourWelfare: boolean;
+}
+export interface EmployeeDetail {
+  
+  project: never[];
+  previous: never[];
+  pf: PfData | null;
+  professional: any;
+  general: any;
+  bankDetails: any;
+  loan: LoanDetails[] | null;
+}
+
+export interface EmployeeState {
+  employees: Employee[];
+  currentEmployee: EmployeeDetail | null;
+  filters: FilterState;
+  loading: boolean;
+  error: string | null;
+  limit: number;
+  total: number;
+  inviteStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
+  inviteError: string | null;
+}
+
+export const initialState: EmployeeState = {
+  employees: [],
+  currentEmployee: null,
+  filters: {
+    startDate: '',
+    endDate: '',
+    department: 'All',
+    designation: 'All',
+    location: '',
+  },
+  loading: false,
+  error: null,
+  limit: 10,
+  total: 0,
+  inviteStatus: 'idle',
+  inviteError: null,
+};
+
+//  ASYNC THUNKS 
+
+export const fetchEmployees = createAsyncThunk<
+  { employees: Employee[], total: number, page: number, limit: number },
+  { page: number, limit: number },
+  { rejectValue: string }
+>(
+  'employees/fetchEmployees',
+  async ({ page, limit }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/employees/getAll?page=${page}&limit=${limit}`);
+      return response.data;
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to fetch employees');
+      }
+      return rejectWithValue('An unknown error occurred.');
+    }
+  }
+);
+
+export const fetchEmployeeDetails = createAsyncThunk<
+  EmployeeDetail,
+  string,
+  { rejectValue: string }
+>(
+  'employees/fetchEmployeeDetails',
+  async (employeeCode, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/employees/all/${employeeCode}`);
+      return response.data as EmployeeDetail;
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to fetch employee details');
+      }
+      return rejectWithValue('An unknown error occurred.');
+    }
+  }
+);
+
+export const deleteEmployee = createAsyncThunk<
+  string,
+  string,
+  { rejectValue: string }
+>(
+  'employees/deleteEmployee',
+  async (id, { rejectWithValue }) => {
+    try {
+      await axiosInstance.delete(`/employees/delete/${id}`);
+      return id;
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to delete employee');
+      }
+      return rejectWithValue('An unknown error occurred.');
+    }
+  }
+);
+
+export const updateEmployeeStatus = createAsyncThunk<
+  Employee,
+  { id: string; status: string },
+  { rejectValue: string }
+>(
+  'employees/updateEmployeeStatus',
+  async ({ id, status }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.patch(`/employees/status/${id}`, { status });
+      return response.data as Employee;
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to update employee status');
+      }
+      return rejectWithValue('An unknown error occurred.');
+    }
+  }
+);
+
+
+
+export const uploadProfilePicture = createAsyncThunk<
+  string, 
+  { employeeCode: string; file: File },
+  { rejectValue: string }
+>(
+  'employees/uploadPic',
+  async ({ employeeCode, file }, { dispatch, rejectWithValue }) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await axiosInstance.post(
+        `/employees/upload-pic/${employeeCode}`,
+        formData
+      );
+      dispatch(fetchEmployeeDetails(employeeCode));
+      return response.data as string; 
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to upload image');
+      }
+      return rejectWithValue('An unknown error occurred while uploading the image.');
+    }
+  }
+);
+
+export const sendInviteEmail = createAsyncThunk<
+  { message: string }, 
+  string,              
+  { rejectValue: string }
+>(
+  'employees/sendInviteEmail',
+  async (employeeCode, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(
+        `/employees/sendEmail/${employeeCode}`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(
+          error.response.data?.message || 'Failed to send invitation.'
+        );
+      }
+      return rejectWithValue('An unknown error occurred while sending the invitation.');
+    }
+  }
+);
+
+
+const employeeSlice = createSlice({
+  name: 'employees',
+  initialState,
+  reducers: {
+    setFilters: (state, action: PayloadAction<Partial<FilterState>>) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+    clearFilters: (state) => {
+      state.filters = {
+        startDate: '',
+        endDate: '',
+        department: 'All',
+        designation: 'All',
+        location: '',
+      };
+    },
+    resetInviteStatus: (state) => {
+      state.inviteStatus = 'idle';
+      state.inviteError = null;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchEmployees.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmployees.fulfilled, (state, action: PayloadAction<{ employees: Employee[], total: number, page: number, limit: number }>) => {
+        state.loading = false;
+        state.employees = action.payload.employees;
+        state.limit = action.payload.limit;
+        state.total = action.payload.total;
+      })
+      .addCase(fetchEmployees.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchEmployeeDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.currentEmployee = null;
+      })
+      .addCase(fetchEmployeeDetails.fulfilled, (state, action: PayloadAction<EmployeeDetail>) => {
+        state.loading = false;
+        state.currentEmployee = action.payload;
+      })
+      .addCase(fetchEmployeeDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(deleteEmployee.fulfilled, (state, action: PayloadAction<string>) => {
+        state.employees = state.employees.filter(
+          (emp) => emp.id !== action.payload
+        );
+      })
+      .addCase(updateEmployeeStatus.fulfilled, (state, action: PayloadAction<Employee>) => {
+        const index = state.employees.findIndex(emp => emp.id === action.payload.id);
+        if (index !== -1) {
+          state.employees[index] = action.payload;
+        }
+      })
+      .addCase(uploadProfilePicture.pending, (state) => {
+        state.loading = true; 
+        state.error = null;
+      })
+      .addCase(uploadProfilePicture.fulfilled, (state) => {
+        
+      })
+      .addCase(uploadProfilePicture.rejected, (state, action) => {
+        state.loading = false; // Stop loading on failure
+        state.error = action.payload as string;
+      })
+      .addCase(sendInviteEmail.pending, (state) => {
+        state.inviteStatus = 'loading';
+        state.inviteError = null;
+      })
+      .addCase(sendInviteEmail.fulfilled, (state) => {
+        state.inviteStatus = 'succeeded';
+      })
+      .addCase(sendInviteEmail.rejected, (state, action) => {
+        state.inviteStatus = 'failed';
+        state.error = action.payload as string;
+      }
+    );
+  },
+});
+
+export const {
+  setFilters,
+  clearFilters,
+  resetInviteStatus, 
+} = employeeSlice.actions;
+
+export default employeeSlice.reducer;
