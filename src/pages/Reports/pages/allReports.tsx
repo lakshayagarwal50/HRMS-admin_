@@ -1,13 +1,11 @@
-
+//imports
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Play, CalendarClock, Trash2, X } from "lucide-react";
-import toast from "react-hot-toast"; 
-
+import toast from "react-hot-toast";
 import Table, { type Column } from "../../../components/common/Table";
 import ScheduleReport from "./ScheduleReport";
 import AlertModal from "../../../components/Modal/AlertModal";
-
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../store/store";
 import {
@@ -16,6 +14,41 @@ import {
   type Report,
 } from "../../../store/slice/reportSlice";
 
+
+//skeleton
+const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="flex space-x-4 px-4">
+        <div className="h-4 bg-gray-200 rounded w-1/12"></div>
+        <div className="h-4 bg-gray-200 rounded w-2/12"></div>
+        <div className="h-4 bg-gray-200 rounded w-5/12"></div>
+        <div className="h-4 bg-gray-200 rounded w-4/12"></div>
+      </div>
+
+      <div className="space-y-2">
+        {Array.from({ length: rows }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center space-x-4 p-4 border-t border-gray-100"
+          >
+            <div className="h-5 bg-gray-200 rounded w-1/12"></div>
+            <div className="h-5 bg-gray-200 rounded w-2/12"></div>
+            <div className="h-5 bg-gray-200 rounded w-5/12"></div>
+            <div className="flex items-center space-x-2 w-4/12">
+              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+//pagination
 const Pagination: React.FC<{
   currentPage: number;
   totalPages: number;
@@ -64,6 +97,7 @@ const Pagination: React.FC<{
   );
 };
 
+//main component
 const AllReports: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { reports, status, error, totalPages, totalItems } = useSelector(
@@ -141,8 +175,8 @@ const AllReports: React.FC = () => {
   };
 
   const handlePageChange = (newPage: number) => {
-    setSearchParams({ page: String(newPage) });
-    window.scrollTo(0, 0);
+    setSearchParams({ page: String(newPage) }); //change the query parameters in the URL
+    window.scrollTo(0, 0); //scrolls them back to the top of the page to see the new content
   };
 
   const columns: Column<Report>[] = [
@@ -193,7 +227,7 @@ const AllReports: React.FC = () => {
 
   const renderContent = () => {
     if (status === "loading" && reports.length === 0) {
-      return <p className="text-center p-10">Loading reports...</p>;
+      return <TableSkeleton rows={itemsPerPage} />;
     }
     if (status === "failed") {
       return (
@@ -241,7 +275,7 @@ const AllReports: React.FC = () => {
           reportName={selectedReport?.name || ""}
           reportId={selectedReport?.id || ""}
           onCancel={() => setView("table")}
-          onSubmit={handleFormSubmit} 
+          onSubmit={handleFormSubmit}
         />
       )}
       <AlertModal

@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-
+//interface and type fields
 export interface Report {
     id: string;
     Snum: string;
@@ -101,6 +101,10 @@ const initialState: ReportState = {
 };
 
 
+
+//thunks
+
+//create report thunk
 export const createReportAPI = createAsyncThunk<
   CreateApiResponse,
   CreateReportPayload,
@@ -120,6 +124,8 @@ export const createReportAPI = createAsyncThunk<
   }
 );
 
+
+//fetch all reports thunk
 export const fetchAllReports = createAsyncThunk<
   FetchApiResponse,
   { page: number; limit: number },
@@ -139,6 +145,7 @@ export const fetchAllReports = createAsyncThunk<
   }
 );
 
+//schedule report thunk
 export const scheduleReportAPI = createAsyncThunk(
   'reports/scheduleReport',
   async ({ reportId, scheduleData }: ScheduleReportPayload, { rejectWithValue }) => {
@@ -176,7 +183,7 @@ export const deleteReport = createAsyncThunk<
   }
 );
 
-
+//scheduled report api
 export const fetchScheduledReports = createAsyncThunk<
   FetchScheduledApiResponse,
   { page: number; limit: number },
@@ -197,7 +204,7 @@ export const fetchScheduledReports = createAsyncThunk<
   }
 );
 
-
+//edit scheduled report thunk
 export const updateScheduledReport = createAsyncThunk(
   'reports/updateScheduled',
   async ({ scheduleId, updatedData }: UpdateScheduledReportPayload, { rejectWithValue }) => {
@@ -214,7 +221,7 @@ export const updateScheduledReport = createAsyncThunk(
   }
 );
 
-
+//delete scheduled report thunk
 export const deleteScheduledReport = createAsyncThunk<
   string, 
   string, 
@@ -235,7 +242,7 @@ export const deleteScheduledReport = createAsyncThunk<
 );
 
 
-
+//slice
 const reportSlice = createSlice({
   name: 'reports',
   initialState,
@@ -291,22 +298,20 @@ const reportSlice = createSlice({
         state.scheduleStatus = 'failed';
         state.error = action.payload as string;
       })
-      // **NEW**: Cases for deleting a report
+      //  Cases for deleting a report
       .addCase(deleteReport.pending, (state) => {
         state.status = 'loading'; // Reuse the main status for loading feedback
         state.error = null;
       })
       .addCase(deleteReport.fulfilled, (state, action: PayloadAction<string>) => {
         state.status = 'succeeded';
-        // Optionally, you can remove the report from the state immediately
-        // state.reports = state.reports.filter((report) => report.id !== action.payload);
-        // But since we are re-fetching, this isn't strictly necessary.
+        
       })
       .addCase(deleteReport.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
       })
-      // **NEW**: Cases for fetching scheduled reports
+      //  Cases for fetching scheduled reports
       .addCase(fetchScheduledReports.pending, (state) => {
         state.status = 'loading';
       })
@@ -320,7 +325,7 @@ const reportSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload as string;
       })
-      // **NEW**: Cases for updating a scheduled report
+      //  Cases for updating a scheduled report
       .addCase(updateScheduledReport.pending, (state) => {
         state.scheduleStatus = 'loading';
         state.error = null;
@@ -341,14 +346,14 @@ const reportSlice = createSlice({
         state.scheduleStatus = 'failed';
         state.error = action.payload as string;
       })
-      // **NEW**: Cases for deleting a scheduled report
+      // Cases for deleting a scheduled report
       .addCase(deleteScheduledReport.pending, (state) => {
         state.scheduleStatus = 'loading';
         state.error = null;
       })
       .addCase(deleteScheduledReport.fulfilled, (state, action: PayloadAction<string>) => {
         state.scheduleStatus = 'succeeded';
-        // Optimistically remove the deleted report from the state array
+        
         state.scheduledReports = state.scheduledReports.filter(
           (report) => report.id !== action.payload
         );

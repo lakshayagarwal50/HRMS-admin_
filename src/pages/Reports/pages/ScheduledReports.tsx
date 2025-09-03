@@ -1,8 +1,8 @@
-
+//imports
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { MoreHorizontal, X } from "lucide-react";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
 
 import Table, { type Column } from "../../../components/common/Table";
 import AlertModal from "../../../components/Modal/AlertModal";
@@ -16,6 +16,40 @@ import {
   type ScheduledReport,
 } from "../../../store/slice/reportSlice";
 
+//skeleton loader
+const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
+  return (
+    <div className="space-y-4 animate-pulse">
+      {/* Skeleton Header */}
+      <div className="flex space-x-4 px-4">
+        <div className="h-4 bg-gray-200 rounded w-3/12"></div>
+        <div className="h-4 bg-gray-200 rounded w-2/12"></div>
+        <div className="h-4 bg-gray-200 rounded w-3/12"></div>
+        <div className="h-4 bg-gray-200 rounded w-3/12"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/12"></div>
+      </div>
+      {/* Skeleton Rows */}
+      <div className="space-y-2">
+        {Array.from({ length: rows }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center space-x-4 p-4 border-t border-gray-100"
+          >
+            <div className="h-5 bg-gray-200 rounded w-3/12"></div>
+            <div className="h-5 bg-gray-200 rounded w-2/12"></div>
+            <div className="h-5 bg-gray-200 rounded w-3/12"></div>
+            <div className="h-5 bg-gray-200 rounded w-3/12"></div>
+            <div className="flex justify-end w-1/12">
+              <div className="h-6 w-8 bg-gray-200 rounded-full"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+//pagination manager
 const Pagination: React.FC<{
   currentPage: number;
   totalPages: number;
@@ -64,6 +98,7 @@ const Pagination: React.FC<{
   );
 };
 
+//main content
 const ScheduledReports: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -97,7 +132,8 @@ const ScheduledReports: React.FC = () => {
   const [reportToDelete, setReportToDelete] = useState<ScheduledReport | null>(
     null
   );
-
+  
+  //to close a dropdown menu or modal when the user clicks anywhere outside of it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -207,7 +243,7 @@ const ScheduledReports: React.FC = () => {
 
   const renderContent = () => {
     if (status === "loading" && scheduledReports.length === 0) {
-      return <p className="text-center p-10">Loading scheduled reports...</p>;
+      return <TableSkeleton rows={itemsPerPage} />;
     }
     if (status === "failed") {
       return (

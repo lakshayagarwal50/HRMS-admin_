@@ -1,3 +1,4 @@
+//imports
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -5,6 +6,7 @@ import toast from "react-hot-toast";
 import { createReportAPI } from "../../../store/slice/reportSlice"; 
 import type { AppDispatch, RootState } from "../../../store/store"; 
 
+//options for report type
 const reportTypeOptions = [
   "Payslip Component Report",
   "Employees Snapshot Report",
@@ -16,10 +18,11 @@ const reportTypeOptions = [
   "Leave Report",
 ];
 
+//main body
 const CreateReport: React.FC = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
-  const { status, error } = useSelector((state: RootState) => state.reports);
+  const navigate = useNavigate();//link component
+  const dispatch = useDispatch<AppDispatch>(); //This hook gives you the dispatch function, which is your "waiter" for sending actions to the Redux store
+  const { status, error } = useSelector((state: RootState) => state.reports); //read data from the Redux store.
 
   const [formData, setFormData] = useState({
     reportType: "",

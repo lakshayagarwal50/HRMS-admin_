@@ -1,8 +1,10 @@
+//imports
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Filter } from "lucide-react";
 import Table, { type Column } from "../../../components/common/Table"; 
 
+//interface
 interface AuditLog {
   id: number;
   activityTime: string;
@@ -14,6 +16,8 @@ interface AuditLog {
   message: string;
   who: string;
 }
+
+//mock data
 const mockData: AuditLog[] = [
   {
     id: 1,
@@ -100,6 +104,7 @@ const mockData: AuditLog[] = [
   },
 ];
 
+//main code
 const AuditHistory: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
