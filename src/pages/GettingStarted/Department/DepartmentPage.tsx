@@ -2,21 +2,15 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import { Plus, MoreHorizontal, ChevronRight, X as AlertIcon, RefreshCw, ServerCrash } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-// --- Redux Imports ---
 import { fetchDepartments, updateDepartment, type Department } from '../../../store/slice/departmentSlice';
 import type { RootState, AppDispatch } from '../../../store/store';
-
-// --- Component Imports ---
 import Table, { type Column } from "../../../components/common/Table"; 
 import CreateDepartment from "../../../components/GettingStarted/CreateDepartment";
 import UpdateDepartment from '../../../components/GettingStarted/UpdateDepartment';
 import AlertModal from '../../../components/Modal/AlertModal';
 
-// --- TYPE DEFINITION for display data ---
 type DepartmentDisplay = Department & { s_no: number };
 
-// --- UI State Components ---
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -55,7 +49,6 @@ const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
 );
 
 
-// --- MAIN PAGE COMPONENT ---
 const DepartmentPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const {

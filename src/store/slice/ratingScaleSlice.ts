@@ -4,7 +4,7 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; 
 
 // --- Base URL for the API endpoints ---
-const API_BASE_URL = '/api/ratingScale/';
+const API_BASE_URL = '/ratingScale/';
 
 // --- TYPE DEFINITIONS ---
 // Matches the structure of the API response for a single scale

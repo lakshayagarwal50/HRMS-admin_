@@ -4,7 +4,7 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; 
 
 // --- CONSTANTS ---
-const API_BASE_URL = '/api/sequenceNumber/';
+const API_BASE_URL = '/sequenceNumber/';
 
 // --- TYPE DEFINITIONS ---
 // This interface matches the structure of the data from your API

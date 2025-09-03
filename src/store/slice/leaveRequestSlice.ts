@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; 
 
-const API_BASE_URL = '/api/leaveRequest';
+const API_BASE_URL = '/leaveRequest';
 
 // --- TYPE DEFINITIONS ---
 export interface LeaveBalanceDetails {

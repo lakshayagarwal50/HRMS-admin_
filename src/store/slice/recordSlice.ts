@@ -3,7 +3,7 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
 // --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/records/';
+const API_BASE_URL = '/records/';
 
 // --- TYPE DEFINITIONS ---
 interface RecordFromAPI {

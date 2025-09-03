@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-const API_BASE_URL = '/api/ratingCriteria/';
+const API_BASE_URL = '/ratingCriteria/';
 
 export interface RatingCriteria {
   id: string;

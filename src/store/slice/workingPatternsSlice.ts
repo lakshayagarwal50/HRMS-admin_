@@ -4,7 +4,7 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; 
 
 // --- CONSTANTS ---
-const API_BASE_URL = '/api/working-patterns/';
+const API_BASE_URL = '/working-patterns/';
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // --- TYPE DEFINITIONS ---

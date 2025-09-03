@@ -3,7 +3,7 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; // 1. Use axiosInstance
 
 // --- CONSTANTS ---
-const API_BASE_URL = '/api/leaves/';
+const API_BASE_URL = '/leaves/';
 
 // --- TYPE DEFINITIONS ---
 // Shape of the data from the API

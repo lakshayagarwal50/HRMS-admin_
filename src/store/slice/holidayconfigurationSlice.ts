@@ -4,7 +4,7 @@ import { axiosInstance } from '../../services';
 
 // --- CONSTANTS & HELPERS ---
 // Note the typo in "holidayConfiguraion" to match your API endpoint
-const API_BASE_URL = '/api/holidayConfiguraion/';
+const API_BASE_URL = '/holidayConfiguraion/';
 
 // --- TYPE DEFINITIONS ---
 // This interface matches the structure of the data from your GET API

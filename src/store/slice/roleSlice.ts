@@ -3,7 +3,7 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
 // --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/roles/';
+const API_BASE_URL = '/roles/';
 
 // --- TYPE DEFINITIONS ---
 type Permissions = Record<string, Record<string, boolean>>;

@@ -4,7 +4,7 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; 
 
 // --- CONSTANTS ---
-const API_BASE_URL = '/api/webCheckinSettings/';
+const API_BASE_URL = '/webCheckinSettings/';
 
 // --- TYPE DEFINITIONS ---
 // This interface now matches the full structure from your GET API response

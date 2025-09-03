@@ -3,7 +3,7 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; // 1. Use axiosInstance
 
 // --- CONSTANTS ---
-const API_BASE_URL = '/api/holidayCalendar/';
+const API_BASE_URL = '/holidayCalendar/';
 
 // --- TYPE DEFINITIONS ---
 export interface HolidayCalendarEntry {
