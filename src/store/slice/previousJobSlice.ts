@@ -1,3 +1,4 @@
+//imports
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; 
@@ -56,7 +57,7 @@ const initialState: PreviousJobState = {
   error: null,
 };
 
-
+//thunk for add job
 export const addPreviousJob = createAsyncThunk<
   void,
   { empId: string; employeeCode: string; jobData: CreatePreviousJobPayload },
@@ -76,6 +77,7 @@ export const addPreviousJob = createAsyncThunk<
   }
 );
 
+//thunk for edit previous job
 export const editPreviousJob = createAsyncThunk<
   void,
   { empId: string; employeeCode: string; payload: EditPreviousJobPayload },
@@ -95,6 +97,7 @@ export const editPreviousJob = createAsyncThunk<
   }
 );
 
+//slice
 const previousJobSlice = createSlice({
   name: 'previousJob',
   initialState,

@@ -1,8 +1,8 @@
+//imports
 import React, { useState, useEffect } from "react";
 import { X, Play, Download, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import Modal from "../../../../../../components/common/NotificationModal";
-
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../../../../store/store";
 import { fetchDepartments } from "../../../../../../store/slice/departmentSlice";
@@ -32,6 +32,7 @@ const initialFiltersState = {
   location: "",
 };
 
+//main body
 const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
   isOpen,
   onClose,

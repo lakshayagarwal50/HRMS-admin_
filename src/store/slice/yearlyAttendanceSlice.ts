@@ -1,6 +1,8 @@
+//import
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+//interface
 interface YearlyAttendanceState {
   data: any | null;
   loading: boolean;
@@ -13,6 +15,7 @@ const initialState: YearlyAttendanceState = {
   error: null,
 };
 
+//thunk for yearly attendance fetch
 export const fetchYearlyAttendance = createAsyncThunk(
   "yearlyAttendance/fetchYearlyAttendance",
   async ({ year, empCode }: { year: number; empCode: string }, { rejectWithValue }) => {
@@ -27,6 +30,7 @@ export const fetchYearlyAttendance = createAsyncThunk(
   }
 );
 
+//slice
 const yearlyAttendanceSlice = createSlice({
   name: "yearlyAttendance",
   initialState,

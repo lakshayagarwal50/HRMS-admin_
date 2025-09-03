@@ -1,4 +1,5 @@
 
+//imports
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
@@ -12,6 +13,7 @@ import {
   type SnapshotTemplateConfig,
 } from "../../../../../../store/slice/employeeSnapshotSlice";
 
+//interface
 interface TemplateField {
   id: number;
   s_no: number;
@@ -90,10 +92,13 @@ const masterFieldList: TemplateField[] = [
   { id: 19, s_no: 19, name: "phone", label: "Phone Number", isEnabled: true },
 ];
 
+//interface
 interface EmployeeReportTemplateProps {
   onBack: () => void;
 }
 
+
+//main body
 const EmployeeReportTemplate: React.FC<EmployeeReportTemplateProps> = ({
   onBack,
 }) => {

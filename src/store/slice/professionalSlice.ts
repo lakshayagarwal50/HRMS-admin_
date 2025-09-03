@@ -1,10 +1,10 @@
-
+//imports
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; 
 import { fetchEmployeeDetails } from './employeeSlice';
 
-
+//interfaces
 interface ProfessionalInfoPayload {
   [key: string]: any;
 }
@@ -22,7 +22,7 @@ const initialState: ProfessionalState = {
   submitting: false,
   error: null,
 };
-
+//thunk for update proffessional info
 export const updateProfessionalInfo = createAsyncThunk<
   ApiResponse,
   { professionalId: string; empCode: string; professionalData: ProfessionalInfoPayload },
@@ -46,6 +46,7 @@ export const updateProfessionalInfo = createAsyncThunk<
   }
 );
 
+//slice
 const professionalSlice = createSlice({
   name: 'professional',
   initialState,

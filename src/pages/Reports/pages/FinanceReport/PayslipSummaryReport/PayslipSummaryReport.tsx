@@ -1,296 +1,248 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+//import
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Table, { type Column } from "../../../../../components/common/Table";
 import PayslipSummaryReportFilter from "./component/PayslipSummaryReportFilter";
-// --- CHANGE HERE: Import the template component ---
 import PayslipSummaryTemplate from "./component/PayslipSummaryTemplate";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "../../../../../store/store";
+import {
+  fetchPayslipSummary,
+  downloadPayslipSummary,
+} from "../../../../../store/slice/payslipSummarySlice";
 
-// (Interface, mockData, and helper functions are unchanged)
+import toast from "react-hot-toast";
+
+// interface
 interface PayslipSummary {
-  id: number;
   name: string;
-  employeeId: number;
+  emp_id: string;
+  status: "Active" | "Inactive";
   designation: string;
-  employeeStatus: "Active" | "Inactive";
   department: string;
   location: string;
-  basic: number;
-  hra: number;
-  conveyance: number;
-  ovtmPerUnit: number;
-  ctc: number;
-  basicCic: number;
-  grossPaid: number;
-  variablePay: number;
-  lossOfPay: number;
-  taxPaid: number;
-  nonTaxableAmount: number;
-  netPaid: number;
-  taxAmount: number;
-  providentFund: number;
-  cessAmount: number;
-  employerProvidentFund: number;
-  ovtmUnits: number;
-  ovtm: number;
-  totalEarnings: number;
-  dmg: number;
-  totalDeductions: number;
-  rem: number;
-  pf: number;
-  pt: number;
-  esi: number;
-  eesi: number;
-  period: string;
-  status: "Approved" | "Pending";
-  professionalTax: number;
-  leavesOpeningBalance: number;
-  leavesTaken: number;
-  uploadLeaves: number;
-  leaveClosingBalance: number;
-  bankName: string;
-  accountNumber: string;
-  ifscCode: string;
-  accountName: string;
-  accountType: "Saving Account" | "Current Account";
+  basic: string | null;
+  hra: string | null;
+  conveyance: string | null;
+  totalEarnings: number | null;
+  totalDeductions: number | null;
+  pf: string | null;
+  pt: string | null;
+  esi: string | null;
+  epf: string | null;
+  eesi: string | null;
 }
 
-const mockData: PayslipSummary[] = Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  name: [
-    "Chandan",
-    "Asad",
-    "Pankaj",
-    "Nanda",
-    "Karthik",
-    "Seema",
-    "Mukul",
-    "Latif",
-    "Ahmad",
-    "Ravinder",
-  ][i % 10],
-  employeeId: 4152 + i * 101,
-  designation: [
-    "Medical Assistant",
-    "Web Designer",
-    "President of Sales",
-    "Marketing Coordinator",
-    "Designer",
-  ][i % 5],
-  employeeStatus: i % 8 === 0 ? "Inactive" : "Active",
-  department: [
-    "Medical Assistant",
-    "Web Designer",
-    "President of Sales",
-    "Marketing Coordinator",
-    "Designer",
-  ][i % 5],
-  location: ["Tripura", "Manipur", "Kerala", "Haryana", "Jharkhand", "Sikkim"][
-    i % 6
-  ],
-  basic: 47500.0,
-  hra: 28000.0,
-  conveyance: 9500.0,
-  ovtmPerUnit: 0.0,
-  ctc: 95000.0,
-  basicCic: 13629.0,
-  grossPaid: 70000.0,
-  variablePay: 0.0,
-  lossOfPay: i % 5 === 0 ? 1000.0 : 0.0,
-  taxPaid: 2000.0,
-  nonTaxableAmount: 8100.0,
-  netPaid: 65000.0,
-  taxAmount: 1008.5,
-  providentFund: 471.0,
-  cessAmount: 8100.0,
-  employerProvidentFund: 4371.0,
-  ovtmUnits: 0.0,
-  ovtm: 0.0,
-  totalEarnings: 95000.0,
-  dmg: 0.0,
-  totalDeductions: 2000.0,
-  rem: 0.0,
-  pf: 8100.0,
-  pt: 1008.5,
-  esi: 128.5,
-  eesi: 471.0,
-  period: "01/04/2021-30/04/2021",
-  status: "Approved",
-  professionalTax: 0.0,
-  leavesOpeningBalance: 1.0 + (i % 5),
-  leavesTaken: i % 4 === 0 ? 1.0 : 0.0,
-  uploadLeaves: 0.0,
-  leaveClosingBalance: 1.0 + (i % 5) - (i % 4 === 0 ? 1.0 : 0.0),
-  bankName: ["SBI", "ICICI", "KOTAK", "PNB", "DIGI"][i % 5],
-  accountNumber: `358661${78912287 + i}`,
-  ifscCode: "APGB0002183",
-  accountName: ["Supriya Jha", "Sunaj Pandey", "Kishore Kumar"][i % 3],
-  accountType: i % 2 === 0 ? "Saving Account" : "Current Account",
-}));
-
-const formatCurrency = (value: number) =>
-  `₹ ${value.toLocaleString("en-IN", {
+//currency change
+const formatCurrency = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return "N/A";
+  return `₹ ${value.toLocaleString("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+};
 
-const renderStatus = (
-  status: "Active" | "Inactive" | "Approved" | "Pending"
-) => {
+const renderStatus = (status: "Active" | "Inactive") => {
   const baseClasses = "px-2 py-1 text-xs font-semibold rounded-full";
   const activeClasses = "bg-green-100 text-green-800";
   const inactiveClasses = "bg-red-100 text-red-800";
-  switch (status) {
-    case "Active":
-    case "Approved":
-      return (
-        <span className={`${baseClasses} ${activeClasses}`}>{status}</span>
-      );
-    case "Inactive":
-    case "Pending":
-      return (
-        <span className={`${baseClasses} ${inactiveClasses}`}>{status}</span>
-      );
-    default:
-      return status;
-  }
+  return status === "Active" ? (
+    <span className={`${baseClasses} ${activeClasses}`}>{status}</span>
+  ) : (
+    <span className={`${baseClasses} ${inactiveClasses}`}>{status}</span>
+  );
 };
 
-const PayslipSummaryReport: React.FC = () => {
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  // --- CHANGE HERE: Add state to manage which view to show ---
-  const [view, setView] = useState<"report" | "template">("report");
+//skeleton loader
+const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => (
+  <div className="space-y-4 animate-pulse">
+    <div className="h-8 bg-gray-200 rounded w-full mb-4"></div>
+    {Array.from({ length: rows }).map((_, index) => (
+      <div key={index} className="h-10 bg-gray-200 rounded w-full"></div>
+    ))}
+  </div>
+);
 
-  // (Columns definition is unchanged)
+//pagination
+const Pagination: React.FC<{
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
+  if (totalPages <= 1) return null;
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  return (
+    <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-700">
+      <span>
+        Showing {startItem} to {endItem} of {totalItems} items
+      </span>
+      <div className="flex space-x-1">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="px-3 py-1 font-medium">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// main body
+const REPORT_NOT_FOUND_ERROR =
+  'Report for type "payslipSummary" not found. Please create this report first.';
+
+const PayslipSummaryReport: React.FC = () => {
+  const [view, setView] = useState<"report" | "template">("report");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [currentFilters, setCurrentFilters] = useState({});
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const [itemsPerPage] = useState(10);
+
+  const {
+    reportData,
+    isReportLoading,
+    reportError,
+    totalPages,
+    totalItems,
+    isDownloading,
+  } = useSelector((state: RootState) => state.payslipSummary);
+
+  useEffect(() => {
+    dispatch(
+      fetchPayslipSummary({
+        page: currentPage,
+        limit: itemsPerPage,
+        filter: currentFilters,
+      })
+    );
+  }, [dispatch, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    if (reportError && reportError.includes(REPORT_NOT_FOUND_ERROR)) {
+      toast.error(reportError);
+    }
+  }, [reportError]);
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({ page: String(newPage) });
+    window.scrollTo(0, 0);
+  };
+
+  const handleBackFromTemplate = () => {
+    dispatch(fetchPayslipSummary({ page: currentPage, limit: itemsPerPage }));
+    setView("report");
+  };
+
   const columns: Column<PayslipSummary>[] = [
     { key: "name", header: "Name" },
-    { key: "employeeId", header: "Employee ID" },
+    { key: "emp_id", header: "Employee ID" },
     { key: "designation", header: "Designation" },
     {
-      key: "employeeStatus",
+      key: "status",
       header: "Employee Status",
-      render: (row) => renderStatus(row.employeeStatus),
+      render: (row) => renderStatus(row.status),
     },
     { key: "department", header: "Department" },
     { key: "location", header: "Location" },
     {
       key: "basic",
       header: "Basic",
-      render: (row) => formatCurrency(row.basic),
-    },
-    { key: "hra", header: "HRA", render: (row) => formatCurrency(row.hra) },
-    {
-      key: "conveyance",
-      header: "Conveyance",
-      render: (row) => formatCurrency(row.conveyance),
+      render: (row) => formatCurrency(row.basic ? parseFloat(row.basic) : null),
     },
     {
-      key: "ovtmPerUnit",
-      header: "OVTM/PER UNIT",
-      render: (row) => formatCurrency(row.ovtmPerUnit),
+      key: "hra",
+      header: "HRA",
+      render: (row) => formatCurrency(row.hra ? parseFloat(row.hra) : null),
     },
-    { key: "ctc", header: "CTC", render: (row) => formatCurrency(row.ctc) },
-    {
-      key: "basicCic",
-      header: "Basic Cic",
-      render: (row) => formatCurrency(row.basicCic),
-    },
-    {
-      key: "grossPaid",
-      header: "Gross Paid",
-      render: (row) => formatCurrency(row.grossPaid),
-    },
-    {
-      key: "variablePay",
-      header: "Variable Pay",
-      render: (row) => formatCurrency(row.variablePay),
-    },
-    {
-      key: "lossOfPay",
-      header: "Loss of pay",
-      render: (row) => formatCurrency(row.lossOfPay),
-    },
-    {
-      key: "taxPaid",
-      header: "Tax Paid",
-      render: (row) => formatCurrency(row.taxPaid),
-    },
-    {
-      key: "nonTaxableAmount",
-      header: "Non Taxable Amount",
-      render: (row) => formatCurrency(row.nonTaxableAmount),
-    },
-    {
-      key: "netPaid",
-      header: "Net Paid",
-      render: (row) => formatCurrency(row.netPaid),
-    },
-    {
-      key: "taxAmount",
-      header: "Tax Amount",
-      render: (row) => formatCurrency(row.taxAmount),
-    },
-    {
-      key: "providentFund",
-      header: "Provident Fund",
-      render: (row) => formatCurrency(row.providentFund),
-    },
-    {
-      key: "cessAmount",
-      header: "Cess Amount",
-      render: (row) => formatCurrency(row.cessAmount),
-    },
-    {
-      key: "employerProvidentFund",
-      header: "Employer Provident Fund",
-      render: (row) => formatCurrency(row.employerProvidentFund),
-    },
-    { key: "ovtmUnits", header: "OVTM/UNITS" },
-    { key: "ovtm", header: "OVTM", render: (row) => formatCurrency(row.ovtm) },
     {
       key: "totalEarnings",
       header: "Total Earnings",
       render: (row) => formatCurrency(row.totalEarnings),
     },
-    { key: "dmg", header: "DMG", render: (row) => formatCurrency(row.dmg) },
     {
       key: "totalDeductions",
       header: "Total Deductions",
       render: (row) => formatCurrency(row.totalDeductions),
     },
-    { key: "rem", header: "REM", render: (row) => formatCurrency(row.rem) },
-    { key: "pf", header: "PF", render: (row) => formatCurrency(row.pf) },
-    { key: "pt", header: "PT", render: (row) => formatCurrency(row.pt) },
-    { key: "esi", header: "ESI", render: (row) => formatCurrency(row.esi) },
-    { key: "eesi", header: "EESI", render: (row) => formatCurrency(row.eesi) },
-    { key: "period", header: "Period" },
-    {
-      key: "status",
-      header: "Status",
-      render: (row) => renderStatus(row.status),
-    },
-    {
-      key: "professionalTax",
-      header: "Professional Tax",
-      render: (row) => formatCurrency(row.professionalTax),
-    },
-    { key: "leavesOpeningBalance", header: "Leaves Opening Balance" },
-    { key: "leavesTaken", header: "Leaves Taken" },
-    { key: "uploadLeaves", header: "Upload Leaves" },
-    { key: "leaveClosingBalance", header: "Leave Closing Balance" },
-    { key: "bankName", header: "Bank Name" },
-    { key: "accountNumber", header: "Account Number" },
-    { key: "ifscCode", header: "IFSC Code" },
-    { key: "accountName", header: "Account Name" },
-    { key: "accountType", header: "Account Type" },
   ];
 
   const handleApplyFilters = (filters: any) => {
-    console.log("Applying filters from modal:", filters);
+    setCurrentFilters(filters);
+    setSearchParams({ page: "1" }); // Reset to page 1 on new filter
+    setIsFilterOpen(false);
   };
 
-  // --- CHANGE HERE: Conditionally render the template view ---
+  const handleDownload = (format: "csv" | "excel") => {
+    if (isDownloading) return;
+    toast(`Your ${format.toUpperCase()} download will begin shortly...`);
+    // Pass the current filters to the download action
+    dispatch(downloadPayslipSummary({ format, filter: currentFilters }));
+  };
+
+  const renderContent = () => {
+    if (isReportLoading && reportData.length === 0) {
+      return <TableSkeleton rows={itemsPerPage} />;
+    }
+    if (reportError) {
+      if (reportError.includes(REPORT_NOT_FOUND_ERROR)) {
+        return (
+          <div className="flex flex-col items-center justify-center py-20">
+            <p className="text-lg text-gray-600 mb-4">{reportError}</p>
+            <button
+              onClick={() => navigate("/reports/create")}
+              className="font-semibold py-2 px-6 rounded-full text-white"
+              style={{ backgroundColor: "#741CDD" }}
+            >
+              Create Payslip Summary Report
+            </button>
+          </div>
+        );
+      }
+      return (
+        <p className="p-10 text-center text-red-500">Error: {reportError}</p>
+      );
+    }
+    return (
+      <>
+        <Table
+          data={reportData}
+          columns={columns}
+          showSearch={true}
+          searchPlaceholder="Search Employees..."
+          showPagination={false}
+        />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+        />
+      </>
+    );
+  };
+
   if (view === "template") {
-    return <PayslipSummaryTemplate onBack={() => setView("report")} />;
+    return <PayslipSummaryTemplate onBack={handleBackFromTemplate} />;
   }
 
   return (
@@ -301,49 +253,42 @@ const PayslipSummaryReport: React.FC = () => {
         </h1>
         <div className="flex flex-col items-end space-y-3">
           <p className="text-sm text-gray-500">
-            <Link to="/reports">Reports</Link> /{" "}
-            <Link to="/reports/scheduled">Scheduled Reports</Link> /{" "}
-            <Link to="/reports/finance">Finance Report</Link> / Payslip Summary
-            Report
+            <Link to="/reports">Reports</Link> / Payslip Summary Report
           </p>
           <div className="flex items-center space-x-3">
-            {/* --- CHANGE HERE: Add onClick to the button --- */}
             <button
               onClick={() => setView("template")}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer"
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200"
             >
               EDIT TEMPLATE
             </button>
             <button
+              onClick={() => handleDownload("csv")}
+              disabled={isDownloading}
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50"
+            >
+              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD CSV"}
+            </button>
+            <button
+              onClick={() => handleDownload("excel")}
+              disabled={isDownloading}
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50"
+            >
+              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD EXCEL"}
+            </button>
+            {/* <button
               onClick={() => setIsFilterOpen(true)}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer"
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200"
             >
               FILTER
-            </button>
-            <button className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer">
-              SCHEDULE REPORT
-            </button>
-            <button className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600 transition-colors cursor-pointer">
+            </button> */}
+            {/* <button className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600">
               DELETE
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
-
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="overflow-x-auto">
-          <Table
-            data={mockData}
-            columns={columns}
-            showSearch={true}
-            searchPlaceholder="Search Employees..."
-            showPagination={true}
-            defaultItemsPerPage={10}
-            className="w-[1350px]"
-          />
-        </div>
-      </div>
-
+      <div className="bg-white p-6 rounded-lg shadow-sm">{renderContent()}</div>
       <PayslipSummaryReportFilter
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}

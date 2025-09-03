@@ -1,4 +1,4 @@
-
+//imports
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Table, { type Column } from "../../../../../components/common/Table";
@@ -7,8 +7,10 @@ import EmployeeReportTemplate from "./component/EmployeeReportTemplate";
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
 import {
   fetchEmployeeSnapshot,
+  downloadEmployeeSnapshot,
   type EmployeeData,
 } from "../../../../../store/slice/employeeSnapshotSlice";
+import { toast } from "react-toastify";
 
 const columns: Column<EmployeeData>[] = [
   { key: "name", header: "Name" },
@@ -62,6 +64,7 @@ const columns: Column<EmployeeData>[] = [
   { key: "phone", header: "Phone Number" },
 ];
 
+//skeleton loader
 const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   return (
     <div className="overflow-x-auto">
@@ -94,6 +97,7 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   );
 };
 
+//pagination logic
 const Pagination: React.FC<{
   currentPage: number;
   totalPages: number;
@@ -143,6 +147,7 @@ const Pagination: React.FC<{
   );
 };
 
+//main body
 const EmployeeSnapshot: React.FC = () => {
   const [view, setView] = useState<"table" | "editTemplate">("table");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -151,9 +156,8 @@ const EmployeeSnapshot: React.FC = () => {
 
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const dispatch = useAppDispatch();
-  const { employees, status, error, total, limit } = useAppSelector(
-    (state) => state.employeeSnapshot
-  );
+  const { employees, status, error, total, limit, isDownloading } =
+    useAppSelector((state) => state.employeeSnapshot);
 
   useEffect(() => {
     dispatch(
@@ -164,6 +168,12 @@ const EmployeeSnapshot: React.FC = () => {
       })
     );
   }, [dispatch, currentPage, limit, JSON.stringify(activeFilters)]);
+
+  useEffect(() => {
+    if (status === "failed" && error) {
+      toast.error(error);
+    }
+  }, [status, error]);
 
   const handleApplyFilters = (filters: any) => {
     setActiveFilters(filters);
@@ -190,6 +200,12 @@ const EmployeeSnapshot: React.FC = () => {
     );
   };
 
+  const handleDownload = (format: "csv" | "excel") => {
+    if (isDownloading) return;
+    toast(`Your ${format.toUpperCase()} download will begin shortly...`);
+    dispatch(downloadEmployeeSnapshot({ format, filters: activeFilters }));
+  };
+
   if (view === "editTemplate") {
     return <EmployeeReportTemplate onBack={handleBackFromTemplate} />;
   }
@@ -212,7 +228,7 @@ const EmployeeSnapshot: React.FC = () => {
           <Table
             data={employees}
             columns={columns}
-            showPagination={false} 
+            showPagination={false}
             className="w-[1350px]"
           />
         </div>
@@ -249,17 +265,31 @@ const EmployeeSnapshot: React.FC = () => {
               EDIT TEMPLATE
             </button>
             <button
+              onClick={() => handleDownload("csv")}
+              disabled={isDownloading}
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50"
+            >
+              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD CSV"}
+            </button>
+            <button
+              onClick={() => handleDownload("excel")}
+              disabled={isDownloading}
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50"
+            >
+              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD EXCEL"}
+            </button>
+            <button
               onClick={() => setIsFilterOpen(true)}
               className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer"
             >
               FILTER
             </button>
-            <button className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer">
+            {/* <button className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer">
               SCHEDULE REPORT
-            </button>
-            <button className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600 transition-colors cursor-pointer">
+            </button> */}
+            {/* <button className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600 transition-colors cursor-pointer">
               DELETE
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

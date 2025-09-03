@@ -334,7 +334,7 @@
 //           onClick={toggleSidebar}
 //         ></div>
 //       )}
-      
+
 //       {/* Logout Confirmation Modal */}
 //       <AlertModal
 //         isOpen={isLogoutModalOpen}
@@ -350,7 +350,6 @@
 // };
 
 // export default Sidebar;
-
 
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
@@ -480,10 +479,10 @@ const reportsMenuItems: MenuItem[] = [
     icon: Users,
     subItems: [
       { label: "Employee Snapshot", link: "/reports/employee/snapshot" },
-      {
-        label: "Provident Fund Report",
-        link: "/reports/employee/provident-fund",
-      },
+      // {
+      //   label: "Provident Fund Report",
+      //   link: "/reports/employee/provident-fund",
+      // },
       {
         label: "Employee Declarations",
         link: "/reports/employee/declarations",
@@ -517,56 +516,59 @@ const reportsMenuItems: MenuItem[] = [
   },
 ];
 
-
 // --- SIDEBAR COMPONENT ---
 const Sidebar: React.FC = () => {
-  const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarView, setSidebarView] = useState<"main" | "reports">("main");
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  
+
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();
 
   const findParentMenu = (path: string, items: MenuItem[]): string | null => {
-      for (const item of items) {
-          if (item.subItems?.some(sub => path.startsWith(sub.link) && sub.link !== '#')) {
-              return item.label;
-          }
+    for (const item of items) {
+      if (
+        item.subItems?.some(
+          (sub) => path.startsWith(sub.link) && sub.link !== "#"
+        )
+      ) {
+        return item.label;
       }
-      return null;
+    }
+    return null;
   };
-  
+
   useEffect(() => {
     const currentPath = location.pathname;
-    
+
     let parentLabel = findParentMenu(currentPath, reportsMenuItems);
     if (parentLabel) {
-      setSidebarView('reports');
+      setSidebarView("reports");
       setOpenDropdowns({ [parentLabel]: true });
       return;
     }
 
     parentLabel = findParentMenu(currentPath, mainMenuItems);
     if (parentLabel) {
-      setSidebarView('main');
+      setSidebarView("main");
       setOpenDropdowns({ [parentLabel]: true });
       return;
     }
-    
-    setOpenDropdowns({});
-    if (currentPath.startsWith('/reports/')) {
-        setSidebarView('reports');
-    } else {
-        setSidebarView('main');
-    }
 
+    setOpenDropdowns({});
+    if (currentPath.startsWith("/reports/")) {
+      setSidebarView("reports");
+    } else {
+      setSidebarView("main");
+    }
   }, [location.pathname]);
 
-
   const toggleDropdown = (label: string) => {
-    setOpenDropdowns(prev => ({ [label]: !prev[label] }));
+    setOpenDropdowns((prev) => ({ [label]: !prev[label] }));
   };
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -721,7 +723,7 @@ const Sidebar: React.FC = () => {
           onClick={toggleSidebar}
         ></div>
       )}
-      
+
       <AlertModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
@@ -736,5 +738,3 @@ const Sidebar: React.FC = () => {
 };
 
 export default Sidebar;
-
-

@@ -1,13 +1,13 @@
-
+//imports
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { isAxiosError } from "axios";
+import { isAxiosError ,AxiosError} from "axios";
 import { toast } from "react-toastify";
 import { axiosInstance } from "../../services";
 
-
+//interfaces
 export interface EmployeeData {
   name: string;
-  employeeId: string; 
+  emp_id: string; 
   status: "Active" | "Inactive";
   joiningDate: string;
   designation: string;
@@ -38,6 +38,7 @@ interface EmployeeSnapshotState {
   total: number;
   templateId: string | null;
   templateData: SnapshotTemplateConfig | null;
+  isDownloading: boolean;
 }
 
 interface FetchedData {
@@ -48,6 +49,8 @@ interface FetchedData {
   templateId: string;
 }
 
+
+//initialstate
 const initialState: EmployeeSnapshotState = {
   employees: [],
   status: 'idle',
@@ -57,9 +60,10 @@ const initialState: EmployeeSnapshotState = {
   total: 0,
   templateId: null,
   templateData: null,
+  isDownloading: false,
 };
 
-
+//fetch employee snapshot thunk
 export const fetchEmployeeSnapshot = createAsyncThunk<
   FetchedData,
   { page?: number; limit?: number; filters?: Record<string, any> },
@@ -110,6 +114,7 @@ export const fetchEmployeeSnapshot = createAsyncThunk<
   }
 );
 
+//To get the current settings for which columns are enabled or disabled.
 export const fetchTemplateSettings = createAsyncThunk<
   SnapshotTemplateConfig,
   string, 
@@ -129,6 +134,7 @@ export const fetchTemplateSettings = createAsyncThunk<
   }
 );
 
+//To save the user's changes to the report template
 export const updateEmployeeSnapshotTemplate = createAsyncThunk(
   'employeeSnapshot/updateTemplate',
   async ({ id, data }: { id: string; data: SnapshotTemplateConfig }, { rejectWithValue }) => {
@@ -141,6 +147,37 @@ export const updateEmployeeSnapshotTemplate = createAsyncThunk(
   }
 );
 
+//Thunk for downloading the snapshot report 
+export const downloadEmployeeSnapshot = createAsyncThunk(
+  'employeeSnapshot/downloadReport',
+  async ({ format, filters }: { format: 'csv' | 'excel', filters?: Record<string, any> }, { rejectWithValue }) => {
+    try {
+      const params = new URLSearchParams({ format });
+      if (filters && Object.keys(filters).length > 0) {
+        // Pass filters directly as params, assuming API can handle them
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) params.append(key, String(value));
+        });
+      }
+      const response = await axiosInstance.get(
+        `/report/export/employeeSnapshot?${params.toString()}`,
+        { responseType: "blob" }
+      );
+      
+      const fileName = `employee_snapshot_report_${new Date().toISOString()}.${format}`;
+      return { fileData: response.data as Blob, fileName };
+
+    } catch (err) {
+      const error = err as AxiosError;
+      if (error.response?.data instanceof Blob && error.response.data.type.includes('json')) {
+        const errorText = await error.response.data.text();
+        const errorJson = JSON.parse(errorText);
+        return rejectWithValue(errorJson.message || 'Failed to download file.');
+      }
+      return rejectWithValue("An unknown error occurred during download.");
+    }
+  }
+);
 
 const employeeSnapshotSlice = createSlice({
   name: 'employeeSnapshot',
@@ -148,6 +185,7 @@ const employeeSnapshotSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+    //for fetching employee snapshot data
       .addCase(fetchEmployeeSnapshot.pending, (state) => { state.status = 'loading'; state.error = null; })
       .addCase(fetchEmployeeSnapshot.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -172,7 +210,32 @@ const employeeSnapshotSlice = createSlice({
         state.templateData = action.payload.data;
         toast.success(action.payload.message || 'Template updated successfully!');
       })
-      .addCase(updateEmployeeSnapshotTemplate.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload as string; toast.error(action.payload as string); });
+      .addCase(updateEmployeeSnapshotTemplate.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload as string; toast.error(action.payload as string); 
+
+      })
+      // Cases for handling the download thunk ---
+      .addCase(downloadEmployeeSnapshot.pending, (state) => {
+        state.isDownloading = true;
+        state.error = null;
+      })
+      .addCase(downloadEmployeeSnapshot.fulfilled, (state, action) => {
+        state.isDownloading = false;
+        const url = window.URL.createObjectURL(action.payload.fileData);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = action.payload.fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        toast.success("Download complete!");
+      })
+      .addCase(downloadEmployeeSnapshot.rejected, (state, action) => {
+        state.isDownloading = false;
+        state.error = action.payload as string;
+      })
+      ;
   },
 });
 
