@@ -36,7 +36,6 @@ interface FetchAttendanceSummaryResponse {
 }
 
 /**
-
  * @description Arguments for the fetchAttendanceSummary async thunk.
  */
 interface FetchAttendanceSummaryArgs {
@@ -81,6 +80,13 @@ interface AttendanceReportState {
   loading: "idle" | "pending" | "succeeded" | "failed";
   error: string | null;
   isDownloading: boolean;
+  templateConfig: AttendanceTemplateConfig | null;
+  templateLoading: "idle" | "pending" | "succeeded" | "failed";
+}
+
+export interface AttendanceTemplateResponse extends AttendanceTemplateConfig {
+  id: string;
+  type: string;
 }
 
 // =================================
@@ -96,6 +102,8 @@ const initialState: AttendanceReportState = {
   loading: "idle",
   error: null,
   isDownloading: false,
+  templateConfig: null,
+  templateLoading: "idle",
 };
 
 // =================================
@@ -185,6 +193,28 @@ export const downloadAttendanceSummary = createAsyncThunk<
   }
 );
 
+export const fetchAttendanceTemplate = createAsyncThunk<
+  AttendanceTemplateResponse,
+  string, // templateId
+  { rejectValue: string }
+>(
+  "attendanceReport/fetchTemplate",
+  async (templateId, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(
+        `/report/getTemplate/${templateId}`
+      );
+      return response.data;
+    } catch (err) {
+      const error = err as AxiosError;
+      return rejectWithValue(
+        (error.response?.data as { message: string })?.message ||
+          "Failed to fetch attendance template."
+      );
+    }
+  }
+);
+
 // =================================
 // SLICE
 // =================================
@@ -247,6 +277,22 @@ const attendanceReportSlice = createSlice({
       .addCase(downloadAttendanceSummary.rejected, (state, action) => {
         state.isDownloading = false;
         state.error = action.payload as string; // Will be displayed as a toast
+      })
+      .addCase(fetchAttendanceTemplate.pending, (state) => {
+        state.templateLoading = "pending";
+        state.error = null;
+      })
+      .addCase(
+        fetchAttendanceTemplate.fulfilled,
+        (state, action: PayloadAction<AttendanceTemplateResponse>) => {
+          state.templateLoading = "succeeded";
+          const { id, type, ...config } = action.payload;
+          state.templateConfig = config;
+        }
+      )
+      .addCase(fetchAttendanceTemplate.rejected, (state, action) => {
+        state.templateLoading = "failed";
+        state.error = action.payload as string;
       });
   },
 });

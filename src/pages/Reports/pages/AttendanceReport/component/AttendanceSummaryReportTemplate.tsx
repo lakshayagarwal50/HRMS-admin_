@@ -1,4 +1,3 @@
-// src/pages/Reports/pages/AttendanceReport/component/AttendanceSummaryReportTemplate.tsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
@@ -7,6 +6,7 @@ import Table, { type Column } from "../../../../../components/common/Table";
 import Modal from "../../../../../components/common/NotificationModal";
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
 import { updateAttendanceTemplate, type AttendanceTemplateConfig } from "../../../../../store/slice/attendanceReportSlice";
+import { fetchAttendanceTemplate } from "../../../../../store/slice/attendanceReportSlice";
 
 interface TemplateField {
   id: number;
@@ -31,7 +31,7 @@ const initialFields: TemplateField[] = [
 ];
 
 interface AttendanceSummaryReportTemplateProps {
-  onBack?: () => void;
+  onBack?: (shouldRefetch?: boolean) => void;
 }
 
 const AttendanceSummaryReportTemplate: React.FC<AttendanceSummaryReportTemplateProps> = ({ onBack }) => {
@@ -39,7 +39,28 @@ const AttendanceSummaryReportTemplate: React.FC<AttendanceSummaryReportTemplateP
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const dispatch = useAppDispatch();
-  const { templateId, loading, error } = useAppSelector((state) => state.attendanceReport);
+  const { templateId, loading, error, templateConfig, templateLoading } = useAppSelector(
+    (state) => state.attendanceReport
+  );
+
+  // Fetch template when component mounts or templateId changes
+  useEffect(() => {
+    if (templateId && templateLoading === "idle") {
+      dispatch(fetchAttendanceTemplate(templateId));
+    }
+  }, [dispatch, templateId, templateLoading]);
+
+  // Update fields when templateConfig changes
+  useEffect(() => {
+    if (templateConfig) {
+      setFields(prevFields => 
+        prevFields.map(field => ({
+          ...field,
+          isEnabled: templateConfig[field.name] || false
+        }))
+      );
+    }
+  }, [templateConfig]);
 
   useEffect(() => {
     if (error) toast.error(error);
@@ -73,10 +94,13 @@ const AttendanceSummaryReportTemplate: React.FC<AttendanceSummaryReportTemplateP
       .unwrap()
       .then(() => {
         toast.success("Template updated successfully!");
-        if (onBack) onBack();
+        
+        // Indicate that we need to refetch when going back
+        if (onBack) {
+          onBack(true); // Pass true to indicate refetch is needed
+        }
       })
       .catch((err) => {
-        // Error is already handled by the useEffect hook, but you can log it
         console.error("Template update failed:", err);
       });
 
@@ -86,6 +110,12 @@ const AttendanceSummaryReportTemplate: React.FC<AttendanceSummaryReportTemplateP
   const confirmRefresh = () => {
     setFields(initialFields);
     toast.info("Template has been reset to default.");
+  };
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack(false); // Don't refetch
+    }
   };
 
   const columns: Column<TemplateField>[] = [
@@ -126,7 +156,7 @@ const AttendanceSummaryReportTemplate: React.FC<AttendanceSummaryReportTemplateP
         <button onClick={confirmRefresh} className="bg-gray-500 text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors">
           RESET
         </button>
-        <button onClick={onBack} className="bg-gray-200 text-gray-800 font-semibold py-2 px-8 rounded-lg hover:bg-gray-300 transition-colors">
+        <button onClick={handleBack} className="bg-gray-200 text-gray-800 font-semibold py-2 px-8 rounded-lg hover:bg-gray-300 transition-colors">
           BACK
         </button>
       </div>
