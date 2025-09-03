@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import SidePanelForm from "../common/SidePanelForm";
 import type { AppDispatch } from '../../store/store';
 import { updateDepartment, type Department } from '../../store/slice/departmentSlice';
+import toast from 'react-hot-toast';
 
 
 // --- PROPS DEFINITION ---
@@ -50,25 +51,30 @@ const UpdateDepartment: React.FC<UpdateDepartmentProps> = ({ isOpen, onClose, de
     }
   }, [departmentData]);
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !departmentData) {
-      alert('Department Name is required.');
-      return;
-    }
-    
-    // Construct the updated department object, preserving non-editable fields
-    const updatedData: Department = { 
-        ...departmentData, // Preserves id, createdBy, createdAt
-        name: name, 
-        code: code, 
-        description: description,
-        status: status,
-    };
-    
-    dispatch(updateDepartment(updatedData));
-    onClose();
+  const handleFormSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!name.trim() || !departmentData) {
+    toast.error('Department Name is required.');
+    return;
+  }
+
+  const updatedData: Department = {
+    ...departmentData,
+    name,
+    code,
+    description,
+    status,
   };
+
+  try {
+    await dispatch(updateDepartment(updatedData)).unwrap();
+    toast.success('Department updated successfully!');
+    onClose();
+  } catch (error) {
+    toast.error('Failed to update department.');
+  }
+};
 
   return (
     <SidePanelForm

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Plus, MoreHorizontal, RefreshCw, ServerCrash, ChevronRight } from 'lucide-react';
+import { Plus, MoreHorizontal, RefreshCw, ServerCrash } from 'lucide-react';
 
+// --- Redux Imports ---
 import {
   fetchHolidayConfigurations,
   addHolidayConfiguration,
@@ -11,14 +12,16 @@ import {
 } from '../../../store/slice/holidayconfigurationSlice'; 
 import type { RootState, AppDispatch } from '../../../store/store'; 
 
+// --- Component Imports ---
 import Table, { type Column } from "../../../components/common/Table"; 
 import AlertModal from '../../../components/Modal/AlertModal'; 
 import SidePanelForm from '../../../components/common/SidePanelForm';
-import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
-
+// --- TYPE DEFINITION for display data ---
 type HolidayConfigDisplay = HolidayConfiguration & { s_no: number };
 
+// --- UI State Components ---
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -54,6 +57,7 @@ const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
     </div>
 );
 
+// --- Create Form Component ---
 const CreateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState('');
@@ -61,11 +65,18 @@ const CreateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => voi
   const [description, setDescription] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return alert('Name is required.');
-    dispatch(addHolidayConfiguration({ groupName: name, code, description }));
-    onClose();
-  };
+  e.preventDefault();
+
+  if (!name.trim()) {
+    toast.error('Name is required.');
+    return;
+  }
+
+  dispatch(addHolidayConfiguration({ groupName: name, code, description }));
+  toast.success('Holiday configuration added successfully!');
+  onClose();
+};
+
 
   useEffect(() => {
     if (isOpen) {
@@ -80,22 +91,22 @@ const CreateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => voi
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
+          <input type="text" value={name}  placeholder='eg: diwali' onChange={(e) => setName(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
-          <input type="text" value={code} onChange={(e) => setCode(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
+          <input type="text" value={code} placeholder='1001' onChange={(e) => setCode(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
+          <textarea value={description} placeholder='type here' onChange={(e) => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
         </div>
       </div>
     </SidePanelForm>
   );
 };
 
-
+// --- Update Form Component ---
 const UpdateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => void; configData: HolidayConfiguration | null; }> = ({ isOpen, onClose, configData }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState('');
@@ -110,19 +121,26 @@ const UpdateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => voi
     }
   }, [configData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !configData) return alert('Name is required.');
-    dispatch(updateHolidayConfiguration({ ...configData, groupName: name, code, description }));
-    onClose();
-  };
+ const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!name.trim() || !configData) {
+    toast.error('Name is required.');
+    return;
+  }
+
+  dispatch(updateHolidayConfiguration({ ...configData, groupName: name, code, description }));
+  toast.success('Holiday configuration updated successfully!');
+  onClose();
+};
+
 
   return (
     <SidePanelForm isOpen={isOpen} onClose={onClose} title="Edit Holiday Group" onSubmit={handleSubmit} submitText="Update">
        <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
+          <input type="text" value={name} placeholder='eg: Diwali' onChange={(e) => setName(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
@@ -240,16 +258,8 @@ const HolidayConfigurationPage: React.FC = () => {
       <header className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Holiday Configuration</h1>
-          <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
-          <Link to="/dashboard" className="hover:text-gray-700">
-                Dashboard
-          </Link>
-          <ChevronRight className="w-4 h-4 mx-1" />
-          <Link to="/getting-started" className="hover:text-gray-700">
-                Getting Started
-          </Link>
-          <ChevronRight className="w-4 h-4 mx-1" />
-           <span className="font-medium text-gray-800">Holiday Configuration</span>
+          <nav aria-label="Breadcrumb" className="text-sm text-gray-500">
+            Dashboard / Getting Started / Holiday Configuration
           </nav>
         </div>
         <button

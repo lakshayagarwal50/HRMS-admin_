@@ -1,30 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import toast from 'react-hot-toast'; // 1. Import the toast library
-
-// --- Component & Redux Imports ---
+import toast from 'react-hot-toast'; 
 import SidePanelForm from '../common/SidePanelForm';
 import { addDesignation, type NewDesignation } from '../../store/slice/designationSlice';
 import { fetchDepartments } from '../../store/slice/departmentSlice';
 import type { RootState, AppDispatch } from "../../store/store";
 
-// --- PROPS DEFINITION ---
+
 interface CreateDesignationProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// --- REUSABLE FORM FIELD COMPONENTS (Unchanged) ---
+
 const FormInput: React.FC<{
-  label: string; value: string;
+  label: string; value: string; placeholder:string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
-}> = ({ label, value, onChange, required }) => (
+}> = ({ label, value, onChange, required, placeholder }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-1">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
-    <input type="text" value={value} onChange={onChange} required={required} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" />
+    <input type="text" value={value} placeholder={placeholder} onChange={onChange} required={required} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" />
   </div>
 );
 
@@ -106,13 +104,11 @@ const CreateDesignation: React.FC<CreateDesignationProps> = ({ isOpen, onClose }
       status: 'active',
     };
 
-    // 2. Use async/await and try/catch to handle the API result and show toasts
     try {
         await dispatch(addDesignation(newDesignation)).unwrap();
         toast.success('Designation created successfully!');
         onClose();
     } catch (error: any) {
-        // Display the error message from the slice
         toast.error(error || 'Failed to create designation.');
     }
   };
@@ -126,8 +122,8 @@ const CreateDesignation: React.FC<CreateDesignationProps> = ({ isOpen, onClose }
       submitText="Submit"
     >
       <div className="space-y-4">
-        <FormInput label="Designation Name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <FormInput label="Code" value={code} onChange={(e) => setCode(e.target.value)} />
+        <FormInput label="Designation Name" value={name} placeholder='eg: Software Engineer' onChange={(e) => setName(e.target.value)} required />
+        <FormInput label="Code" value={code} placeholder='101' onChange={(e) => setCode(e.target.value)} />
         <FormTextarea label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
         
         <FormSelect label="Select Department" value={department} onChange={(e) => setDepartment(e.target.value)} required>

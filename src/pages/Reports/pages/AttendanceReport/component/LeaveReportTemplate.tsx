@@ -1,8 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
-import Table, { type Column } from "../../../../../components/common/Table"; 
-import Modal from "../../../../../components/common/NotificationModal"; 
+import Table, { type Column } from "../../../../../components/common/Table";
+import Modal from "../../../../../components/common/NotificationModal";
+import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
+import {
+  fetchLeaveTemplate,
+  updateLeaveTemplate,
+  resetLeaveReportState,
+  selectLeaveReport,
+} from "../../../../../store/slice/leaveReportSlice";
+import { toast } from "react-toastify";
 
 interface TemplateField {
   id: number;
@@ -13,131 +21,26 @@ interface TemplateField {
   isEnabled: boolean;
 }
 
-
-const initialFields: TemplateField[] = [
-  {
-    id: 1,
-    s_no: 1,
-    name: "employee_name",
-    label: "Name",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 2,
-    s_no: 2,
-    name: "employee_id",
-    label: "Employee ID",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 3,
-    s_no: 3,
-    name: "status",
-    label: "Status",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 4,
-    s_no: 4,
-    name: "sick_paid_day",
-    label: "Sick - Paid Day",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 5,
-    s_no: 5,
-    name: "sick_paid_halfDay",
-    label: "Sick - Paid Half Day",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 6,
-    s_no: 6,
-    name: "sick_unpaid_day",
-    label: "Sick - Unpaid Day",
-    value: "",
-    isEnabled: false,
-  },
-  {
-    id: 7,
-    s_no: 7,
-    name: "sick_unpaid_halfDay",
-    label: "Sick - Unpaid Half Day",
-    value: "",
-    isEnabled: false,
-  },
-  {
-    id: 8,
-    s_no: 8,
-    name: "sick_total",
-    label: "Sick - Total",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 9,
-    s_no: 9,
-    name: "sick_balance",
-    label: "Sick - Balance",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 10,
-    s_no: 10,
-    name: "casual_paid_day",
-    label: "Casual - Paid Day",
-    value: "",
-    isEnabled: false,
-  },
-  {
-    id: 11,
-    s_no: 11,
-    name: "casual_total",
-    label: "Casual - Total",
-    value: "",
-    isEnabled: false,
-  },
-  {
-    id: 12,
-    s_no: 12,
-    name: "casual_balance",
-    label: "Casual - Balance",
-    value: "",
-    isEnabled: false,
-  },
-  {
-    id: 13,
-    s_no: 13,
-    name: "overall_total",
-    label: "Overall Total",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 14,
-    s_no: 14,
-    name: "overall_balance",
-    label: "Overall Balance",
-    value: "",
-    isEnabled: true,
-  },
+const initialFields: Omit<TemplateField, "isEnabled">[] = [
+  { id: 1, s_no: 1, name: "name", label: "Name", value: "" },
+  { id: 2, s_no: 2, name: "emp_id", label: "Employee ID", value: "" },
+  { id: 3, s_no: 3, name: "status", label: "Status", value: "" },
+  { id: 4, s_no: 4, name: "Sick", label: "Sick (All Columns)", value: "" },
+  { id: 5, s_no: 5, name: "Casual", label: "Casual (All Columns)", value: "" },
+  { id: 6, s_no: 6, name: "Privileged", label: "Privileged (All Columns)", value: "" },
+  { id: 7, s_no: 7, name: "Planned", label: "Planned (All Columns)", value: "" },
 ];
 
 interface LeaveReportTemplateProps {
   onBack?: () => void;
+  templateId: string | null;
 }
 
-const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({
-  onBack,
-}) => {
-  const [fields, setFields] = useState<TemplateField[]>(initialFields);
+const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({ onBack, templateId }) => {
+  const dispatch = useAppDispatch();
+  const { template, loading, error, successMessage } = useAppSelector(selectLeaveReport);
 
+  const [fields, setFields] = useState<TemplateField[]>([]);
   const [modalState, setModalState] = useState({
     isOpen: false,
     title: "",
@@ -146,13 +49,37 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({
     type: "warning" as "warning" | "info" | "success" | "error",
   });
 
-  const handleLabelChange = (id: number, newValue: string) => {
-    setFields(
-      fields.map((field) =>
-        field.id === id ? { ...field, value: newValue } : field
-      )
-    );
-  };
+  useEffect(() => {
+    if (templateId) {
+      dispatch(fetchLeaveTemplate({ id: templateId }));
+    }
+    return () => {
+      dispatch(resetLeaveReportState());
+    };
+  }, [dispatch, templateId]);
+
+  useEffect(() => {
+    if (template) {
+      const updatedFields = initialFields.map((field) => ({
+        ...field,
+        isEnabled: template[field.name] === true,
+      }));
+      setFields(updatedFields);
+    } else {
+      setFields(initialFields.map(f => ({...f, isEnabled: false})));
+    }
+  }, [template]);
+
+  useEffect(() => {
+    if (successMessage) {
+      toast.success(successMessage);
+      dispatch(resetLeaveReportState());
+    }
+    if (error) {
+      toast.error(error);
+      dispatch(resetLeaveReportState());
+    }
+  }, [successMessage, error, dispatch]);
 
   const handleCheckboxChange = (id: number) => {
     setFields(
@@ -161,41 +88,58 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({
       )
     );
   };
+  
+  const handleLabelChange = (id: number, newValue: string) => {
+    setFields(
+      fields.map((field) =>
+        field.id === id ? { ...field, value: newValue } : field
+      )
+    );
+  };
 
   const closeModal = () => setModalState({ ...modalState, isOpen: false });
 
   const handleUpdateClick = () => {
+    if (!templateId) return;
     setModalState({
       isOpen: true,
       title: "Do you want to continue with savings?",
-      message:
-        "This will update report template settings and sequence as you select.",
+      message: "This will update report template settings and sequence as you select.",
       onConfirm: confirmUpdate,
       type: "warning",
     });
   };
 
   const handleRefreshClick = () => {
+    if (!templateId) return;
     setModalState({
       isOpen: true,
       title: "Do you want to refresh the page?",
-      message:
-        "This will refresh the page and any changes you made will not be saved.",
+      message: "This will refresh the page and any changes you made will not be saved.",
       onConfirm: confirmRefresh,
       type: "warning",
     });
   };
 
   const confirmUpdate = () => {
-    console.log("Saving updated fields:", fields);
+    if (!templateId) return;
+    const dataToUpdate = fields.reduce((acc, field) => {
+      if (initialFields.some(f => f.name === field.name)) {
+        acc[field.name] = field.isEnabled;
+      }
+      return acc;
+    }, {} as { [key: string]: boolean });
+
+    dispatch(updateLeaveTemplate({ id: templateId, data: dataToUpdate }));
     closeModal();
   };
 
   const confirmRefresh = () => {
-    setFields(initialFields);
+    if (!templateId) return;
+    dispatch(fetchLeaveTemplate({ id: templateId }));
     closeModal();
   };
-
+  
   const columns: Column<TemplateField>[] = [
     { key: "s_no", header: "S no.", className: "w-1/12" },
     { key: "name", header: "Name", className: "w-4/12 font-mono text-sm" },
@@ -210,6 +154,8 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({
           value={row.value || row.label}
           onChange={(e) => handleLabelChange(row.id, e.target.value)}
           className="w-full p-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-purple-500"
+          // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+          disabled={loading === 'pending'}
         />
       ),
     },
@@ -224,14 +170,11 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({
             checked={row.isEnabled}
             onChange={() => handleCheckboxChange(row.id)}
             className="sr-only peer"
+            // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+            disabled={loading === 'pending'}
           />
           <div className="w-6 h-6 border-2 border-gray-300 rounded-md flex items-center justify-center peer-checked:bg-[#741CDD] peer-checked:border-[#741CDD] transition-colors">
-            <Check
-              size={16}
-              className={`text-white ${
-                row.isEnabled ? "opacity-100" : "opacity-0"
-              }`}
-            />
+            <Check size={16} className={`text-white ${row.isEnabled ? "opacity-100" : "opacity-0"}`} />
           </div>
         </label>
       ),
@@ -241,15 +184,10 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">
-          Leave Report Template
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-800">Leave Report Template</h1>
         <p className="text-sm text-gray-500">
-          <Link to="/reports/all">Reports</Link>
-          {" / "}
-          <Link to="/reports/scheduled">Leave Report</Link>
-          {" / "}
-          Leave Report Template
+          <Link to="/reports/all">Reports</Link>{" / "}
+          <Link to="/reports/scheduled">Leave Report</Link>{" / "}Leave Report Template
         </p>
       </div>
 
@@ -259,25 +197,33 @@ const LeaveReportTemplate: React.FC<LeaveReportTemplateProps> = ({
           columns={columns}
           showSearch={false}
           showPagination={false}
+          // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+          isLoading={loading === 'pending' && !template}
         />
       </div>
 
       <div className="mt-8 flex items-center space-x-4">
         <button
           onClick={handleUpdateClick}
-          className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors"
+          className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
+          // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+          disabled={loading === 'pending' || !templateId}
         >
-          UPDATE
+          {loading === 'pending' ? "UPDATING..." : "UPDATE"}
         </button>
         <button
           onClick={handleRefreshClick}
-          className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors"
+          className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
+          // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+          disabled={loading === 'pending' || !templateId}
         >
           REFRESH
         </button>
         <button
           onClick={onBack}
           className="bg-gray-200 text-gray-800 font-semibold py-2 px-8 rounded-lg hover:bg-gray-300 transition-colors"
+          // ▼▼▼ FIXED: Check for 'pending' string instead of truthiness ▼▼▼
+          disabled={loading === 'pending'}
         >
           BACK
         </button>

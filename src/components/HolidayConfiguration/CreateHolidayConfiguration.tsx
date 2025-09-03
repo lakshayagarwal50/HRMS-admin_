@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 // Assuming a generic SidePanelForm component exists at this path
 import SidePanelForm from '../../components/common/SidePanelForm'; 
+import toast from 'react-hot-toast';
 
 // --- TYPE DEFINITIONS ---
 // This interface should match the one used in your main page component
@@ -26,16 +27,19 @@ const CreateHolidayConfiguration: React.FC<CreateHolidayConfigurationProps> = ({
   const [description, setDescription] = useState('');
 
   // Handles the form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      alert('Name is required.');
-      return;
-    }
-    // Pass the new data up to the parent component
-    onAdd({ groupName: name, code, description });
-    onClose(); // Close the panel after submission
-  };
+ const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!name.trim()) {
+    toast.error('Name is required.');
+    return;
+  }
+
+  onAdd({ groupName: name, code, description });
+  toast.success('Group added successfully!');
+  onClose();
+};
+
 
   return (
     <SidePanelForm
@@ -52,6 +56,7 @@ const CreateHolidayConfiguration: React.FC<CreateHolidayConfigurationProps> = ({
           </label>
           <input 
             type="text" 
+            placeholder='eg: Diwali'
             value={name} 
             onChange={(e) => setName(e.target.value)} 
             required 

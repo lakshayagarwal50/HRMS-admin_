@@ -1,5 +1,3 @@
-
-
 // src/pages/Reports/pages/AttendanceReport/component/AttendanceSummaryReportFilters.tsx
 import React, { useState, useEffect } from "react";
 import { X, Rocket, Trash2 } from "lucide-react";

@@ -7,6 +7,7 @@ import SidePanelForm from '../../components/common/SidePanelForm';
 import { updateHolidayCalendarEntry, type HolidayCalendarEntry } from '../../store/slice/holidayCalendarSlice';
 import { fetchHolidayConfigurations } from '../../store/slice/holidayconfigurationSlice';
 import type { RootState, AppDispatch } from '../../store/store';
+import toast from 'react-hot-toast';
 
 // --- PROPS DEFINITION ---
 interface UpdateHolidayProps {
@@ -60,21 +61,26 @@ const UpdateHoliday: React.FC<UpdateHolidayProps> = ({ isOpen, onClose, holidayD
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!type || !name || !date || selectedGroups.length === 0 || !holidayData) {
-      alert('Please fill all required fields.');
-      return;
-    }
-    const updatedEntry: HolidayCalendarEntry = {
-      ...holidayData,
-      name,
-      type,
-      date,
-      holidayGroups: selectedGroups,
-    };
-    dispatch(updateHolidayCalendarEntry(updatedEntry));
-    onClose();
+  e.preventDefault();
+
+  if (!type || !name || !date || selectedGroups.length === 0 || !holidayData) {
+    toast.error('Please fill all required fields.');
+    return;
+  }
+
+  const updatedEntry: HolidayCalendarEntry = {
+    ...holidayData,
+    name,
+    type,
+    date,
+    holidayGroups: selectedGroups,
   };
+
+  dispatch(updateHolidayCalendarEntry(updatedEntry));
+  toast.success('Holiday calendar entry updated successfully!');
+  onClose();
+};
+
 
   return (
     <SidePanelForm

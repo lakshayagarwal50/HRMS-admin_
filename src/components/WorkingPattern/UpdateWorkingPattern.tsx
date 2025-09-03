@@ -5,6 +5,7 @@ import SidePanelForm from '../common/SidePanelForm'; // Adjust path if needed
 // --- Redux Imports ---
 import { updateWorkingPattern, type WorkingPattern } from '../../store/slice/workingPatternsSlice'; // Adjust path
 import type { AppDispatch } from '../../store/store'; // Adjust path
+import toast from 'react-hot-toast';
 
 // --- PROPS DEFINITION ---
 interface UpdateWorkingPatternProps {
@@ -76,7 +77,7 @@ const UpdateWorkingPattern: React.FC<UpdateWorkingPatternProps> = ({ isOpen, onC
     setters[week - 1](newWeek);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     if (!patternData) {
       alert("No pattern data to update.");
@@ -99,8 +100,17 @@ const UpdateWorkingPattern: React.FC<UpdateWorkingPatternProps> = ({ isOpen, onC
     };
     
     // Dispatch the Redux action to update the pattern
-    dispatch(updateWorkingPattern(updatedPattern));
-    onClose();
+    // dispatch(updateWorkingPattern(updatedPattern));
+
+    try {
+        await dispatch(updateWorkingPattern(updatedPattern)).unwrap();
+        toast.success('Designation updated successfully!');
+        onClose();
+    } catch (error: any) {
+        toast.error(error || 'Failed to update designation.');
+    }
+   
+    
   };
 
   return (

@@ -80,7 +80,7 @@ const CreateLeaveSetup: React.FC<CreateLeaveSetupProps> = ({ isOpen, onClose }) 
             <div className="space-y-6">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Leave Type</label>
-                    <input type="text" value={name} onChange={e => setName(e.target.value)} required className="w-full p-2 border border-gray-300 rounded-md"/>
+                    <input type="text" placeholder='eg: planned leave' value={name} onChange={e => setName(e.target.value)} required className="w-full p-2 border border-gray-300 rounded-md"/>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>

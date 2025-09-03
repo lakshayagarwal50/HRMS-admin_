@@ -1,116 +1,150 @@
-import React, { useState } from "react";
+
+
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import Table, { type Column } from "../../../../components/common/Table";
-import LeaveReportFilters from "./component/LeaveReportFilters";
-
+import LeaveReportFilters, { type LeaveFilters } from "./component/LeaveReportFilters";
 import LeaveReportTemplate from "./component/LeaveReportTemplate";
+import { useAppDispatch, useAppSelector } from "../../../../store/hooks";
+import {
+  fetchLeaveSummaryReport,
+  downloadLeaveReport,
+  resetLeaveReportState,
+  selectLeaveReport,
+} from "../../../../store/slice/leaveReportSlice";
+import type { LeaveRecord } from "../../../../store/slice/leaveReportSlice";
+import { toast } from "react-toastify";
 
-
-interface LeaveRecord {
-  id: number;
-  name: string;
-  employeeId: number;
-  status: "Active" | "Inactive";
-  sick_paid_day: number;
-  sick_paid_halfDay: number;
-  sick_unpaid_day: number;
-  sick_unpaid_halfDay: number;
-  sick_total: number;
-  sick_balance: number;
-  casual_paid_day: number;
-  casual_paid_halfDay: number;
-  casual_unpaid_day: number;
-  casual_unpaid_halfDay: number;
-  casual_total: number;
-  casual_balance: number;
-  overall_total: number;
-  overall_balance: number;
-}
-const mockData: LeaveRecord[] = Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  name: [
-    "Chandan",
-    "Asad",
-    "Pankaj",
-    "Nanda",
-    "Karthik",
-    "Swarna",
-    "Mukul",
-    "Latif",
-    "Ahmad",
-    "Ravinder",
-  ][i % 10],
-  employeeId: 4152 + i * 111,
-  status: "Active",
-  sick_paid_day: i % 4,
-  sick_paid_halfDay: i % 2,
-  sick_unpaid_day: i % 3,
-  sick_unpaid_halfDay: i % 2,
-  sick_total: (i % 4) + (i % 3),
-  sick_balance: 150 + i * 10,
-  casual_paid_day: i % 5,
-  casual_paid_halfDay: i % 3,
-  casual_unpaid_day: i % 2,
-  casual_unpaid_halfDay: i % 4,
-  casual_total: (i % 5) + (i % 2),
-  casual_balance: 100 + i * 5,
-  overall_total: (i % 4) + (i % 3) + (i % 5) + (i % 2),
-  overall_balance: 4 + i,
-}));
-const renderStatus = (status: "Active" | "Inactive") => {
+const renderStatus = (status: "Active" | "Inactive" | null) => {
+  if (!status) {
+    return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Unknown</span>;
+  }
   const baseClasses = "px-2 py-1 text-xs font-semibold rounded-full";
   const activeClasses = "bg-green-100 text-green-800";
   const inactiveClasses = "bg-red-100 text-red-800";
 
-  switch (status) {
-    case "Active":
-      return (
-        <span className={`${baseClasses} ${activeClasses}`}>{status}</span>
-      );
-    case "Inactive":
-      return (
-        <span className={`${baseClasses} ${inactiveClasses}`}>{status}</span>
-      );
-    default:
-      return status;
-  }
+  return (
+    <span className={`${baseClasses} ${status === "Active" ? activeClasses : inactiveClasses}`}>
+      {status}
+    </span>
+  );
+};
+
+const ServerPagination = ({ currentPage, totalPages, onPageChange, totalRecords, limit }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void, totalRecords: number, limit: number }) => {
+  if (totalPages <= 1) return null;
+
+  const indexOfFirstItem = (currentPage - 1) * limit;
+  const indexOfLastItem = indexOfFirstItem + limit > totalRecords ? totalRecords : indexOfFirstItem + limit;
+
+  return (
+    <div className="pagination flex justify-between items-center mt-4 text-sm text-gray-700">
+      <span>
+        Showing {indexOfFirstItem + 1} to {indexOfLastItem} of {totalRecords} items
+      </span>
+      <div className="flex space-x-1">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
 };
 
 const LeaveReport: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { data, pagination, loading, error, templateId, isDownloading } = useAppSelector(selectLeaveReport);
+
   const [view, setView] = useState<"report" | "template">("report");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState<Partial<LeaveFilters>>({});
 
   const columns: Column<LeaveRecord>[] = [
     { key: "name", header: "Name" },
-    { key: "employeeId", header: "Employee ID" },
+    { key: "emp_id", header: "Employee ID" },
+    { key: "status", header: "Status", render: (row) => renderStatus(row.status) },
+    { header: "Sick - Taken", render: (row) => row.sick.leaveTaken },
+    { header: "Sick - Balance", render: (row) => row.sick.balance },
+    { header: "Casual - Taken", render: (row) => row.casual.leaveTaken },
+    { header: "Casual - Balance", render: (row) => row.casual.balance },
+    { header: "Privileged - Taken", render: (row) => row.privileged.leaveTaken },
+    { header: "Privileged - Balance", render: (row) => row.privileged.balance },
+    { header: "Planned - Taken", render: (row) => row.planned.leaveTaken },
+    { header: "Planned - Balance", render: (row) => row.planned.balance },
     {
-      key: "status",
-      header: "Status",
-      render: (row) => renderStatus(row.status),
+      header: "Overall - Total Taken",
+      render: (row) =>
+        row.sick.leaveTaken +
+        row.casual.leaveTaken +
+        row.privileged.leaveTaken +
+        row.planned.leaveTaken,
     },
-    { key: "sick_paid_day", header: "Sick - Paid Day" },
-    { key: "sick_paid_halfDay", header: "Sick - Paid Half Day" },
-    { key: "sick_unpaid_day", header: "Sick - Unpaid Day" },
-    { key: "sick_unpaid_halfDay", header: "Sick - Unpaid Half Day" },
-    { key: "sick_total", header: "Sick - Total" },
-    { key: "sick_balance", header: "Sick - Balance" },
-    { key: "casual_paid_day", header: "Casual - Paid Day" },
-    { key: "casual_paid_halfDay", header: "Casual - Paid Half Day" },
-    { key: "casual_unpaid_day", header: "Casual - Unpaid Day" },
-    { key: "casual_unpaid_halfDay", header: "Casual - Unpaid Half Day" },
-    { key: "casual_total", header: "Casual - Total" },
-    { key: "casual_balance", header: "Casual - Balance" },
-    { key: "overall_total", header: "Overall Total" },
-    { key: "overall_balance", header: "Overall Balance" },
+    {
+      header: "Overall - Total Balance",
+      render: (row) =>
+        row.sick.balance +
+        row.casual.balance +
+        row.privileged.balance +
+        row.planned.balance,
+    },
   ];
 
-  const handleApplyFilters = (filters: any) => {
-    console.log("Applying Leave Report filters:", filters);
-    setIsFilterOpen(false); 
+  const fetchData = useCallback(() => {
+    dispatch(fetchLeaveSummaryReport({ page: currentPage, limit: pagination.limit, filter: filters }));
+  }, [dispatch, currentPage, pagination.limit, filters]);
+
+  useEffect(() => {
+    if (view === "report") {
+      fetchData();
+    }
+  }, [fetchData, view]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(resetLeaveReportState());
+    }
+  }, [error, dispatch]);
+
+  const handleApplyFilters = (appliedFilters: LeaveFilters) => {
+    setFilters(appliedFilters);
+    setCurrentPage(1);
+    setIsFilterOpen(false);
+  };
+
+  const handleDownload = async (format: "csv" | "xlsx") => {
+    if (isDownloading) return;
+    toast.info(`Your ${format.toUpperCase()} download will begin shortly...`);
+    
+    const resultAction = await dispatch(downloadLeaveReport({ format, filter: filters }));
+
+    if (downloadLeaveReport.fulfilled.match(resultAction)) {
+      const { data: blobData, format: fileFormat } = resultAction.payload;
+      const url = window.URL.createObjectURL(blobData);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `leave_report.${fileFormat}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Report download started successfully!");
+    }
   };
 
   if (view === "template") {
-    return <LeaveReportTemplate onBack={() => setView("report")} />;
+    return <LeaveReportTemplate templateId={templateId} onBack={() => setView("report")} />;
   }
 
   return (
@@ -121,24 +155,33 @@ const LeaveReport: React.FC = () => {
           <p className="text-sm text-gray-500">
             <Link to="/reports/all">Reports</Link> / Leave Report
           </p>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 flex-wrap gap-y-2">
             <button
               onClick={() => setView("template")}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer"
+              disabled={!templateId || loading === 'pending'}
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               EDIT TEMPLATE
             </button>
             <button
               onClick={() => setIsFilterOpen(true)}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer"
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200"
             >
               FILTER
             </button>
-            <button className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer">
-              SCHEDULE REPORT
+            <button
+              onClick={() => handleDownload("csv")}
+              disabled={isDownloading}
+              className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-blue-600 disabled:opacity-50"
+            >
+              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD CSV"}
             </button>
-            <button className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600 transition-colors cursor-pointer">
-              DELETE
+            <button
+              onClick={() => handleDownload("xlsx")}
+              disabled={isDownloading}
+              className="bg-green-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-green-600 disabled:opacity-50"
+            >
+              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD XLSX"}
             </button>
           </div>
         </div>
@@ -146,14 +189,26 @@ const LeaveReport: React.FC = () => {
 
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <div className="overflow-x-auto">
-          <Table
-            data={mockData}
-            columns={columns}
-            showSearch={true}
-            searchPlaceholder="Search..."
-            showPagination={true}
-            className="w-[1350px]"
-          />
+          {loading === 'pending' && <p className="text-center p-4">Loading report data...</p>}
+          {loading === 'succeeded' && (
+            <>
+              <Table
+                data={data}
+                columns={columns}
+                showSearch={false}
+                showPagination={false}
+                className="w-full"
+              />
+              <ServerPagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+                totalRecords={pagination.totalRecords}
+                limit={pagination.limit}
+              />
+            </>
+          )}
+          {loading === 'failed' && <p className="text-center text-red-500 p-4">Failed to load report data.</p>}
         </div>
       </div>
 

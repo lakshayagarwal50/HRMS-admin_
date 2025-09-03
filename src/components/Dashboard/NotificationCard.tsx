@@ -1,8 +1,10 @@
+
 import React, { useEffect } from 'react';
 import { User, ServerCrash, RefreshCw } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom'; // 1. Import Link
 import type { AppDispatch, RootState } from '../../store/store';
-import { fetchNotifications, } from '../../store/slice/notificationSlice';
+import { fetchNotifications, type Notification } from '../../store/slice/notificationSlice';
 
 // --- UI State Components ---
 const SkeletonLoader: React.FC = () => (
@@ -38,10 +40,22 @@ const NotificationCard: React.FC = () => {
 
   useEffect(() => {
     if (status === 'idle') {
-      // Fetch the first 5 notifications on initial load
       dispatch(fetchNotifications({ page: 1, limit: 5 }));
     }
   }, [status, dispatch]);
+
+  // 2. Helper function to determine the correct link for a notification
+  const getNotificationLink = (notification: Notification): string => {
+    switch (notification.type.toLowerCase()) {
+      case 'leave':
+        return `/leave/request`;
+      case 'loan':
+        return `/loanandadvance`; // Corrected route
+      default:
+        // Fallback to a generic employee detail page if type is unknown
+        return `/employees/list/detail`;
+    }
+  };
 
   const renderContent = () => {
     if (status === 'loading' || status === 'idle') {
@@ -55,7 +69,9 @@ const NotificationCard: React.FC = () => {
     }
     return (
         notifications.map((notif, index) => (
-            <div
+            // 3. Each notification is now wrapped in a dynamic Link
+            <Link
+              to={getNotificationLink(notif)}
               key={notif.id}
               className={`flex items-center space-x-4 p-4 hover:bg-gray-50 transition-colors duration-200 ${
                 index < notifications.length - 1 ? 'border-b border-gray-200' : ''
@@ -65,13 +81,12 @@ const NotificationCard: React.FC = () => {
                 <User className="text-purple-600" size={20} />
               </div>
               <div className="flex-1">
-                {/* Corrected: Displaying data based on the new API structure */}
                 <p className="text-sm font-medium text-gray-900 capitalize">{notif.type} Request</p>
                 <p className="text-xs text-gray-500">Requested By: {notif.name}</p>
                 <p className="text-xs text-gray-500">Time: {new Date(notif.date).toLocaleString()}</p>
                 <p className="text-xs text-blue-500">Status: {notif.status}</p>
               </div>
-            </div>
+            </Link>
         ))
     );
   };
@@ -87,3 +102,5 @@ const NotificationCard: React.FC = () => {
 };
 
 export default NotificationCard;
+
+

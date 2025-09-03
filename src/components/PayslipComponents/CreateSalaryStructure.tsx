@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SidePanelForm from '../../components/common/SidePanelForm'; // Adjust path if needed
+import toast from 'react-hot-toast';
 
 // --- TYPE DEFINITIONS ---
 // This defines the data structure for the form submission
@@ -21,14 +22,16 @@ const CreateSalaryStructure: React.FC<CreateSalaryStructureProps> = ({ isOpen, o
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      alert('Name is required.');
-      return;
-    }
-    onSubmit({ groupName: name, code, description });
-  };
+ const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!name.trim()) {
+    toast.error('Name is required.');
+    return;
+  }
+  onSubmit({ groupName: name, code, description });
+  toast.success('Group created successfully!');
+};
+
 
   // Reset form when the panel is closed
   useEffect(() => {
@@ -53,6 +56,7 @@ const CreateSalaryStructure: React.FC<CreateSalaryStructureProps> = ({ isOpen, o
             Name <span className="text-red-500">*</span>
           </label>
           <input
+            placeholder='eg: Employee'
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -63,6 +67,7 @@ const CreateSalaryStructure: React.FC<CreateSalaryStructureProps> = ({ isOpen, o
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
           <input
+            placeholder='eg: 1001'
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value)}
@@ -72,6 +77,7 @@ const CreateSalaryStructure: React.FC<CreateSalaryStructureProps> = ({ isOpen, o
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
           <textarea
+           placeholder='this is description'
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}

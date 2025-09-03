@@ -45,6 +45,7 @@ import employeeRatingDetailReducer from './slice/employeeRatingDetailSlice'
 import dashboardReducer from "./slice/dashboardSlice";
 import attendanceReportReducer from './slice/attendanceReportSlice';
 import payslipSummaryReducer from './slice/payslipSummarySlice';
+import leaveReportReducer from "./slice/leaveReportSlice";
 
 export const store = configureStore({
   reducer: {
@@ -92,6 +93,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     attendanceReport: attendanceReportReducer,
     payslipSummary: payslipSummaryReducer,
+    leaveReport: leaveReportReducer,
   },
 });
 
