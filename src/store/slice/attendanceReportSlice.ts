@@ -65,7 +65,7 @@ interface UpdateTemplateArgs {
  * @description Arguments for the downloadAttendanceSummary async thunk.
  */
 interface DownloadSummaryArgs {
-  format: "csv" | "excel";
+  format: "csv" | "xlsx";
   filter?: Record<string, any>;
 }
 

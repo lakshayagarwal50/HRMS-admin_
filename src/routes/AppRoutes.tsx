@@ -127,12 +127,8 @@ const EmployeeLeaveRequest = lazy(
 const PaymentSalary = lazy(
   () => import("../features/payments/salary/pages/Salary")
 );
-const PaymentTds = lazy(
-  () => import("../features/payments/TDS/pages/TDS")
-);
-const Form16 = lazy(
-  () => import("../features/payroll/pages/Form16")
-);
+const PaymentTds = lazy(() => import("../features/payments/TDS/pages/TDS"));
+const Form16 = lazy(() => import("../features/payroll/pages/Form16"));
 
 const AppRoutes = () => (
   <Suspense
@@ -170,7 +166,7 @@ const AppRoutes = () => (
             /> //create payslip
           }
         />
-        
+
         <Route
           path="/employees/list/detail/:employeeCode/:employeeId"
           element={<EmployeeDetailPage />}
@@ -215,10 +211,10 @@ const AppRoutes = () => (
           path="/rating/employees-rating"
           element={<EmployeesRatingPage />}
         />
-       <Route 
-  path="/rating/detail/:employeeId/:year" 
-  element={<ViewRatingDetailPage />} 
-/>
+        <Route
+          path="/rating/detail/:employeeId/:year"
+          element={<ViewRatingDetailPage />}
+        />
         <Route path="/reports/all" element={<AllReports />} />
         <Route path="/reports/create" element={<CreateReports />} />
         <Route path="/reports/scheduled" element={<ScheduledReports />} />
@@ -296,7 +292,7 @@ const AppRoutes = () => (
         <Route path="/payroll/list" element={<PayrollList />} />
         <Route path="/payroll/crystal" element={<CrystalRunPage />} />
         <Route path="/payroll/crystal" element={<CrystalRunPage />} />
-          <Route path="/payroll/upload-form16" element ={<Form16/>}/>
+        <Route path="/payroll/upload-form16" element={<Form16 />} />
         <Route path="/payroll/generate" element={<GeneratePayslipLayout />}>
           {/* These are the nested child routes for each individual step */}
           <Route path="ctc" element={<CtcStepPage />} />
@@ -313,10 +309,9 @@ const AppRoutes = () => (
           />
           <Route path="loan-repayment" element={<LoanRepaymentStepPage />} />
           <Route path="process" element={<ProcessPayslipStepPage />} />
-
         </Route>
-          <Route path="/payment/salary" element={<PaymentSalary />} />
-          <Route path="/payment/tds" element={<PaymentTds />} />
+        <Route path="/payment/salary" element={<PaymentSalary />} />
+        <Route path="/payment/tds" element={<PaymentTds />} />
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<div>404 Not Found</div>} />
