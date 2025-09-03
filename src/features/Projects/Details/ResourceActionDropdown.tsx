@@ -1,4 +1,3 @@
-// src/features/Projects/Details/components/ResourceActionDropdown.tsx
 
 import React, { useState, useEffect, useRef } from "react";
 import { MoreVertical } from "lucide-react";

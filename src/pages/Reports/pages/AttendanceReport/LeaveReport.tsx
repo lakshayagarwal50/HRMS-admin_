@@ -163,23 +163,18 @@ const LeaveReport: React.FC = () => {
             >
               EDIT TEMPLATE
             </button>
-            <button
-              onClick={() => setIsFilterOpen(true)}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200"
-            >
-              FILTER
-            </button>
+            
             <button
               onClick={() => handleDownload("csv")}
               disabled={isDownloading}
-              className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-blue-600 disabled:opacity-50"
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200"
             >
               {isDownloading ? "DOWNLOADING..." : "DOWNLOAD CSV"}
             </button>
             <button
               onClick={() => handleDownload("xlsx")}
               disabled={isDownloading}
-              className="bg-green-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-green-600 disabled:opacity-50"
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200"
             >
               {isDownloading ? "DOWNLOADING..." : "DOWNLOAD XLSX"}
             </button>

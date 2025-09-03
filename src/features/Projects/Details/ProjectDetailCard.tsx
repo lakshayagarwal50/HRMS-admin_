@@ -1,4 +1,4 @@
-// src/features/Projects/Details/components/ProjectDetailCard.tsx
+
 
 import React from "react";
 import type { Project } from "../../../types/project";
