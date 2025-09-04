@@ -51,7 +51,7 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
     startDate: "",
     hours: "",
     minutes: "",
-    format: "EXCEL",
+    format: "XLSX",
     to: "",
     cc: "",
     subject: `Scheduled Report: ${reportName}`,
@@ -237,12 +237,12 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
                 <input
                   type="radio"
                   name="format"
-                  value="EXCEL"
-                  checked={formData.format === "EXCEL"}
+                  value="XLSX"
+                  checked={formData.format === "XLSX"}
                   onChange={handleChange}
                   className="h-4 w-4 text-purple-600"
                 />
-                <span>EXCEL</span>
+                <span>XLSX</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input

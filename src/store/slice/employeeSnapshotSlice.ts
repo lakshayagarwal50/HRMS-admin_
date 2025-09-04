@@ -1,10 +1,11 @@
-//imports
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { isAxiosError ,AxiosError} from "axios";
-import { toast } from "react-toastify";
-import { axiosInstance } from "../../services";
 
-//interfaces
+
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { isAxiosError, AxiosError } from "axios";
+import { axiosInstance } from "../../services";
+import { toast } from "react-toastify";
+
+// INTERFACES
 export interface EmployeeData {
   name: string;
   emp_id: string; 
@@ -34,12 +35,13 @@ export interface ScheduleData {
   startDate: string;
   hours: string;
   minutes: string;
-  format: "CSV" | "EXCEL";
+  format: "CSV" | "XLSX";
   to: string;
   cc?: string;
   subject: string;
   body: string;
 }
+
 interface EmployeeSnapshotState {
   employees: EmployeeData[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -52,7 +54,7 @@ interface EmployeeSnapshotState {
   reportExists: boolean; 
   templateData: SnapshotTemplateConfig | null;
   isDownloading: boolean;
-  scheduleStatus: 'idle' | 'loading' | 'succeeded' | 'failed'; // NEW
+  scheduleStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
 }
 
 interface FetchedData {
@@ -64,8 +66,7 @@ interface FetchedData {
   reportId: string; 
 }
 
-
-//initialstate
+// INITIAL STATE
 const initialState: EmployeeSnapshotState = {
   employees: [],
   status: 'idle',
@@ -78,10 +79,10 @@ const initialState: EmployeeSnapshotState = {
   reportExists: true,
   templateData: null,
   isDownloading: false,
-  scheduleStatus: 'idle', // NEW
+  scheduleStatus: 'idle',
 };
 
-//fetch employee snapshot thunk
+// ASYNC THUNKS
 export const fetchEmployeeSnapshot = createAsyncThunk<
   FetchedData,
   { page?: number; limit?: number; filters?: Record<string, any> },
@@ -98,40 +99,24 @@ export const fetchEmployeeSnapshot = createAsyncThunk<
       const data = response.data;
 
       if (data.message && data.message.toLowerCase().includes("not found")) {
+        return rejectWithValue(data.message);
       }
 
       const mappedEmployees: EmployeeData[] = data.employees.map((emp: any) => ({
-        name: emp.name,
-        emp_id: emp.emp_id, 
-        status: emp.status,
-        joiningDate: emp.joining_date, 
-        designation: emp.designation,
-        department: emp.department,
-        location: emp.location,
-        gender: emp.gender,
-        email: emp.email,
-        pan: emp.pan,
-        grossPaid: parseFloat(emp.gross_salary) || 0, 
-        lossOfPay: emp.lossOfPay,
-        taxPaid: emp.taxPaid,
-        netPaid: emp.netPay,
-        leaveType: emp.leave, 
-        leavesAdjusted: emp.leaveAdjustment, 
-        leaveBalance: emp.leaveBalance,
-        workingPattern: emp.workingPattern,
-        phone: emp.phone,
+        name: emp.name, emp_id: emp.emp_id, status: emp.status,
+        joiningDate: emp.joining_date, designation: emp.designation,
+        department: emp.department, location: emp.location, gender: emp.gender,
+        email: emp.email, pan: emp.pan, grossPaid: parseFloat(emp.gross_salary) || 0,
+        lossOfPay: emp.lossOfPay, taxPaid: emp.taxPaid, netPaid: emp.netPay,
+        leaveType: emp.leave, leavesAdjusted: emp.leaveAdjustment, 
+        leaveBalance: emp.leaveBalance, workingPattern: emp.workingPattern, phone: emp.phone,
       }));
       
       return {
-        employees: mappedEmployees,
-        page: data.page,
-        limit: data.limit,
-        total: data.total,
-        templateId: data.templateId,
-        reportId: data.reportId,
+        employees: mappedEmployees, page: data.page, limit: data.limit,
+        total: data.total, templateId: data.templateId, reportId: data.reportId,
       };
     } catch (error: unknown) {
-      // The original catch block can remain for other types of errors
       if (isAxiosError(error) && error.response) {
         return rejectWithValue(error.response.data?.message || 'Failed to fetch report.');
       }
@@ -140,12 +125,7 @@ export const fetchEmployeeSnapshot = createAsyncThunk<
   }
 );
 
-//To get the current settings for which columns are enabled or disabled.
-export const fetchTemplateSettings = createAsyncThunk<
-  SnapshotTemplateConfig,
-  string, 
-  { rejectValue: string }
->(
+export const fetchTemplateSettings = createAsyncThunk<SnapshotTemplateConfig, string, { rejectValue: string }>(
   'employeeSnapshot/fetchTemplateSettings',
   async (templateId, { rejectWithValue }) => {
     try {
@@ -160,7 +140,6 @@ export const fetchTemplateSettings = createAsyncThunk<
   }
 );
 
-//To save the user's changes to the report template
 export const updateEmployeeSnapshotTemplate = createAsyncThunk(
   'employeeSnapshot/updateTemplate',
   async ({ id, data }: { id: string; data: SnapshotTemplateConfig }, { rejectWithValue }) => {
@@ -173,10 +152,11 @@ export const updateEmployeeSnapshotTemplate = createAsyncThunk(
   }
 );
 
+
 //Thunk for downloading the snapshot report 
 export const downloadEmployeeSnapshot = createAsyncThunk(
   'employeeSnapshot/downloadReport',
-  async ({ format, filters }: { format: 'csv' | 'excel', filters?: Record<string, any> }, { rejectWithValue }) => {
+  async ({ format, filters }: { format: 'csv' | 'xlsx', filters?: Record<string, any> }, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams({ format });
       if (filters && Object.keys(filters).length > 0) {
@@ -204,18 +184,12 @@ export const downloadEmployeeSnapshot = createAsyncThunk(
     }
   }
 );
-//delete thunk
-export const deleteEmployeeSnapshot = createAsyncThunk<
-  string, // This is the return type on success (e.g., the deleted reportId)
-  string, // This is the argument type (the reportId to delete)
-  { rejectValue: string }
->(
+
+export const deleteEmployeeSnapshot = createAsyncThunk<string, string, { rejectValue: string }>(
   'employeeSnapshot/deleteReport',
   async (reportId, { rejectWithValue }) => {
     try {
-      // Assumes a RESTful API endpoint like: DELETE /report/delete/:id
-      const response = await axiosInstance.delete(`/report/delete/${reportId}`);
-      toast.success(response.data.message || "Report deleted successfully!");
+      await axiosInstance.delete(`/report/delete/${reportId}`);
       return reportId;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
@@ -225,7 +199,7 @@ export const deleteEmployeeSnapshot = createAsyncThunk<
     }
   }
 );
-//schedule employee snapshot thunk
+
 export const scheduleEmployeeSnapshot = createAsyncThunk(
   'employeeSnapshot/scheduleReport',
   async ({ reportId, scheduleData }: { reportId: string; scheduleData: ScheduleData }, { rejectWithValue }) => {
@@ -238,16 +212,23 @@ export const scheduleEmployeeSnapshot = createAsyncThunk(
   }
 );
 
-//slice
+// SLICE
 const employeeSnapshotSlice = createSlice({
   name: 'employeeSnapshot',
   initialState,
-  reducers: { resetScheduleStatus: (state) => {
-    state.scheduleStatus = 'idle';
-  }},
+  reducers: { 
+    resetScheduleStatus: (state) => {
+      state.scheduleStatus = 'idle';
+    }
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchEmployeeSnapshot.pending, (state) => { state.status = 'loading'; state.error = null; state.reportExists = true; })
+    //fetch employee cases
+      .addCase(fetchEmployeeSnapshot.pending, (state) => { 
+        state.status = 'loading'; 
+        state.error = null; 
+        state.reportExists = true; 
+      })
       .addCase(fetchEmployeeSnapshot.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.employees = action.payload.employees;
@@ -262,28 +243,36 @@ const employeeSnapshotSlice = createSlice({
         state.status = 'failed';
         const errorMessage = action.payload || 'Something went wrong';
         state.error = errorMessage;
-        
         if (errorMessage.toLowerCase().includes("not found")) {
           state.reportExists = false;
         }
       })
-      //for fetching the template settings
-      .addCase(fetchTemplateSettings.pending, (state) => { state.status = 'loading'; })
+      //fetch template cases
+      .addCase(fetchTemplateSettings.pending, (state) => { 
+        state.status = 'loading'; 
+      })
       .addCase(fetchTemplateSettings.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.templateData = action.payload;
       })
-      .addCase(fetchTemplateSettings.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload as string; toast.error(action.payload as string); })
-      // for updating the template
-      .addCase(updateEmployeeSnapshotTemplate.pending, (state) => { state.status = 'loading'; state.error = null; })
+      .addCase(fetchTemplateSettings.rejected, (state, action) => { 
+        state.status = 'failed'; 
+        state.error = action.payload as string;
+      })
+      //update cases
+      .addCase(updateEmployeeSnapshotTemplate.pending, (state) => { 
+        state.status = 'loading'; 
+        state.error = null; 
+      })
       .addCase(updateEmployeeSnapshotTemplate.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.templateData = action.payload.data;
-        toast.success(action.payload.message || 'Template updated successfully!');
       })
-      .addCase(updateEmployeeSnapshotTemplate.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload as string; toast.error(action.payload as string); 
-
+      .addCase(updateEmployeeSnapshotTemplate.rejected, (state, action) => { 
+        state.status = 'failed'; 
+        state.error = action.payload as string; 
       })
+      
       // Cases for handling the download thunk ---
       .addCase(downloadEmployeeSnapshot.pending, (state) => {
         state.isDownloading = true;
@@ -306,12 +295,13 @@ const employeeSnapshotSlice = createSlice({
         state.isDownloading = false;
         state.error = action.payload as string;
       })
-      // The delete reducers remain the same, as the re-fetch logic will be in the component
+      //delete cases
       .addCase(deleteEmployeeSnapshot.pending, (state) => {
         state.status = 'loading';
       })
       .addCase(deleteEmployeeSnapshot.fulfilled, (state) => {
         state.status = 'succeeded';
+        state.reportExists = false;
         state.employees = [];
         state.total = 0;
         state.reportId = null;
@@ -320,7 +310,7 @@ const employeeSnapshotSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload as string;
       })
-       // NEW: Cases for handling the schedule thunk
+      //scheduled cases
        .addCase(scheduleEmployeeSnapshot.pending, (state) => {
         state.scheduleStatus = 'loading';
       })
@@ -329,10 +319,10 @@ const employeeSnapshotSlice = createSlice({
       })
       .addCase(scheduleEmployeeSnapshot.rejected, (state, action) => {
         state.scheduleStatus = 'failed';
-        state.error = action.payload as string; // You can use this error if needed
-      })
-      ;
+        state.error = action.payload as string;
+      });
   },
 });
+
 export const { resetScheduleStatus } = employeeSnapshotSlice.actions;
 export default employeeSnapshotSlice.reducer;

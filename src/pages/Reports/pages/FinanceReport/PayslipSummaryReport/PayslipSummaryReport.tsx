@@ -142,7 +142,7 @@ const PayslipSummaryReport: React.FC = () => {
     startDate: "",
     hours: "",
     minutes: "",
-    format: "EXCEL",
+    format: "XLSX",
     to: "",
     cc: "",
     subject: "Scheduled Report: Payslip Summary",
@@ -235,7 +235,7 @@ const PayslipSummaryReport: React.FC = () => {
     setIsFilterOpen(false);
   };
 
-  const handleDownload = (format: "csv" | "excel") => {
+  const handleDownload = (format: "csv" | "xlsx") => {
     if (isDownloading) return;
     dispatch(downloadPayslipSummary({ format, filter: currentFilters }));
     toast.info(`Your ${format.toUpperCase()} download will begin shortly...`);
@@ -487,12 +487,12 @@ const PayslipSummaryReport: React.FC = () => {
                   <input
                     type="radio"
                     name="format"
-                    value="EXCEL"
-                    checked={scheduleFormData.format === "EXCEL"}
+                    value="XLSX"
+                    checked={scheduleFormData.format === "XLSX"}
                     onChange={handleScheduleFormChange}
                     className="h-4 w-4 text-purple-600"
                   />
-                  <span>EXCEL</span>
+                  <span>XLSX</span>
                 </label>
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -630,13 +630,13 @@ const PayslipSummaryReport: React.FC = () => {
               {isDownloading ? "DOWNLOADING..." : "DOWNLOAD CSV"}
             </button>
             <button
-              onClick={() => handleDownload("excel")}
+              onClick={() => handleDownload("xlsx")}
               disabled={isDownloading || status !== "succeeded" || !reportId}
               className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD EXCEL"}
+              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD XLSX"}
             </button>
-            
+
             <button
               onClick={handleScheduleClick}
               disabled={status !== "succeeded" || !reportId}

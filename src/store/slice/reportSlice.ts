@@ -57,7 +57,7 @@ export interface ScheduleReportData {
   startDate: string;
   hours: string;
   minutes: string;
-  format: 'CSV' | 'EXCEL';
+  format: 'CSV' | 'XLSX';
   to: string;
   cc: string;
   subject: string;

@@ -185,7 +185,7 @@ const EmployeeSnapshot: React.FC = () => {
     startDate: "",
     hours: "",
     minutes: "",
-    format: "EXCEL",
+    format: "XLSX",
     to: "",
     cc: "",
     subject: "Scheduled Report: Employee Snapshot",
@@ -248,7 +248,7 @@ const EmployeeSnapshot: React.FC = () => {
     );
   };
 
-  const handleDownload = (format: "csv" | "excel") => {
+  const handleDownload = (format: "csv" | "xlsx") => {
     if (isDownloading) return;
     toast(`Your ${format.toUpperCase()} download will begin shortly...`);
     dispatch(downloadEmployeeSnapshot({ format, filters: activeFilters }));
@@ -477,12 +477,12 @@ const EmployeeSnapshot: React.FC = () => {
                   <input
                     type="radio"
                     name="format"
-                    value="EXCEL"
-                    checked={scheduleFormData.format === "EXCEL"}
+                    value="XLSX"
+                    checked={scheduleFormData.format === "XLSX"}
                     onChange={handleScheduleFormChange}
                     className="h-4 w-4 text-purple-600"
                   />
-                  <span>EXCEL</span>
+                  <span>XLSX</span>
                 </label>
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -682,7 +682,7 @@ const EmployeeSnapshot: React.FC = () => {
               {isDownloading ? "DOWNLOADING..." : "DOWNLOAD CSV"}
             </button>
             <button
-              onClick={() => handleDownload("excel")}
+              onClick={() => handleDownload("xlsx")}
               disabled={
                 isDownloading ||
                 status === "loading" ||
@@ -691,7 +691,7 @@ const EmployeeSnapshot: React.FC = () => {
               }
               className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD EXCEL"}
+              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD XLSX"}
             </button>
             <button
               onClick={() => setIsFilterOpen(true)}

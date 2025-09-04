@@ -59,7 +59,7 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
     startDate: "",
     hours: "",
     minutes: "",
-    format: "EXCEL",
+    format: "XLSX",
     to: "",
     cc: "",
     subject: "",
@@ -73,7 +73,7 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
         startDate: formatDateForInput(initialData.startDate),
         hours: initialData.hours,
         minutes: initialData.minutes,
-        format: initialData.format as "EXCEL" | "CSV",
+        format: initialData.format as "XLSX" | "CSV",
         to: initialData.to,
         cc: initialData.cc,
         subject: initialData.subject,
@@ -245,12 +245,12 @@ const EditScheduledReport: React.FC<EditScheduledReportProps> = ({
                 <input
                   type="radio"
                   name="format"
-                  value="EXCEL"
-                  checked={formData.format === "EXCEL"}
+                  value="XLSX"
+                  checked={formData.format === "XLSX"}
                   onChange={handleChange}
                   className="h-4 w-4 text-purple-600"
                 />
-                <span className="text-sm">EXCEL</span>
+                <span className="text-sm">XLSX</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
