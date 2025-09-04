@@ -2,11 +2,10 @@
 import React, { useEffect } from 'react';
 import { User, ServerCrash, RefreshCw } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom'; // 1. Import Link
+import { Link } from 'react-router-dom'; 
 import type { AppDispatch, RootState } from '../../store/store';
 import { fetchNotifications, type Notification } from '../../store/slice/notificationSlice';
 
-// --- UI State Components ---
 const SkeletonLoader: React.FC = () => (
     <div className="space-y-3 animate-pulse">
         {[...Array(5)].map((_, i) => (
@@ -33,7 +32,7 @@ const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ o
     </div>
 );
 
-// --- MAIN COMPONENT ---
+
 const NotificationCard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: notifications, status, error } = useSelector((state: RootState) => state.notifications);
@@ -44,15 +43,13 @@ const NotificationCard: React.FC = () => {
     }
   }, [status, dispatch]);
 
-  // 2. Helper function to determine the correct link for a notification
   const getNotificationLink = (notification: Notification): string => {
     switch (notification.type.toLowerCase()) {
       case 'leave':
         return `/leave/request`;
       case 'loan':
-        return `/loanandadvance`; // Corrected route
+        return `/loanandadvance`;
       default:
-        // Fallback to a generic employee detail page if type is unknown
         return `/employees/list/detail`;
     }
   };
@@ -69,7 +66,6 @@ const NotificationCard: React.FC = () => {
     }
     return (
         notifications.map((notif, index) => (
-            // 3. Each notification is now wrapped in a dynamic Link
             <Link
               to={getNotificationLink(notif)}
               key={notif.id}

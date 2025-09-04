@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef, useCallback} from 'react';
 import { Plus, ChevronDown, ChevronRight, MoreHorizontal, X, ServerCrash, RefreshCw } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-
-// --- Component & Redux Imports ---
 import AlertModal from '../../../components/Modal/AlertModal';
 import type { AppDispatch, RootState } from '../../../store/store';
 import {
@@ -13,8 +11,6 @@ import {
   type SalaryComponent,
 } from '../../../store/slice/salaryComponentSlice';
 
-
-// --- UI State Components ---
 const SkeletonSection: React.FC = () => (
     <div className="bg-white rounded-lg border shadow-sm animate-pulse">
         <div className="w-full flex justify-between items-center p-4 bg-gray-50 rounded-t-lg">
@@ -41,7 +37,6 @@ const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ o
     </div>
 );
 
-// --- Reusable Row Component (Optimized) ---
 const ComponentRow = React.memo(({ 
     item, 
     structureId, 
@@ -57,7 +52,6 @@ const ComponentRow = React.memo(({
 }) => {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // This helper function formats the keys from the API for display
     const formatSettingKey = (key: string) => {
         switch (key) {
             case 'CTC': return 'Is CTC';
@@ -98,7 +92,6 @@ const ComponentRow = React.memo(({
     );
 });
 
-// --- Reusable Accordion Section ---
 const AccordionSection: React.FC<{
   title: string;
   components: SalaryComponent[];
@@ -145,7 +138,6 @@ const AccordionSection: React.FC<{
   );
 };
 
-// --- MAIN PAGE COMPONENT ---
 const SalaryComponentPage: React.FC = () => {
   const { structureId } = useParams<{ structureId: string }>();
   const dispatch = useDispatch<AppDispatch>();

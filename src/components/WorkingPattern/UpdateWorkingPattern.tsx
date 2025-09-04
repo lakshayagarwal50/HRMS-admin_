@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import SidePanelForm from '../common/SidePanelForm'; // Adjust path if needed
-
-// --- Redux Imports ---
-import { updateWorkingPattern, type WorkingPattern } from '../../store/slice/workingPatternsSlice'; // Adjust path
-import type { AppDispatch } from '../../store/store'; // Adjust path
+import SidePanelForm from '../common/SidePanelForm'; 
+import { updateWorkingPattern, type WorkingPattern } from '../../store/slice/workingPatternsSlice'; 
+import type { AppDispatch } from '../../store/store'; 
 import toast from 'react-hot-toast';
 
-// --- PROPS DEFINITION ---
 interface UpdateWorkingPatternProps {
   isOpen: boolean;
   onClose: () => void;
   patternData: WorkingPattern | null;
 }
 
-// --- HELPER COMPONENTS (can be moved to a shared file) ---
+
 const FormInput: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; required?: boolean }> = 
 ({ label, value, onChange, required }) => (
   <div>
@@ -44,11 +41,9 @@ const WeekRow: React.FC<{ weekName: string; checkedDays: boolean[]; onToggle: (d
   </div>
 );
 
-// --- MAIN COMPONENT ---
 const UpdateWorkingPattern: React.FC<UpdateWorkingPatternProps> = ({ isOpen, onClose, patternData }) => {
   const dispatch = useDispatch<AppDispatch>();
-  
-  // Local state for the form fields
+ 
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [week1, setWeek1] = useState<boolean[]>([]);
@@ -56,8 +51,6 @@ const UpdateWorkingPattern: React.FC<UpdateWorkingPatternProps> = ({ isOpen, onC
   const [week3, setWeek3] = useState<boolean[]>([]);
   const [week4, setWeek4] = useState<boolean[]>([]);
 
-  // This effect runs when the `patternData` prop changes (i.e., when the user clicks "Edit")
-  // It populates the form with the data of the selected pattern.
   useEffect(() => {
     if (patternData) {
       setName(patternData.name);
@@ -88,7 +81,7 @@ const UpdateWorkingPattern: React.FC<UpdateWorkingPatternProps> = ({ isOpen, onC
       return;
     }
 
-    // Construct the updated pattern object
+   
     const updatedPattern: WorkingPattern = {
       ...patternData,
       name,
@@ -99,8 +92,7 @@ const UpdateWorkingPattern: React.FC<UpdateWorkingPatternProps> = ({ isOpen, onC
       week4,
     };
     
-    // Dispatch the Redux action to update the pattern
-    // dispatch(updateWorkingPattern(updatedPattern));
+
 
     try {
         await dispatch(updateWorkingPattern(updatedPattern)).unwrap();

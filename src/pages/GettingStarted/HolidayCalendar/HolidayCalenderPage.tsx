@@ -1,26 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Plus, MoreHorizontal, ChevronRight, RefreshCw, ServerCrash, X as AlertIcon  } from 'lucide-react';
-
-// --- Redux Imports ---
 import {
-  fetchHolidayCalendar, // Correctly imported
+  fetchHolidayCalendar, 
   deleteHolidayCalendarEntry,
   type HolidayCalendarEntry
-} from '../../../store/slice/holidayCalendarSlice'; // Adjust path
-import type { RootState, AppDispatch } from '../../../store/store'; // Adjust path
+} from '../../../store/slice/holidayCalendarSlice'; 
+import type { RootState, AppDispatch } from '../../../store/store';
 
-// --- Component Imports ---
 import Table, { type Column } from "../../../components/common/Table";
 import AlertModal from '../../../components/Modal/AlertModal';
-import CreateHolidayForm from '../../../components/HolidayCalender/CreateHoliday'; // Corrected Path
-import UpdateHolidayForm from '../../../components/HolidayCalender/ UpdateHoliday'; // Corrected Path
+import CreateHolidayForm from '../../../components/HolidayCalender/CreateHoliday'; 
+import UpdateHolidayForm from '../../../components/HolidayCalender/ UpdateHoliday'; 
 import { Link } from 'react-router-dom';
 
-// --- TYPE DEFINITION for display data ---
+
 type HolidayDisplay = HolidayCalendarEntry & { s_no: number };
 
-// --- UI State Components ---
+
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -59,7 +56,7 @@ const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
 );
 
 
-// --- MAIN PAGE COMPONENT ---
+
 const HolidayCalendarPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: holidays, status, error } = useSelector((state: RootState) => state.holidayCalendar);

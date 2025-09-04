@@ -147,7 +147,7 @@ export const EditRatingModal: React.FC<EditRatingModalProps> = ({ isOpen, onClos
                 month,
                 projectName: ratingData.projectName,
                 scores,
-                areaOfDevelopment: developmentArea, // Corrected: Use state variable
+                areaOfDevelopment: developmentArea, 
             })).unwrap();
         } catch (error) {
             console.error("Failed to update rating:", error);

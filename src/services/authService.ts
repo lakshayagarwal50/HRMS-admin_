@@ -2,6 +2,7 @@
 
 import { axiosInstance } from './index'; // Import the centralized axios instance
 import type { LoginCredentials, AuthResponse, RefreshTokenResponse } from '../types/auth';
+import { refreshToken } from '../features/auth/authSlice';
 
 /**
  * @description Sends a POST request to the login endpoint.

@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store/store';
 import { fetchEvents, type Event } from '../../store/slice/eventsSlice';
 
-// --- UI State Components ---
+
 const SkeletonLoader: React.FC = () => (
     <div className="space-y-3 animate-pulse">
         {[...Array(5)].map((_, i) => (
@@ -31,7 +31,6 @@ const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ o
     </div>
 );
 
-// --- New Detail View Component ---
 const EventDetailView: React.FC<{ event: Event; onBack: () => void }> = ({ event, onBack }) => (
   <div>
     <button onClick={onBack} className="flex items-center text-sm text-purple-600 hover:underline mb-4 font-medium">
@@ -50,7 +49,7 @@ const EventDetailView: React.FC<{ event: Event; onBack: () => void }> = ({ event
 );
 
 
-// --- MAIN COMPONENT ---
+
 const EventsCard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: events, status, error } = useSelector((state: RootState) => state.events);
@@ -78,7 +77,7 @@ const EventsCard: React.FC = () => {
         return <ErrorState onRetry={() => dispatch(fetchEvents({ page: 1, limit: 10 }))} error={error} />;
     }
     
-    // If an event is selected, show the detail view
+    
     if (selectedEvent) {
         return <EventDetailView event={selectedEvent} onBack={handleBackToList} />;
     }
@@ -87,7 +86,7 @@ const EventsCard: React.FC = () => {
         return <div className="text-center py-10 text-gray-500 text-sm">No current events.</div>;
     }
     
-    // Otherwise, show the list of events
+   
     return (
         events.map((event, index) => (
             <div

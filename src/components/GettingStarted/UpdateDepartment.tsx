@@ -1,4 +1,3 @@
-// src/components/GettingStarted/UpdateDepartment.tsx
 
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
@@ -8,14 +7,13 @@ import { updateDepartment, type Department } from '../../store/slice/departmentS
 import toast from 'react-hot-toast';
 
 
-// --- PROPS DEFINITION ---
+
 interface UpdateDepartmentProps {
   isOpen: boolean;
   onClose: () => void;
   departmentData: Department | null;
 }
 
-// --- REUSABLE INPUT COMPONENT ---
 const FormInput: React.FC<{
   label: string; value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -33,7 +31,7 @@ const FormInput: React.FC<{
   </div>
 );
 
-// --- MAIN COMPONENT ---
+
 const UpdateDepartment: React.FC<UpdateDepartmentProps> = ({ isOpen, onClose, departmentData }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState('');
@@ -41,7 +39,7 @@ const UpdateDepartment: React.FC<UpdateDepartmentProps> = ({ isOpen, onClose, de
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
 
-  // Effect to populate the form when departmentData is available
+
   useEffect(() => {
     if (departmentData) {
       setName(departmentData.name);

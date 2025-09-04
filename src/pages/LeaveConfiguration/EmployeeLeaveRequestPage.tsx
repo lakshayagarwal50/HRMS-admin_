@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { MoreHorizontal, SlidersHorizontal, X, ServerCrash, RefreshCw } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
-
-// --- Component & Redux Imports ---
 import Table, { type Column } from '../../components/common/Table'; 
 import LeaveFilter, { type LeaveFilters } from '../../components/LeaveConfiguration/LeaveFilter';
 import LeaveRequestDetail from '../../components/LeaveConfiguration/LeaveRequestDetail';
-import Toast from '../../components/common/Toast'; // Import the new Toast component
+import Toast from '../../components/common/Toast'; 
 import type { AppDispatch, RootState } from '../../store/store';
 import { 
     fetchLeaveRequests, 
@@ -15,7 +13,7 @@ import {
     type ApprovalStatus 
 } from '../../store/slice/leaveRequestSlice';
 
-// --- UI State Components ---
+
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -44,7 +42,7 @@ const EmptyState: React.FC = () => (
     </div>
 );
 
-// --- Helper Component for Status Badges ---
+
 const StatusBadge: React.FC<{ status: ApprovalStatus }> = ({ status }) => {
     const statusClasses = {
         Pending: "bg-yellow-100 text-yellow-800",

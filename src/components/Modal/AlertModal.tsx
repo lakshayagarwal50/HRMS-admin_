@@ -1,12 +1,10 @@
 import React, { useEffect, type ReactNode } from 'react';
-
-// Define the props for the generic alert modal
 interface AlertModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  children: ReactNode; // For the message content
+  children: ReactNode;
   confirmText?: string;
   cancelText?: string;
   icon?: ReactNode;
@@ -22,7 +20,6 @@ const AlertModal: React.FC<AlertModalProps> = ({
   cancelText = 'CANCEL',
   icon,
 }) => {
-  // Effect to handle the 'Escape' key press to close the modal
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -40,17 +37,16 @@ const AlertModal: React.FC<AlertModalProps> = ({
   }
 
   return (
-    // Main modal container with a fixed position and a semi-transparent overlay
     <div
       className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      {/* Modal content container */}
+     
       <div
         className="bg-white rounded-lg shadow-2xl w-full max-w-sm p-8 text-center"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Render the icon if provided */}
+     
         {icon && (
           <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full border-4 border-red-500 mb-4">
             {icon}

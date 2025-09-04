@@ -1,6 +1,5 @@
 import React from 'react';
 
-// --- TYPE DEFINITIONS ---
 interface SkillRating {
   name: string;
   score: number;
@@ -11,7 +10,6 @@ interface AverageRatingProps {
   skills: SkillRating[];
 }
 
-// --- MOCK DATA ---
 const ratingData: AverageRatingProps = {
   overall: 4.2,
   skills: [
@@ -24,7 +22,6 @@ const ratingData: AverageRatingProps = {
   ],
 };
 
-// --- Reusable Skill Badge Component ---
 const SkillBadge: React.FC<{ skill: SkillRating }> = ({ skill }) => (
   <div className="flex items-center gap-3">
     <div className="flex-shrink-0 w-12 h-12 bg-purple-600 text-white font-bold text-lg rounded-lg flex items-center justify-center">
@@ -35,7 +32,7 @@ const SkillBadge: React.FC<{ skill: SkillRating }> = ({ skill }) => (
 );
 
 
-// --- MAIN COMPONENT ---
+
 const AverageRating: React.FC = () => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -44,11 +41,10 @@ const AverageRating: React.FC = () => {
         <span className="text-sm text-gray-500">January 2022 - Till Now</span>
       </div>
       <div className="flex flex-col md:flex-row items-center gap-8">
-        {/* Overall Rating Circle */}
         <div className="flex-shrink-0 w-32 h-32 bg-purple-100 text-purple-700 font-extrabold text-5xl rounded-full flex items-center justify-center">
           {ratingData.overall.toFixed(1)}
         </div>
-        {/* Skills List */}
+        
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-4 w-full">
           {ratingData.skills.map(skill => (
             <SkillBadge key={skill.name} skill={skill} />

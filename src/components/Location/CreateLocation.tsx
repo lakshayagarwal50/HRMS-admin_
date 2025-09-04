@@ -1,19 +1,16 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import SidePanelForm from '../../components/common/SidePanelForm'; // Adjust path if needed
-
-// --- Redux Imports ---
-import { addLocation, type NewLocation } from '../../store/slice/locationSlice'; // Adjust path
-import type { AppDispatch } from '../../store/store'; // Adjust path
+import SidePanelForm from '../../components/common/SidePanelForm'; 
+import { addLocation, type NewLocation } from '../../store/slice/locationSlice'; 
+import type { AppDispatch } from '../../store/store'; 
 import { toast } from 'react-hot-toast';
 
-// --- PROPS DEFINITION ---
 interface CreateLocationProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// --- REUSABLE FORM FIELD COMPONENTS ---
+
 const FormInput: React.FC<{
   label: string; value: string; placeholder:string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -39,17 +36,16 @@ const FormSelect: React.FC<{
 );
 
 
-// --- MAIN COMPONENT ---
 const CreateLocation: React.FC<CreateLocationProps> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [city, setCity] = React.useState('');
   const [code, setCode] = React.useState('');
-  const [state, setState] = React.useState('Uttar Pradesh'); // Default value
+  const [state, setState] = React.useState('Uttar Pradesh'); 
 
   const handleFormSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
-  // Validation error
+  
   if (!city.trim() || !state.trim()) {
     toast.error('City and State are required.');
     return;
@@ -62,7 +58,7 @@ const CreateLocation: React.FC<CreateLocationProps> = ({ isOpen, onClose }) => {
     status: 'Active'
   };
 
-  // Add location, show toast on API success/failure
+  
   try {
     await dispatch(addLocation(newLocation)).unwrap();
     toast.success('Location added successfully!');

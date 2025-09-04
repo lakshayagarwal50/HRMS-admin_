@@ -2,10 +2,8 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-// --- Base URL for the API endpoints ---
 const API_BASE_URL = '/payslip/structure';
 
-// --- TYPE DEFINITIONS ---
 export interface SalaryStructure {
   id: string;
   groupName: string;
@@ -26,21 +24,18 @@ export type UpdateSalaryStructurePayload = { id: string } & Partial<NewSalaryStr
 
 export interface SalaryStructureState {
   data: SalaryStructure[];
-  // 'mutating' can be used to distinguish between fetching data and changing it
   status: 'idle' | 'loading' | 'succeeded' | 'failed' | 'mutating';
   error: string | null;
 }
 
-// --- INITIAL STATE ---
+
 const initialState: SalaryStructureState = {
   data: [],
   status: 'idle',
   error: null,
 };
 
-// --- ASYNCHRONOUS THUNKS ---
 
-// GET /payslip/structure
 export const fetchSalaryStructures = createAsyncThunk(
   'salaryStructures/fetch',
   async (_, { rejectWithValue }) => {
@@ -54,7 +49,7 @@ export const fetchSalaryStructures = createAsyncThunk(
   }
 );
 
-// POST /payslip/structure
+
 export const addSalaryStructure = createAsyncThunk(
   'salaryStructures/add',
   async (newStructure: NewSalaryStructure, { rejectWithValue }) => {
@@ -68,7 +63,7 @@ export const addSalaryStructure = createAsyncThunk(
   }
 );
 
-// PATCH /payslip/structure/:id
+
 export const updateSalaryStructure = createAsyncThunk(
   'salaryStructures/update',
   async (payload: UpdateSalaryStructurePayload, { rejectWithValue }) => {
@@ -83,14 +78,13 @@ export const updateSalaryStructure = createAsyncThunk(
   }
 );
 
-// DELETE /payslip/structure/:id  <- CORRECTED ENDPOINT
 export const deleteSalaryStructure = createAsyncThunk(
   'salaryStructures/delete',
   async (id: string, { rejectWithValue }) => {
     try {
-      // ✅ Corrected: Removed the extra '/delete' from the URL
+  
       await axiosInstance.delete(`${API_BASE_URL}/${id}`);
-      return id; // Return the ID on success for filtering in the reducer
+      return id; 
     } catch (error) {
       if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to delete structure');
       return rejectWithValue('An unknown error occurred.');
@@ -99,22 +93,22 @@ export const deleteSalaryStructure = createAsyncThunk(
 );
 
 
-// --- THE SLICE ---
+
 const salaryStructureSlice = createSlice({
   name: 'salaryStructures',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    // Define a matcher for pending mutation actions (add, update, delete)
+    
     const isMutationPending = (action: PayloadAction<unknown>) =>
       action.type.startsWith('salaryStructures/') && action.type.endsWith('/pending');
 
-    // Define a matcher for rejected mutation actions
+   
     const isMutationRejected = (action: PayloadAction<unknown>) =>
       action.type.startsWith('salaryStructures/') && action.type.endsWith('/rejected');
 
     builder
-      // --- Fetch Cases ---
+   
       .addCase(fetchSalaryStructures.pending, (state) => {
         state.status = 'loading';
         state.error = null;
@@ -124,13 +118,13 @@ const salaryStructureSlice = createSlice({
         state.data = action.payload;
       })
       
-      // --- Add Cases ---
+  
       .addCase(addSalaryStructure.fulfilled, (state, action: PayloadAction<SalaryStructure>) => {
         state.status = 'succeeded';
         state.data.unshift(action.payload);
       })
 
-      // --- Update Cases ---
+    
       .addCase(updateSalaryStructure.fulfilled, (state, action: PayloadAction<SalaryStructure>) => {
         state.status = 'succeeded';
         const index = state.data.findIndex(s => s.id === action.payload.id);
@@ -139,15 +133,15 @@ const salaryStructureSlice = createSlice({
         }
       })
       
-      // --- Delete Cases ---
+     
       .addCase(deleteSalaryStructure.fulfilled, (state, action: PayloadAction<string>) => {
         state.status = 'succeeded';
         state.data = state.data.filter(s => s.id !== action.payload);
       })
 
-      // --- Shared Cases for Mutations using matchers ---
+     
       .addMatcher(isMutationPending, (state) => {
-        state.status = 'mutating'; // Use a specific status for mutations
+        state.status = 'mutating'; 
         state.error = null;
       })
       .addMatcher(isMutationRejected, (state, action) => {

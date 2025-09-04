@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-import type { RatingCriteria } from '../../store/slice/ratingCriteriaSlice'; // Adjust path
+import type { RatingCriteria } from '../../store/slice/ratingCriteriaSlice'; 
 import RatingScaleComponent from '../../components/Rating/RatingScaleComponent';
 import CriteriaListComponent from '../../components/Rating/CriteriaListComponent';
 import CriteriaFormComponent from '../../components/Rating/CriteriaFormComponent';
@@ -33,15 +33,14 @@ const RatingCriteriaPage: React.FC = () => {
       </header>
 
       <main className="space-y-8">
-        {/* Rating Scale Section - Full Width */}
+    
         <RatingScaleComponent />
 
-        {/* Criteria Section - Two Columns */}
+     
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          {/* Left Column: Criteria List */}
+      
           <CriteriaListComponent onEdit={handleEdit} />
-          
-          {/* Right Column: Add/Update Form */}
+        
           <div>
             <CriteriaFormComponent editingCriteria={editingCriteria} onDone={handleDone} />
           </div>

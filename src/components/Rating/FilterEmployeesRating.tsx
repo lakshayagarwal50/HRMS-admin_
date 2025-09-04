@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
-import SidePanelForm from '../../components/common/SidePanelForm'; // Adjust path if needed
+import SidePanelForm from '../../components/common/SidePanelForm'; 
 
-// --- TYPE DEFINITIONS ---
 export interface RatingFilters {
   department: string;
-  project: string; // Note: 'project' is not in the API, so this will be for client-side filtering
+  project: string; 
 }
 
 interface FilterEmployeesRatingProps {
@@ -15,7 +14,6 @@ interface FilterEmployeesRatingProps {
   initialFilters: RatingFilters | null;
 }
 
-// --- Reusable Dropdown Component ---
 const FilterDropdown: React.FC<{
   title: string;
   options: string[];
@@ -50,12 +48,10 @@ const FilterDropdown: React.FC<{
   );
 };
 
-// --- MAIN COMPONENT ---
 const FilterEmployeesRating: React.FC<FilterEmployeesRatingProps> = ({ isOpen, onClose, onApply, initialFilters }) => {
   const [department, setDepartment] = useState('');
   const [project, setProject] = useState('');
 
-  // Populate form with existing filters when it opens
   useEffect(() => {
     if (isOpen) {
       setDepartment(initialFilters?.department || '');

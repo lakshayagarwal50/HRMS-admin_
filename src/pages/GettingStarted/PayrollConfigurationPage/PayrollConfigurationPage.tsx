@@ -6,21 +6,20 @@ import type { AppDispatch, RootState } from '../../../store/store';
 import { fetchPayrollConfig, updatePayrollConfig, type PayrollConfig } from '../../../store/slice/payrollConfigSlice';
 import toast from 'react-hot-toast';
 
-// --- MAIN PAYROLL CONFIGURATION PAGE COMPONENT ---
 const PayrollConfigurationPage: React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
     const { data: configData, status, error } = useSelector((state: RootState) => state.payrollConfig);
     
-    // Local state for form data to avoid re-rendering on every keystroke
+    
     const [formData, setFormData] = useState<PayrollConfig | null>(null);
 
     useEffect(() => {
-        // Fetch the configuration when the component mounts
+      
         if (status === 'idle') {
             dispatch(fetchPayrollConfig());
         }
-        // When the data is fetched successfully, update the local form state
+       
         if (status === 'succeeded' && configData) {
             setFormData(configData);
         }
@@ -71,7 +70,7 @@ const PayrollConfigurationPage: React.FC = () => {
             <main className="max-w-4xl mx-auto">
                 <form className="bg-white p-8 rounded-lg shadow-md border space-y-8" onSubmit={handleSubmit}>
                     
-                    {/* Amount Rounding Off */}
+                 
                     <div className="space-y-4">
                         <h3 className="text-md font-semibold text-gray-800">Amount Rounding Off</h3>
                         <div className="space-y-3 text-sm">
@@ -82,7 +81,7 @@ const PayrollConfigurationPage: React.FC = () => {
                         </div>
                     </div>
                     
-                    {/* Tax Calculation Mode */}
+                
                     <div className="space-y-4">
                         <h3 className="text-md font-semibold text-gray-800">Tax Calculation Mode</h3>
                         <div className="space-y-3 text-sm">
@@ -92,7 +91,7 @@ const PayrollConfigurationPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Investment declaration */}
+                  
                     <div className="space-y-4">
                         <h3 className="text-md font-semibold text-gray-800">Investment declaration</h3>
                         <p className="text-sm text-gray-600">Employees will be able to update the declared investments (every month)</p>

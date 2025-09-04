@@ -3,17 +3,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Plus, MoreHorizontal, ChevronRight, X as AlertIcon, RefreshCw, ServerCrash } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-// --- Redux Imports ---
 import { fetchLocations, toggleLocationStatus, type Location } from '../../../store/slice/locationSlice'; 
 import type { AppDispatch, RootState } from '../../../store/store'; 
 
-// --- Component Imports ---
+
 import Table, { type Column } from "../../../components/common/Table";
 import AlertModal from '../../../components/Modal/AlertModal'; 
 import CreateLocation from '../../../components/Location/CreateLocation'; 
 import UpdateLocation from '../../../components/Location/UpdateLocation'; 
 
-// --- UI State Components ---
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -52,7 +50,6 @@ const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
 );
 
 
-// --- MAIN COMPONENT ---
 const LocationPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: locations, status, error } = useSelector((state: RootState) => state.locations);
@@ -68,7 +65,7 @@ const LocationPage: React.FC = () => {
   });
 
   useEffect(() => {
-    // Fetch data only if it hasn't been fetched yet
+    
     if (status === 'idle') {
       dispatch(fetchLocations());
     }

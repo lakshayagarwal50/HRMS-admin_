@@ -1,21 +1,19 @@
 import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
-import { axiosInstance } from '../../services'; // 1. Use axiosInstance
+import { axiosInstance } from '../../services'; 
 
-// --- CONSTANTS ---
+
 const API_BASE_URL = '/leaves/';
 
-// --- TYPE DEFINITIONS ---
-// Shape of the data from the API
 interface LeaveSetupFromAPI {
   id: string;
   leaveType: string;
   leaveCount: number;
   isCarryForward: boolean;
-  // Other fields like createdAt can be added if needed
+  
 }
 
-// Shape of the data used in the UI
+
 export interface LeaveSetup {
   id: string;
   name: string;
@@ -40,13 +38,12 @@ const initialState: LeaveSetupsState = {
   error: null,
 };
 
-// --- DATA TRANSFORMATION HELPERS ---
+
 const transformAPIToUI = (apiData: LeaveSetupFromAPI): LeaveSetup => ({
   id: apiData.id,
   name: apiData.leaveType,
   noOfLeaves: apiData.leaveCount,
   isCarryForward: apiData.isCarryForward ? 'YES' : 'NO',
-  // Add default/mock values for fields not in the API response
   type: 'Every Year', 
   status: 'active',
   enableLeaveEncashment: false,
@@ -59,10 +56,10 @@ const transformUIToAPI = (uiData: NewLeaveSetup | LeaveSetup) => ({
 });
 
 
-// --- ASYNC THUNKS ---
+
 export const fetchLeaveSetups = createAsyncThunk('leaveSetups/fetch', async (_, { rejectWithValue }) => {
   try {
-    // 2. Use axiosInstance directly without manual token handling
+
     const response = await axiosInstance.get(`${API_BASE_URL}get`);
     return (response.data as LeaveSetupFromAPI[]).map(transformAPIToUI);
   } catch (error) {
@@ -74,9 +71,9 @@ export const fetchLeaveSetups = createAsyncThunk('leaveSetups/fetch', async (_, 
 export const addLeaveSetup = createAsyncThunk('leaveSetups/add', async (newLeave: NewLeaveSetup, { rejectWithValue }) => {
     try {
         const apiRequestBody = transformUIToAPI(newLeave);
-        // 3. Use axiosInstance for the POST request
+       
         const response = await axiosInstance.post(`${API_BASE_URL}create`, apiRequestBody);
-        // Re-construct the full UI object with the new ID
+       
         return { ...newLeave, id: response.data.result.id, status: 'active' } as LeaveSetup;
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to create leave setup');
@@ -87,9 +84,9 @@ export const addLeaveSetup = createAsyncThunk('leaveSetups/add', async (newLeave
 export const updateLeaveSetup = createAsyncThunk('leaveSetups/update', async (leave: LeaveSetup, { rejectWithValue }) => {
     try {
         const apiRequestBody = transformUIToAPI(leave);
-        // 4. Use axiosInstance for the PUT request
+    
         await axiosInstance.put(`${API_BASE_URL}update/${leave.id}`, apiRequestBody);
-        return leave; // Return the updated object to the reducer
+        return leave; 
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update leave setup');
         return rejectWithValue('An unknown error occurred.');
@@ -98,9 +95,9 @@ export const updateLeaveSetup = createAsyncThunk('leaveSetups/update', async (le
 
 export const deleteLeaveSetup = createAsyncThunk('leaveSetups/delete', async (id: string, { rejectWithValue }) => {
     try {
-        // 5. Use axiosInstance for the DELETE request
+      
         await axiosInstance.delete(`${API_BASE_URL}delete/${id}`);
-        return id; // Return the ID of the deleted item
+        return id; 
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to delete leave setup');
         return rejectWithValue('An unknown error occurred.');
@@ -108,7 +105,7 @@ export const deleteLeaveSetup = createAsyncThunk('leaveSetups/delete', async (id
 });
 
 
-// --- SLICE DEFINITION ---
+
 const leaveSetupSlice = createSlice({
   name: 'leaveSetups',
   initialState,

@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { ChevronRight, Plus, MoreHorizontal, Edit, ToggleLeft, ToggleRight, ServerCrash, RefreshCw } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 
-// --- Component & Redux Imports ---
+
 import Table, { type Column } from '../../../components/common/Table';
 import type { AppDispatch, RootState } from '../../../store/store';
 import { fetchRoles, toggleRoleStatus, type Role } from '../../../store/slice/roleSlice';
 
-// --- UI State Components ---
+
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -45,7 +45,7 @@ const EmptyState: React.FC = () => (
 );
 
 
-// --- MAIN ROLES PAGE COMPONENT ---
+
 const RolesPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { items: roles, status, error } = useSelector((state: RootState) => state.roles);

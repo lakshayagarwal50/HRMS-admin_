@@ -2,21 +2,15 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import { Plus, MoreHorizontal, ChevronRight, X as AlertIcon, RefreshCw, ServerCrash } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-// --- Redux Imports ---
 import { fetchDesignations, updateDesignation, type Designation } from '../../../store/slice/designationSlice';
 import type { RootState, AppDispatch } from '../../../store/store';
-
-// --- Component Imports ---
 import Table, { type Column } from "../../../components/common/Table"; 
 import CreateDesignation from '../../../components/Designation/CreateDesignation';
 import UpdateDesignation from '../../../components/Designation/UpdateDesignation';
 import AlertModal from '../../../components/Modal/AlertModal';
 
-// --- TYPE DEFINITION for display data ---
 type DesignationDisplay = Designation & { s_no: number };
 
-// --- UI State Components ---
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -54,7 +48,6 @@ const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
     </div>
 );
 
-// --- MAIN COMPONENT ---
 const DesignationPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: designations, status, error } = useSelector((state: RootState) => state.designations);

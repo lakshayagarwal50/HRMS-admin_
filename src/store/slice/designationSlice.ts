@@ -2,12 +2,10 @@ import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadActio
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-// --- CONSTANTS ---
+
 const API_BASE_URL = '/designations/';
 
-// --- TYPE DEFINITIONS ---
 
-// This interface matches the exact structure of the objects coming from your API
 interface DesignationFromAPI {
   id: string;
   designationName: string; 
@@ -19,7 +17,7 @@ interface DesignationFromAPI {
   createdAt: string;
 }
 
-// This is the shape of the data that your UI components will use
+
 export interface Designation {
   id: string;
   name: string; 
@@ -45,7 +43,7 @@ const initialState: DesignationsState = {
   error: null,
 };
 
-// --- DATA TRANSFORMATION ---
+
 const transformApiToUi = (apiData: DesignationFromAPI[]): Designation[] => {
     return apiData.map(item => ({
         ...item,
@@ -53,7 +51,7 @@ const transformApiToUi = (apiData: DesignationFromAPI[]): Designation[] => {
     }));
 };
 
-// --- ASYNC THUNKS ---
+
 
 export const fetchDesignations = createAsyncThunk('designations/fetchDesignations', async (_, { rejectWithValue }) => {
   try {
@@ -93,10 +91,6 @@ export const addDesignation = createAsyncThunk('designations/addDesignation', as
   }
 );
 
-/**
- * Updates an existing designation. This is used for all updates,
- * including changing the name, code, or toggling the status.
- */
 export const updateDesignation = createAsyncThunk('designations/updateDesignation', async (designation: Designation, { rejectWithValue }) => {
     try {
       const { id, name, code, description, department, status } = designation;
@@ -121,8 +115,6 @@ export const updateDesignation = createAsyncThunk('designations/updateDesignatio
   }
 );
 
-
-// --- SLICE DEFINITION ---
 const designationSlice = createSlice({
   name: 'designations',
   initialState,

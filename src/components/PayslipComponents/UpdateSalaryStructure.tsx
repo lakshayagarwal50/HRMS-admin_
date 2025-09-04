@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SidePanelForm from '../../components/common/SidePanelForm'; // Adjust path if needed
 import toast from 'react-hot-toast';
-
-// --- TYPE DEFINITIONS ---
-// This should match the type in your main page component
 interface SalaryStructure {
   id: string;
   groupName: string;
@@ -18,14 +15,10 @@ interface UpdateSalaryStructureProps {
   onSubmit: (data: Omit<SalaryStructure, 'id' | 'salaryComponents'>) => void;
   structureData: SalaryStructure | null;
 }
-
-// --- MAIN COMPONENT ---
 const UpdateSalaryStructure: React.FC<UpdateSalaryStructureProps> = ({ isOpen, onClose, onSubmit, structureData }) => {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
-
-  // Populate form with existing data when the panel opens
   useEffect(() => {
     if (isOpen && structureData) {
       setName(structureData.groupName);

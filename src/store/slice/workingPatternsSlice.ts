@@ -1,13 +1,10 @@
 import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
-// Correctly import the configured axios instance
 import { axiosInstance } from '../../services'; 
 
-// --- CONSTANTS ---
 const API_BASE_URL = '/working-patterns/';
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// --- TYPE DEFINITIONS ---
 interface WorkingPatternFromAPI {
   id: string;
   name: string;
@@ -44,7 +41,6 @@ const initialState: WorkingPatternsState = {
   error: null,
 };
 
-// --- HELPER FUNCTIONS FOR DATA TRANSFORMATION ---
 const transformApiDataToUI = (apiData: WorkingPatternFromAPI[]): WorkingPattern[] => {
   const dayMap: { [key: string]: number } = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
   const transformWeek = (days: string[]): boolean[] => {
@@ -79,10 +75,9 @@ const transformUIToApiSchedule = (pattern: NewWorkingPattern | WorkingPattern) =
 };
 
 
-// --- ASYNC THUNKS ---
 export const fetchWorkingPatterns = createAsyncThunk('workingPatterns/fetch', async (_, { rejectWithValue }) => {
   try {
-    // Updated: Uses axiosInstance, no need for manual token handling
+    
     const response = await axiosInstance.get(`${API_BASE_URL}get`);
     return transformApiDataToUI(response.data as WorkingPatternFromAPI[]);
   } catch (error) {
@@ -94,7 +89,7 @@ export const fetchWorkingPatterns = createAsyncThunk('workingPatterns/fetch', as
 export const addWorkingPattern = createAsyncThunk('workingPatterns/add', async (newPattern: NewWorkingPattern, { rejectWithValue }) => {
     const apiRequestBody = { name: newPattern.name, code: newPattern.code, schedule: transformUIToApiSchedule(newPattern) };
     try {
-        // Updated: Uses axiosInstance
+      
         const response = await axiosInstance.post(`${API_BASE_URL}create`, apiRequestBody);
         return { ...newPattern, id: response.data.id } as WorkingPattern;
     } catch (error) {
@@ -106,7 +101,7 @@ export const addWorkingPattern = createAsyncThunk('workingPatterns/add', async (
 export const updateWorkingPattern = createAsyncThunk('workingPatterns/update', async (pattern: WorkingPattern, { rejectWithValue }) => {
     const apiRequestBody = { name: pattern.name, code: pattern.code, schedule: transformUIToApiSchedule(pattern) };
     try {
-        // Updated: Uses axiosInstance
+        
         await axiosInstance.put(`${API_BASE_URL}update/${pattern.id}`, apiRequestBody);
         return pattern;
     } catch (error) {
@@ -117,7 +112,7 @@ export const updateWorkingPattern = createAsyncThunk('workingPatterns/update', a
 
 export const deleteWorkingPattern = createAsyncThunk('workingPatterns/delete', async (id: string, { rejectWithValue }) => {
     try {
-        // Updated: Uses axiosInstance
+        
         await axiosInstance.delete(`${API_BASE_URL}delete/${id}`);
         return id;
     } catch (error) {
@@ -127,7 +122,7 @@ export const deleteWorkingPattern = createAsyncThunk('workingPatterns/delete', a
 });
 
 
-// --- SLICE DEFINITION ---
+
 const workingPatternsSlice = createSlice({
   name: 'workingPatterns',
   initialState,

@@ -12,7 +12,7 @@ interface CreateDepartmentProps {
   onClose: () => void;
 }
 
-// --- REUSABLE INPUT COMPONENT ---
+
 const FormInput: React.FC<{
   label: string; value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -38,7 +38,7 @@ const CreateDepartment: React.FC<CreateDepartmentProps> = ({ isOpen, onClose }) 
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
   
-  // Clear form when the panel is closed
+ 
   useEffect(() => {
       if(!isOpen) {
           setName('');
@@ -75,7 +75,7 @@ const CreateDepartment: React.FC<CreateDepartmentProps> = ({ isOpen, onClose }) 
       onClose={onClose}
       title="Create Department"
       onSubmit={handleFormSubmit}
-      // The isSubmitting prop has been removed to match your SidePanelForm
+      
     >
       <div className="space-y-4">
         <FormInput 

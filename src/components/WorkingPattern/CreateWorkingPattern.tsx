@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import SidePanelForm from '../common/SidePanelForm'; // Adjust path if needed
+import SidePanelForm from '../common/SidePanelForm'; 
 
-// --- Redux Imports ---
-import { addWorkingPattern, type NewWorkingPattern } from '../../store/slice/workingPatternsSlice'; // Adjust path
-import type { AppDispatch } from '../../store/store'; // Adjust path
+
+import { addWorkingPattern, type NewWorkingPattern } from '../../store/slice/workingPatternsSlice'; 
+import type { AppDispatch } from '../../store/store'; 
 import { toast } from 'react-toastify';
 
-// --- PROPS DEFINITION ---
+
 interface CreateWorkingPatternProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// --- HELPER COMPONENTS ---
+
 const FormInput: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; required?: boolean }> = 
 ({ label, value, onChange, required }) => (
   <div>
@@ -70,7 +70,7 @@ const CreateWorkingPattern: React.FC<CreateWorkingPatternProps> = ({ isOpen, onC
     
     const newPattern: NewWorkingPattern = { name, code, week1, week2, week3, week4 };
     
-    // Dispatch the Redux action to add the new pattern
+  
     dispatch(addWorkingPattern(newPattern));
      try {
         await dispatch(addWorkingPattern(newPattern)).unwrap();

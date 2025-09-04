@@ -52,11 +52,9 @@ export const fetchOrganizationSettings = createAsyncThunk(
 
 export const updateOrganizationSettings = createAsyncThunk(
   'organizationSettings/update',
-  // The form data will not include the logoUrl, so we omit it from the type
   async (settings: Omit<OrganizationSettings, 'logoUrl'>, { rejectWithValue }) => {
     try {
       await axiosInstance.put(`${API_BASE_URL}update`, settings);
-      // We return the partial data, the reducer will merge it
       return settings as OrganizationSettings;
     } catch (error: unknown) {
       if (isAxiosError(error)) {
@@ -67,19 +65,18 @@ export const updateOrganizationSettings = createAsyncThunk(
   }
 );
 
-// --- NEW THUNK FOR LOGO UPLOAD ---
 export const uploadOrganizationLogo = createAsyncThunk(
     'organizationSettings/uploadLogo',
     async (file: File, { rejectWithValue }) => {
         const formData = new FormData();
-        formData.append('logo', file); // 'logo' should match your backend's expected field name
+        formData.append('logo', file); 
 
         try {
-            // Assuming your backend has an endpoint for logo uploads
+            
             const response = await axiosInstance.post(`${API_BASE_URL}upload-logo`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            // The API should return the new URL of the uploaded logo
+          
             return response.data.logoUrl as string;
         } catch (error) {
             if (isAxiosError(error)) {
@@ -116,7 +113,7 @@ const organizationSlice = createSlice({
       .addCase(updateOrganizationSettings.fulfilled, (state, action: PayloadAction<OrganizationSettings>) => {
         state.status = 'succeeded';
         if (state.data) {
-          // Merge the updated fields without overwriting the logoUrl
+          
           state.data = { ...state.data, ...action.payload };
         }
       })
@@ -124,9 +121,8 @@ const organizationSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload as string;
       })
-      // --- Reducers for the new logo upload thunk ---
       .addCase(uploadOrganizationLogo.pending, (state) => {
-          state.status = 'loading'; // You might want a separate loading state for the logo
+          state.status = 'loading'; 
           state.error = null;
       })
       .addCase(uploadOrganizationLogo.fulfilled, (state, action: PayloadAction<string>) => {

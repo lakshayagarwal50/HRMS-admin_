@@ -87,9 +87,6 @@ const DepartmentPage: React.FC = () => {
     setAlertData({ isOpen: true, department, actionType: newStatus });
     setActiveDropdown(null);
   }, []);
-
-  // *** THIS IS THE CORRECTED PART ***
-  // This function now exclusively uses the `updateDepartment` action for all status changes.
   const handleConfirmAction = useCallback(() => {
     if (!alertData.department || !alertData.actionType) return;
 

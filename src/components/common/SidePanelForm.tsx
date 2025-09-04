@@ -59,12 +59,11 @@ const SidePanelForm: React.FC<SidePanelFormProps> = ({
             </button>
           </div>
 
-          {/* Form Content: This is where the custom fields will be rendered */}
+        
           <div className="flex-1 p-6 overflow-y-auto">
             {children}
           </div>
 
-          {/* Panel Footer with action buttons */}
           <div className="p-4 border-t bg-gray-50 flex justify-end space-x-4">
             <button
               type="button"

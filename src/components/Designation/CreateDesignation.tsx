@@ -53,7 +53,7 @@ const FormSelect: React.FC<{
 );
 
 
-// --- MAIN COMPONENT ---
+
 const CreateDesignation: React.FC<CreateDesignationProps> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: departments, status: departmentStatus } = useSelector((state: RootState) => state.departments);
