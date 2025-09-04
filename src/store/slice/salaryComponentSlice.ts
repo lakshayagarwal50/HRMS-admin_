@@ -5,7 +5,7 @@ import { axiosInstance } from '../../services';
 const API_BASE_URL = '/payslip/component';
 const ADD_API_URL = '/payslip/addComponent';
 
-// --- TYPE DEFINITIONS ---
+
 export interface SalaryComponent {
   id: string;
   showOnPayslip: boolean;
@@ -54,7 +54,6 @@ const initialState: SalaryComponentState = {
   error: null,
 };
 
-// --- ASYNCHRONOUS THUNKS ---
 export const fetchSalaryComponents = createAsyncThunk(
   'salaryComponents/fetchById',
   async (structureId: string, { rejectWithValue }) => {
@@ -125,17 +124,15 @@ const salaryComponentSlice = createSlice({
         state.status = 'succeeded';
         state.data = action.payload;
       })
-      // *** THIS IS THE CORRECTED PART ***
-      // This logic now correctly handles adding a component even if the initial state is empty.
+      
       .addCase(addSalaryComponent.fulfilled, (state, action: PayloadAction<SalaryComponent>) => {
           const newComponent = action.payload;
           
-          // 1. Initialize state.data if it's null
+      
           if (!state.data) {
               state.data = {};
           }
 
-          // 2. Safely add the component to the correct group
           if (state.data[newComponent.type]) {
               state.data[newComponent.type].components.push(newComponent);
               state.data[newComponent.type].count += 1;
@@ -145,7 +142,7 @@ const salaryComponentSlice = createSlice({
                   components: [newComponent],
               };
           }
-          state.status = 'succeeded'; // 3. Ensure status is updated
+          state.status = 'succeeded'; 
       })
       .addCase(updateSalaryComponent.fulfilled, (state, action: PayloadAction<SalaryComponent>) => {
           const updatedComponent = action.payload;
@@ -167,14 +164,13 @@ const salaryComponentSlice = createSlice({
                   group.components = group.components.filter(c => c.id !== deletedId);
                   if (group.components.length < initialCount) {
                       group.count = group.components.length;
-                      break; // Exit loop once found and deleted
+                      break; 
                   }
               }
           }
           state.status = 'succeeded';
       })
-      // --- OPTIMIZATION ---
-      // Use `addMatcher` to handle common pending and rejected states for all actions
+      
       .addMatcher(isPending(fetchSalaryComponents, addSalaryComponent, updateSalaryComponent, deleteSalaryComponent), (state) => {
           state.status = 'loading';
           state.error = null;

@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import { Plus, MoreHorizontal, ChevronRight, X as AlertIcon, RefreshCw, ServerCrash } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-// --- Redux Imports ---
 import {
   fetchLeaveSetups,
   addLeaveSetup,
@@ -11,18 +9,15 @@ import {
   deleteLeaveSetup,
   type LeaveSetup,
   type NewLeaveSetup,
-} from '../../store/slice/leaveSetupSlice'; // Corrected slice import
+} from '../../store/slice/leaveSetupSlice'; 
 import type { RootState, AppDispatch } from '../../store/store';
-
-// --- Component Imports ---
 import Table, { type Column } from '../../components/common/Table'; 
 import AlertModal from '../../components/Modal/AlertModal'; 
 import SidePanelForm from '../../components/common/SidePanelForm';
 
-// --- TYPE DEFINITION for display data ---
 type LeaveSetupDisplay = LeaveSetup & { s_no: number };
 
-// --- UI State Components ---
+
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -60,7 +55,7 @@ const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
     </div>
 );
 
-// --- Reusable Toggle Switch ---
+
 const ToggleSwitch: React.FC<{
   label: string;
   enabled: boolean;
@@ -84,7 +79,6 @@ const ToggleSwitch: React.FC<{
   </div>
 );
 
-// --- Create Form Component ---
 const CreateLeaveSetup: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
     const dispatch = useDispatch<AppDispatch>();
     const [name, setName] = useState('');
@@ -141,7 +135,7 @@ const CreateLeaveSetup: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({
     );
 };
 
-// --- Update Form Component ---
+
 const UpdateLeaveSetup: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -205,7 +199,7 @@ const UpdateLeaveSetup: React.FC<{
 };
 
 
-// --- MAIN PAGE COMPONENT ---
+
 const LeaveSetupPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: leaveData, status, error } = useSelector((state: RootState) => state.leaveSetups);

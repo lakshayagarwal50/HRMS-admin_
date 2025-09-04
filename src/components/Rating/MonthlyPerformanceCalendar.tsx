@@ -1,17 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { ChevronDown, ArrowRight } from 'lucide-react';
-import RatingModal from '../Modal/RatingModal'; // 1. Import the RatingModal component
+import { RatingModal } from '../Modal/RatingModal';
+import type { ProjectRating } from '../../store/slice/employeeRatingDetailSlice';
 
-// --- TYPE DEFINITIONS ---
+
 interface MonthPerformance {
   name: string;
   score: number;
 }
 
-// --- MOCK DATA ---
 const performanceData: MonthPerformance[] = [
   { name: 'January 2022', score: 4.2 },
-  { name: 'February 2022', score: 0 }, // Assuming 0 for no rating
+  { name: 'February 2022', score: 0 },
   { name: 'March 2022', score: 4.5 },
   { name: 'April 2022', score: 4.9 },
   { name: 'May 2022', score: 4.2 },
@@ -24,7 +25,6 @@ const performanceData: MonthPerformance[] = [
   { name: 'December 2022', score: 4.9 },
 ];
 
-// --- Reusable Month Card Component ---
 const MonthCard: React.FC<{ month: MonthPerformance; onViewRating: (month: MonthPerformance) => void; }> = ({ month, onViewRating }) => (
     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex justify-between items-center">
         <div>
@@ -49,7 +49,6 @@ const MonthCard: React.FC<{ month: MonthPerformance; onViewRating: (month: Month
 // --- MAIN COMPONENT ---
 const MonthlyPerformanceCalendar: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState('2022');
-  // 3. State to manage the modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMonthData, setSelectedMonthData] = useState<MonthPerformance | null>(null);
 
@@ -57,8 +56,6 @@ const MonthlyPerformanceCalendar: React.FC = () => {
     setSelectedMonthData(month);
     setIsModalOpen(true);
   };
-
-  // Filter data based on the selected year for a more dynamic component
   const filteredData = performanceData.filter(month => month.name.includes(selectedYear));
 
   return (
@@ -96,8 +93,9 @@ const MonthlyPerformanceCalendar: React.FC = () => {
       <RatingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        month={selectedMonthData?.name || ''}
-      />
+        month={selectedMonthData?.name || ''} projects={[]} onEdit={function (_rating: ProjectRating): void {
+          throw new Error('Function not implemented.');
+        } }      />
     </>
   );
 };

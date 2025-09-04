@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import SidePanelForm from '../../components/common/SidePanelForm'; // Adjust path if needed
-
-// --- Redux Imports ---
-import { updateLocation, type Location } from '../../store/slice/locationSlice'; // Adjust path
-import type { AppDispatch } from '../../store/store'; // Adjust path
+import SidePanelForm from '../../components/common/SidePanelForm'; 
+import { updateLocation, type Location } from '../../store/slice/locationSlice'; 
+import type { AppDispatch } from '../../store/store'; 
 import toast from 'react-hot-toast';
 
-// --- PROPS DEFINITION ---
 interface UpdateLocationProps {
   isOpen: boolean;
   onClose: () => void;
-  locationData: Location | null; // The data of the location to edit
+  locationData: Location | null; 
 }
 
-// --- REUSABLE FORM FIELD COMPONENTS ---
 const FormInput: React.FC<{
   label: string; value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -39,14 +35,13 @@ const FormSelect: React.FC<{
 );
 
 
-// --- MAIN COMPONENT ---
+
 const UpdateLocation: React.FC<UpdateLocationProps> = ({ isOpen, onClose, locationData }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [city, setCity] = useState('');
   const [code, setCode] = useState('');
   const [state, setState] = useState('');
 
-  // Effect to populate the form when locationData is available
   useEffect(() => {
     if (locationData) {
       setCity(locationData.city);

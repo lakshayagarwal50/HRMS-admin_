@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-const API_BASE_URL = '/api/ratingCriteria/';
+const API_BASE_URL = '/ratingCriteria/';
 
 export interface RatingCriteria {
   id: string;
@@ -52,7 +52,7 @@ export const updateRatingCriteria = createAsyncThunk(
   async ({ id, criteriaName }: { id: string; criteriaName: string }, { rejectWithValue }) => {
     try {
       await axiosInstance.put(`${API_BASE_URL}update/${id}`, { criteriaName });
-      return { id, criteriaName }; // Return payload to update state
+      return { id, criteriaName }; 
     } catch (error) {
       if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message);
       return rejectWithValue('An unknown error occurred while updating criteria.');

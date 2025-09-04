@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import SidePanelForm from '../../components/common/SidePanelForm'; // Adjust path if needed
+import SidePanelForm from '../../components/common/SidePanelForm'; 
 
-// --- TYPE DEFINITIONS ---
+
 export interface LeaveFilters {
   leaveTypes: string[];
   approvalStatus: string[];
@@ -15,12 +15,12 @@ interface LeaveFilterProps {
   initialFilters: LeaveFilters | null;
 }
 
-// --- STATIC DATA for filter options ---
+
 const leaveTypeOptions = ['Planned leave', 'Casual leave', 'Privileged leave', 'Sick leave'];
 const approvalStatusOptions = ['Pending', 'Approved', 'Rejected'];
 const departmentOptions = ['Developer', 'Designer', 'Business analyst'];
 
-// --- Reusable Checkbox Group Component ---
+
 const FilterGroup: React.FC<{
   title: string;
   options: string[];
@@ -55,7 +55,7 @@ const FilterGroup: React.FC<{
 };
 
 
-// --- MAIN COMPONENT ---
+
 const LeaveFilter: React.FC<LeaveFilterProps> = ({ isOpen, onClose, onApply, initialFilters }) => {
   const [leaveTypes, setLeaveTypes] = useState<string[]>([]);
   const [approvalStatus, setApprovalStatus] = useState<string[]>([]);

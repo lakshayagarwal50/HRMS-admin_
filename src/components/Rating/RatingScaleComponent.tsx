@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store/store';
 import { fetchRatingScales, updateRatingScale, type RatingScale } from '../../store/slice/ratingScaleSlice';
 
-// --- Skeleton Loader Row ---
 const SkeletonRow: React.FC = () => (
     <div className="grid grid-cols-12 gap-4 items-center animate-pulse">
         <div className="col-span-1"><div className="h-4 bg-gray-200 rounded w-1/2"></div></div>
@@ -13,8 +12,6 @@ const SkeletonRow: React.FC = () => (
     </div>
 );
 
-// --- Memoized Row Component ---
-// This prevents re-rendering rows unless their specific props have changed.
 const ScaleRow = React.memo(({ scale, onDescriptionChange, onSave, onToggleDropdown, isActive }: {
     scale: RatingScale;
     onDescriptionChange: (scaleId: string, value: string) => void;
@@ -64,8 +61,7 @@ const RatingScaleComponent: React.FC = () => {
         setLocalScales(scales);
     }, [scales]);
 
-    // useCallback ensures these functions are not recreated on every render,
-    // which is important for the memoized ScaleRow component.
+  
     const handleScaleChange = useCallback((scaleId: string, value: string) => {
         setLocalScales(currentScales => currentScales.map(s => s.scaleId === scaleId ? { ...s, description: value } : s));
     }, []);
@@ -82,7 +78,7 @@ const RatingScaleComponent: React.FC = () => {
         setActiveDropdown(prev => (prev === id ? null : id));
     }, []);
     
-    // A dedicated function to render content based on the API status
+ 
     const renderContent = () => {
         if (status === 'loading' || status === 'idle') {
             return <div className="space-y-4">{[...Array(5)].map((_, i) => <SkeletonRow key={i} />)}</div>;

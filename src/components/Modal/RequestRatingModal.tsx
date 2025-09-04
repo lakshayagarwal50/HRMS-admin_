@@ -4,14 +4,13 @@ import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store/store';
 import { addRecord, type NewRecordPayload } from '../../store/slice/recordSlice';
 
-// --- PROPS DEFINITION ---
 interface RequestRatingModalProps {
   isOpen: boolean;
   onClose: () => void;
   setToast: (toast: { message: string; type: 'success' | 'error' } | null) => void;
 }
 
-// --- MAIN COMPONENT ---
+
 const RequestRatingModal: React.FC<RequestRatingModalProps> = ({ isOpen, onClose, setToast }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [selectedMonth, setSelectedMonth] = useState('November');
@@ -24,7 +23,6 @@ const RequestRatingModal: React.FC<RequestRatingModalProps> = ({ isOpen, onClose
 
   useEffect(() => {
     if (isOpen) {
-      // Reset form to default values when opened
       setSelectedMonth('November');
       setEmployeeFrom(formatDateForInput(new Date('2025-11-20')));
       setEmployeeTo(formatDateForInput(new Date('2025-11-25')));

@@ -2,11 +2,8 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-// --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/eventNotification/events/get';
+const API_BASE_URL = '/eventNotification/events/get';
 
-// --- TYPE DEFINITIONS ---
-// This interface matches the structure of a single record from your API
 export interface Event {
   id: string;
   description: string;
@@ -14,7 +11,7 @@ export interface Event {
   createdAt: string;
 }
 
-// The API response is an object with a 'records' array
+
 interface ApiResponse {
     total: number;
     page: number;
@@ -22,7 +19,6 @@ interface ApiResponse {
     records: Event[];
 }
 
-// Defines the structure for this slice's state
 export interface EventsState {
   items: Event[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -35,17 +31,17 @@ const initialState: EventsState = {
   error: null,
 };
 
-// --- ASYNCHRONOUS THUNKS ---
+
 export const fetchEvents = createAsyncThunk(
     'events/fetch', 
     async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
         try {
-            const token = "YOUR_FIREBASE_ID_TOKEN"; // Replace with your token logic
+            const token = "YOUR_FIREBASE_ID_TOKEN"; 
             const response = await axiosInstance.get<ApiResponse>(API_BASE_URL, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: { page, limit },
             });
-            // Correctly extract the 'records' array from the response data
+          
             return response.data.records;
         } catch (error) {
             if (isAxiosError(error)) {
@@ -56,7 +52,7 @@ export const fetchEvents = createAsyncThunk(
     }
 );
 
-// --- SLICE DEFINITION ---
+
 const eventsSlice = createSlice({
   name: 'events',
   initialState,

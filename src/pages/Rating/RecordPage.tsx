@@ -3,12 +3,11 @@ import { ChevronDown, ChevronRight, ServerCrash, RefreshCw } from 'lucide-react'
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
-// --- Component & Redux Imports ---
+
 import Table, { type Column } from '../../components/common/Table';
 import type { AppDispatch, RootState } from '../../store/store';
 import { fetchRecords, type Record } from '../../store/slice/recordSlice';
 
-// --- UI State Components ---
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -32,15 +31,14 @@ const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ o
 );
 
 
-// --- MAIN PAGE COMPONENT ---
+
 const RecordPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: records, status, error } = useSelector((state: RootState) => state.records);
   const [selectedYear, setSelectedYear] = useState('All');
 
-  // This effect now re-runs whenever 'selectedYear' changes
+
   useEffect(() => {
-    // Dispatch the fetch action with the currently selected year, or null for "All"
     const yearToFetch = selectedYear === 'All' ? null : selectedYear;
     dispatch(fetchRecords(yearToFetch));
   }, [dispatch, selectedYear]);
@@ -53,12 +51,10 @@ const RecordPage: React.FC = () => {
   ], []);
 
   const renderContent = () => {
-      // Show skeleton on initial load or when re-fetching for a new year
       if (status === 'loading' || status === 'idle') {
           return <TableSkeleton />;
       }
       if (status === 'failed') {
-          // The retry button now correctly re-fetches with the selected year
           const yearToFetch = selectedYear === 'All' ? null : selectedYear;
           return <ErrorState onRetry={() => dispatch(fetchRecords(yearToFetch))} error={error} />;
       }

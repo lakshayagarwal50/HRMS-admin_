@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { addLeaveSetup, type NewLeaveSetup } from '../../store/slice/leaveSetupSlice'; 
+import type { AppDispatch } from '../../store/store';
 
-// --- Redux Imports ---
-import { addLeaveSetup, type NewLeaveSetup } from '../../store/slice/leaveSetupSlice'; // Adjust path if needed
-import type { AppDispatch } from '../../store/store'; // Adjust path if needed
 
-// --- Component Imports ---
-import SidePanelForm from '../common/SidePanelForm'; // Adjust path if needed
+import SidePanelForm from '../common/SidePanelForm'; 
 
-// --- Reusable Toggle Switch Component ---
+
 const ToggleSwitch: React.FC<{
   label: string;
   enabled: boolean;
@@ -38,7 +36,6 @@ interface CreateLeaveSetupProps {
   onClose: () => void;
 }
 
-// --- MAIN COMPONENT ---
 const CreateLeaveSetup: React.FC<CreateLeaveSetupProps> = ({ isOpen, onClose }) => {
     const dispatch = useDispatch<AppDispatch>();
     const [name, setName] = useState('');
@@ -64,7 +61,6 @@ const CreateLeaveSetup: React.FC<CreateLeaveSetupProps> = ({ isOpen, onClose }) 
         onClose();
     };
 
-    // Effect to reset form state when the panel is closed
     useEffect(() => {
         if (!isOpen) {
             setName('');

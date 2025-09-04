@@ -8,14 +8,14 @@ import { updateDesignation, type Designation } from '../../store/slice/designati
 import { fetchDepartments } from '../../store/slice/departmentSlice';
 import type { RootState, AppDispatch } from '../../store/store';
 
-// --- PROPS DEFINITION ---
+
 interface UpdateDesignationProps {
   isOpen: boolean;
   onClose: () => void;
   designationData: Designation | null;
 }
 
-// --- REUSABLE FORM FIELD COMPONENTS (Unchanged) ---
+
 const FormInput: React.FC<{
   label: string; value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -55,7 +55,7 @@ const FormSelect: React.FC<{
     </div>
 );
 
-// --- MAIN COMPONENT ---
+
 const UpdateDesignation: React.FC<UpdateDesignationProps> = ({ isOpen, onClose, designationData }) => {
   const dispatch = useDispatch<AppDispatch>();
 
@@ -96,7 +96,7 @@ const UpdateDesignation: React.FC<UpdateDesignationProps> = ({ isOpen, onClose, 
         department
     };
     
-    // 2. Use async/await and try/catch for toast notifications
+  
     try {
         await dispatch(updateDesignation(updatedData)).unwrap();
         toast.success('Designation updated successfully!');

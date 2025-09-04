@@ -2,12 +2,8 @@ import { createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-// --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/payrollConfiguration/';
+const API_BASE_URL = '/payrollConfiguration/';
 
-// --- TYPE DEFINITIONS ---
-
-// Shape of the raw data from the API
 interface PayrollConfigFromAPI {
     amountRoundingOff: string;
     taxCalculationMode: string;
@@ -17,7 +13,6 @@ interface PayrollConfigFromAPI {
     poiWindowFY: { from: string; to: string; };
 }
 
-// Shape of the data our UI components will use (flat structure)
 export interface PayrollConfig {
     amountRounding: string;
     taxCalculationMode: string;
@@ -41,9 +36,7 @@ const initialState: PayrollConfigState = {
   error: null,
 };
 
-// --- DATA TRANSFORMATION ---
 
-// Maps the nested API response to the flat state structure our UI uses
 const transformApiToState = (apiData: PayrollConfigFromAPI): PayrollConfig => ({
     amountRounding: apiData.amountRoundingOff,
     taxCalculationMode: apiData.taxCalculationMode,
@@ -55,7 +48,6 @@ const transformApiToState = (apiData: PayrollConfigFromAPI): PayrollConfig => ({
     poiAttachmentTo: apiData.poiWindowFY.to,
 });
 
-// Maps our flat UI state back to the nested structure the API expects for updates
 const transformStateToApi = (stateData: PayrollConfig): PayrollConfigFromAPI => ({
     amountRoundingOff: stateData.amountRounding,
     taxCalculationMode: stateData.taxCalculationMode,
@@ -72,13 +64,13 @@ const transformStateToApi = (stateData: PayrollConfig): PayrollConfigFromAPI => 
 });
 
 
-// --- ASYNC THUNKS ---
+
 export const fetchPayrollConfig = createAsyncThunk(
     'payrollConfig/fetch', 
     async (_, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get(`${API_BASE_URL}get`);
-            // The API response is nested under a 'data' key
+          
             return transformApiToState(response.data.data as PayrollConfigFromAPI);
         } catch (error) {
             if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to fetch configuration');
@@ -93,7 +85,7 @@ export const updatePayrollConfig = createAsyncThunk(
         try {
             const apiRequestBody = transformStateToApi(configData);
             await axiosInstance.put(`${API_BASE_URL}update`, apiRequestBody);
-            // On success, return the original data to update the state
+            
             return configData;
         } catch (error) {
             if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update configuration');
@@ -102,7 +94,6 @@ export const updatePayrollConfig = createAsyncThunk(
     }
 );
 
-// --- SLICE DEFINITION ---
 const payrollConfigSlice = createSlice({
   name: 'payrollConfig',
   initialState,

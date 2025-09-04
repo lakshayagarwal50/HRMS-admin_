@@ -6,7 +6,6 @@ import type { AppDispatch, RootState } from '../../../store/store';
 import { addRole, updateRole, fetchRoleById, clearSelectedRole, type RolePayload, type role } from '../../../store/slice/roleSlice';
 import toast from 'react-hot-toast';
 
-// --- TYPE DEFINITIONS ---
 type Permission = { name: string; enabled: boolean; };
 type PermissionGroup = { feature: string; permissions: Permission[]; };
 interface RoleFormData {
@@ -16,7 +15,7 @@ interface RoleFormData {
     permissions: Record<string, PermissionGroup>;
 }
 
-// --- INITIAL DATA & HELPERS ---
+
 const createPermissions = (...names: string[]): Permission[] => names.map(name => ({ name, enabled: false }));
 
 const initialPermissions: Record<string, PermissionGroup> = {
@@ -118,7 +117,7 @@ const transformApiPermissionsToState = (apiPermissions: Record<string, Record<st
 };
 
 
-// --- MAIN UPSERT ROLE PAGE COMPONENT ---
+
 const UpsertRolePage: React.FC = () => {
     const { roleId } = useParams<{ roleId: string }>();
     const navigate = useNavigate();
@@ -135,12 +134,12 @@ const UpsertRolePage: React.FC = () => {
         permissions: initialPermissions,
     });
 
-    // Effect to handle fetching data for edit mode or resetting for create mode
+    
     useEffect(() => {
         if (isEditMode && roleId) {
             dispatch(fetchRoleById(roleId));
         } else {
-            // When in create mode, ensure the form is reset to its initial blank state
+          
             setFormData({
                 name: '',
                 code: '',
@@ -148,13 +147,13 @@ const UpsertRolePage: React.FC = () => {
                 permissions: initialPermissions,
             });
         }
-        // Cleanup function to clear the selected role from Redux state when leaving the page
+        
         return () => {
             dispatch(clearSelectedRole());
         }
     }, [dispatch, roleId, isEditMode]);
 
-    // Effect to populate the form ONLY when the selectedRole data from Redux changes
+    
     useEffect(() => {
         if (isEditMode && selectedRole) {
             setFormData({
@@ -279,7 +278,6 @@ const UpsertRolePage: React.FC = () => {
     );
 };
 
-// --- Reusable Components (can be moved to their own files) ---
 const PermissionCheckbox: React.FC<{ label: string; checked: boolean; onChange: () => void; }> = ({ label, checked, onChange }) => (
     <div className="flex items-center">
         <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 text-purple-600 border-gray-300 rounded" />

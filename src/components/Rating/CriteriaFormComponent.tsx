@@ -5,7 +5,7 @@ import { addRatingCriteria, updateRatingCriteria, type RatingCriteria } from '..
 
 interface CriteriaFormComponentProps {
   editingCriteria: RatingCriteria | null;
-  onDone: () => void; // Callback to signal that editing/adding is finished
+  onDone: () => void; 
 }
 
 const CriteriaFormComponent: React.FC<CriteriaFormComponentProps> = ({ editingCriteria, onDone }) => {
@@ -13,7 +13,6 @@ const CriteriaFormComponent: React.FC<CriteriaFormComponentProps> = ({ editingCr
     const [criteriaName, setCriteriaName] = useState('');
 
     useEffect(() => {
-        // Populate the form when an item is selected for editing
         if (editingCriteria) {
             setCriteriaName(editingCriteria.criteriaName);
         } else {
@@ -29,7 +28,7 @@ const CriteriaFormComponent: React.FC<CriteriaFormComponentProps> = ({ editingCr
             } else {
                 dispatch(addRatingCriteria(criteriaName.trim()));
             }
-            onDone(); // Clear the form and reset the state
+            onDone(); 
         }
     };
 

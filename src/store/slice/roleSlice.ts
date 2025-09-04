@@ -2,16 +2,16 @@ import { createSlice, createAsyncThunk, } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-// --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/roles/';
+
+const API_BASE_URL = '/roles/';
 
 // --- TYPE DEFINITIONS ---
 type Permissions = Record<string, Record<string, boolean>>;
 
-// This interface now handles both `id` and `roleId` from your API
+
 interface RoleFromAPI {
   id?: string;
-  roleId?: string; // Added to handle the response for a single role
+  roleId?: string; 
   roleName: string;
   code: string;
   description: string;
@@ -46,9 +46,7 @@ const initialState: RolesState = {
   error: null,
 };
 
-// --- DATA TRANSFORMATION ---
 const transformToUI = (apiData: RoleFromAPI): Role => ({
-    // Corrected: Use `id` or `roleId` to ensure a consistent ID
     id: apiData.id || apiData.roleId || '', 
     name: apiData.roleName,
     code: apiData.code,
@@ -66,7 +64,7 @@ const transformToAPI = (uiData: RolePayload): Omit<RoleFromAPI, 'id' | 'roleId'>
 });
 
 
-// --- ASYNC THUNKS ---
+
 export const fetchRoles = createAsyncThunk('roles/fetch', async (_, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get(`${API_BASE_URL}get`);
@@ -80,7 +78,6 @@ export const fetchRoles = createAsyncThunk('roles/fetch', async (_, { rejectWith
 export const fetchRoleById = createAsyncThunk('roles/fetchById', async (id: string, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get(`${API_BASE_URL}get`, { params: { id } });
-        // The API returns an array with one object
         const data = response.data as RoleFromAPI[];
         if (data && data.length > 0) {
             return transformToUI(data[0]);
@@ -129,7 +126,6 @@ export const toggleRoleStatus = createAsyncThunk(
 );
 
 
-// --- SLICE DEFINITION ---
 const roleSlice = createSlice({
   name: 'roles',
   initialState,

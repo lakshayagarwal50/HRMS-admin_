@@ -2,21 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { X, ChevronDown } from 'lucide-react';
 import SidePanelForm from '../../components/common/SidePanelForm';
-
-// --- Redux Imports ---
 import { updateHolidayCalendarEntry, type HolidayCalendarEntry } from '../../store/slice/holidayCalendarSlice';
 import { fetchHolidayConfigurations } from '../../store/slice/holidayconfigurationSlice';
 import type { RootState, AppDispatch } from '../../store/store';
 import toast from 'react-hot-toast';
 
-// --- PROPS DEFINITION ---
+
 interface UpdateHolidayProps {
   isOpen: boolean;
   onClose: () => void;
   holidayData: HolidayCalendarEntry | null;
 }
 
-// --- MAIN COMPONENT ---
+
 const UpdateHoliday: React.FC<UpdateHolidayProps> = ({ isOpen, onClose, holidayData }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: holidayGroups, status: groupStatus } = useSelector((state: RootState) => state.holidayConfigurations);
@@ -27,14 +25,14 @@ const UpdateHoliday: React.FC<UpdateHolidayProps> = ({ isOpen, onClose, holidayD
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
 
-  // Fetch holiday groups if they aren't loaded
+
   useEffect(() => {
     if (isOpen && groupStatus === 'idle') {
       dispatch(fetchHolidayConfigurations());
     }
   }, [isOpen, groupStatus, dispatch]);
 
-  // Populate the form when holidayData is provided
+  
   useEffect(() => {
     if (holidayData) {
       setType(holidayData.type);
@@ -91,7 +89,7 @@ const UpdateHoliday: React.FC<UpdateHolidayProps> = ({ isOpen, onClose, holidayD
       submitText="Update"
     >
       <div className="space-y-4">
-        {/* Type */}
+    
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Type <span className="text-red-500">*</span></label>
           <select value={type} onChange={e => setType(e.target.value)} required className="w-full p-2 border border-gray-300 rounded-md bg-white">
@@ -102,19 +100,19 @@ const UpdateHoliday: React.FC<UpdateHolidayProps> = ({ isOpen, onClose, holidayD
           </select>
         </div>
 
-        {/* Name */}
+       
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
           <input type="text" value={name} onChange={e => setName(e.target.value)} required className="w-full p-2 border border-gray-300 rounded-md"/>
         </div>
 
-        {/* Date */}
+      
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
           <input type="date" value={date} onChange={e => setDate(e.target.value)} required className="w-full p-2 border border-gray-300 rounded-md"/>
         </div>
 
-        {/* Group Multi-select */}
+        
         <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Group</label>
             <div className="relative">

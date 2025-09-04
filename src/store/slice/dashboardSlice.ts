@@ -32,15 +32,15 @@ const initialState: DashboardState = {
   error: null,
 };
 
-// --- ASYNC THUNKS ---
+
 export const fetchDashboardCounts = createAsyncThunk(
   'dashboard/fetchCounts',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get('/api/totalCounts/get');
+      const response = await axiosInstance.get('/totalCounts/get');
       const apiData = response.data as ApiCounts;
 
-      // Transform the new API data into the format the UI expects
+    
       const transformedData: DashboardCounts = {
         activeEmployees: apiData.totalActiveEmployees,
         payslipCount: apiData.totalPayslipCounts,
@@ -57,7 +57,7 @@ export const fetchDashboardCounts = createAsyncThunk(
   }
 );
 
-// --- SLICE DEFINITION ---
+
 const dashboardSlice = createSlice({
   name: 'dashboard',
   initialState,

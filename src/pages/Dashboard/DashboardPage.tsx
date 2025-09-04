@@ -9,35 +9,14 @@ import SummaryCard from "../../components/Dashboard/SummaryCard";
 import type { SummaryCardData, Notification, Event, PayrollEntry, StatutoryEntry } from "../../types/index";
 import type { AppDispatch, RootState } from '../../store/store';
 import { fetchDashboardCounts } from '../../store/slice/dashboardSlice';
-
-// Import Icons
 import { Users, FileText, Landmark, Wallet } from 'lucide-react';
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useMemo } from "react";
 
 
-// Import Components
+const notifications: Notification[] = [];
 
-
-// Data definitions (in a real app, this would come from an API)
-
-const notifications: Notification[] = [
-    { id: 1, name: "Ayush Chauhan", requestedBy: "HR Team", time: "2025-07-25 10:30 AM", status: "Pending" },
-    { id: 2, name: "Deepak Kumar", requestedBy: "Payroll Dept", time: "2025-07-24 02:15 PM", status: "Pending" },
-    { id: 3, name: "Ritesh Tiwari", requestedBy: "Admin", time: "2025-07-23 09:00 AM", status: "Pending" },
-    { id: 4, name: "Kapil Sahu", requestedBy: "HR Team", time: "2025-07-22 11:45 AM", status: "Pending" },
-    { id: 5, name: "Anoop Chaudhary", requestedBy: "Payroll Dept", time: "2025-07-21 03:20 PM", status: "Pending" },
-    { id: 6, name: "Anurag Rajput", requestedBy: "Admin", time: "2025-07-20 08:00 AM", status: "Pending" },
-];
-
-const currentEvents: Event[] = [
-    { id: 1, title: "Team Meeting", description: "Discuss Q3 goals and performance" },
-    { id: 2, title: "Training Session", description: "New payroll software training" },
-    { id: 3, title: "Company Outing", description: "Annual team-building event" },
-    { id: 4, title: "Performance Review", description: "Q2 performance evaluations" },
-    { id: 5, title: "Budget Planning", description: "2025 budget planning session" },
-    { id: 6, title: "HR Workshop", description: "Compliance training" },
-];
+const currentEvents: Event[] = [];
 
 const payrollData: PayrollEntry[] = [
   { month: 'Jul 2025', status: 'Draft', totalGross: 500000, totalNet: 420000 },
@@ -60,13 +39,13 @@ const DashboardPage = () => {
   const { counts, status } = useSelector((state: RootState) => state.dashboard);
 
   useEffect(() => {
-    // Fetch data only if it hasn't been fetched yet
+    
     if (status === 'idle') {
       dispatch(fetchDashboardCounts());
     }
   }, [status, dispatch]);
   
-  // Dynamically create the summary cards data based on the Redux state
+
   const summaryCards: SummaryCardData[] = useMemo(() => {
     const isLoading = status === 'loading' || status === 'idle';
     const hasError = status === 'failed';
@@ -102,18 +81,18 @@ const DashboardPage = () => {
   }, [counts, status]);
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Row 1: Summary Cards */}
+  
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {summaryCards.map((card) => <SummaryCard key={card.title} {...card} />)}
       </div>
 
-      {/* Row 2: Notifications & Events */}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <NotificationCard notifications={notifications} />
         <EventsCard events={currentEvents} />
       </div>
 
-      {/* Row 3: Payroll & Statutory */}
+     
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <PayrollCard payrollData={payrollData} />
         <StatutoryCard statutoryData={statutoryData} />

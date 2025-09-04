@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { MoreHorizontal, ChevronRight, SlidersHorizontal, X, ServerCrash, RefreshCw, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-
-// --- Component & Redux Imports ---
 import Table, { type Column } from '../../components/common/Table'; 
 import RequestRatingModal from '../../components/Modal/RequestRatingModal';
 import FilterEmployeesRating, { type RatingFilters } from '../../components/Rating/FilterEmployeesRating';
@@ -11,8 +9,6 @@ import Toast from '../../components/common/Toast';
 import type { AppDispatch, RootState } from '../../store/store';
 import { fetchEmployeeRatings, type EmployeeRating } from '../../store/slice/employeesRatingSlice';
 
-
-// --- UI State Components ---
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
         <div className="space-y-3">
@@ -42,7 +38,7 @@ const EmptyState: React.FC = () => (
 );
 
 
-// --- MAIN PAGE COMPONENT ---
+
 const EmployeesRatingPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: ratings, status, error } = useSelector((state: RootState) => state.employeesRating);
@@ -53,9 +49,9 @@ const EmployeesRatingPage: React.FC = () => {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<RatingFilters | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [selectedYear, setSelectedYear] = useState('2025'); // State for the year selector
+  const [selectedYear, setSelectedYear] = useState('2025'); 
 
-  // This effect now re-runs whenever the selected year or filters change
+  
   useEffect(() => {
     const filters = {
         year: selectedYear,
@@ -66,12 +62,12 @@ const EmployeesRatingPage: React.FC = () => {
 
   const handleApplyFilters = useCallback((filters: RatingFilters) => {
     setAppliedFilters(filters);
-    // The useEffect will handle re-fetching
+
   }, []);
 
   const handleClearFilters = useCallback(() => {
     setAppliedFilters(null);
-    // The useEffect will handle re-fetching
+
   }, []);
 
   const handleRetry = useCallback(() => {
@@ -102,7 +98,7 @@ const EmployeesRatingPage: React.FC = () => {
           </button>
           {activeDropdown === row.id && (
             <div ref={dropdownRef} className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-20">
-              {/* Corrected: Pass both the employee ID and the selected year in the URL */}
+            
               <Link
                 to={`/rating/detail/${row.id}/${selectedYear}`}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -114,7 +110,7 @@ const EmployeesRatingPage: React.FC = () => {
         </div>
       ),
     },
-  ], [activeDropdown, selectedYear]); // Added selectedYear dependency
+  ], [activeDropdown, selectedYear]); 
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
