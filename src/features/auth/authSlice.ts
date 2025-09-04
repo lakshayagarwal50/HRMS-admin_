@@ -62,19 +62,6 @@ export const refreshToken = createAsyncThunk(
   }
 );
 
-// export const logoutUser = createAsyncThunk(
-//   "auth/logout",
-//   async (_, { rejectWithValue }) => {
-//     try {
-//       await logoutAPI();
-//     } catch (error) {
-//       console.warn("Logout API failed, clearing session locally.", error);
-//       console.log(rejectWithValue);
-//     }
-   
-//   }
-// );
-
 export const logoutUser = createAsyncThunk(
   "auth/logout",
   async (_, { getState, rejectWithValue }) => {

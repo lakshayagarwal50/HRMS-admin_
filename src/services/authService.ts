@@ -9,7 +9,7 @@ import { refreshToken } from '../features/auth/authSlice';
  * @param credentials The user's email and password.
  */
 export const loginAPI = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  const response = await axiosInstance.post('api/auth/login', credentials);
+  const response = await axiosInstance.post('/auth/login', credentials);
   return response.data;
 };
 
@@ -18,7 +18,7 @@ export const loginAPI = async (credentials: LoginCredentials): Promise<AuthRespo
  * @param refreshToken The user's refresh token.
  */
 export const refreshTokenAPI = async (refreshToken: string): Promise<RefreshTokenResponse> => {
-  const response = await axiosInstance.post('api/auth/refresh', { refreshToken });
+  const response = await axiosInstance.post('/auth/refresh', { refreshToken });
   return response.data;
 };
 
@@ -34,6 +34,6 @@ export const refreshTokenAPI = async (refreshToken: string): Promise<RefreshToke
 
 
 export const logoutAPI = async (refreshToken: string): Promise<{ message: string }> => {
-  const response = await axiosInstance.post('api/auth/logout', { refreshToken });
+  const response = await axiosInstance.post('/auth/logout', { refreshToken });
   return response.data;
 };
