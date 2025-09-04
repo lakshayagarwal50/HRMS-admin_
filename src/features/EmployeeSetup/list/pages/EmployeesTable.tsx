@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import toast from "react-hot-toast"; // New: Import toast
+import toast from "react-hot-toast"; 
 import Table, { type Column } from "../../../../components/common/Table";
 import Modal from "../../../../components/common/NotificationModal";
 import { Filter } from "lucide-react";
@@ -20,6 +20,43 @@ import FilterSidebar from "./FilterSidebar";
 import CreatePayslipModal from "./CreatePayslipModal";
 import type { Employee } from "../../../../types";
 
+// Skeleton Loader Component
+const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="flex space-x-4 px-4">
+        <div className="h-4 bg-gray-200 rounded w-[10%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[10%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[10%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[10%]"></div>
+      </div>
+
+      <div className="space-y-2">
+        {Array.from({ length: rows }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center space-x-4 p-4 border-t border-gray-100"
+          >
+            <div className="h-5 bg-gray-200 rounded w-[10%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[10%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[10%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[10%]"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+//main body
 const EmployeesTable: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -69,12 +106,12 @@ const EmployeesTable: React.FC = () => {
       toast.success("Invitation email sent successfully!", {
         className: "bg-green-50 text-green-800",
       });
-      dispatch(resetInviteStatus()); 
+      dispatch(resetInviteStatus());
     } else if (inviteStatus === "failed") {
       toast.error("Failed to send invitation email.", {
         className: "bg-red-50 text-red-800",
       });
-      dispatch(resetInviteStatus()); 
+      dispatch(resetInviteStatus());
     }
   }, [inviteStatus, dispatch]);
 
@@ -193,11 +230,9 @@ const EmployeesTable: React.FC = () => {
     }
   };
 
- 
   const handleConfirmAction = async () => {
     if (!employeeForModal || !actionToConfirm) return;
 
-    
     const toastId = toast.loading("Processing your request...");
 
     try {
@@ -238,12 +273,11 @@ const EmployeesTable: React.FC = () => {
           break;
         case "Invite":
         case "Re-invite":
-          
           await dispatch(sendInviteEmail(employeeForModal.code)).unwrap();
           toast.dismiss(toastId);
           break;
         default:
-          toast.dismiss(toastId); 
+          toast.dismiss(toastId);
           break;
       }
     } catch (err: any) {
@@ -315,8 +349,10 @@ const EmployeesTable: React.FC = () => {
   ];
 
   const renderTableContent = () => {
-    if (loading) return <div className="text-center p-10">Loading...</div>;
-    
+    if (loading && employeesFromStore.length === 0) {
+      return <TableSkeleton rows={limit} />;
+    }
+
     if (error)
       return (
         <div className="text-center p-10 text-red-600">

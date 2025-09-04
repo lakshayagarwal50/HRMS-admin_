@@ -1,16 +1,23 @@
 //imports
 import React, { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import Table, { type Column } from "../../../../../components/common/Table";
 import EmployeeSnapshotFilters from "./component/EmployeeSnapshotFilters";
 import EmployeeReportTemplate from "./component/EmployeeReportTemplate";
+
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
 import {
   fetchEmployeeSnapshot,
   downloadEmployeeSnapshot,
+  deleteEmployeeSnapshot,
+  scheduleEmployeeSnapshot, 
+  resetScheduleStatus, 
   type EmployeeData,
+  type ScheduleData,
 } from "../../../../../store/slice/employeeSnapshotSlice";
 import { toast } from "react-toastify";
+import AlertModal from "../../../../../components/Modal/AlertModal";
+import { Trash2 } from "lucide-react";
 
 const columns: Column<EmployeeData>[] = [
   { key: "name", header: "Name" },
@@ -147,17 +154,58 @@ const Pagination: React.FC<{
   );
 };
 
+// NEW: Helpers for the inline schedule form
+const frequencyOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
+const hourOptions = Array.from({ length: 24 }, (_, i) => `${i}`);
+const minuteOptions = Array.from({ length: 60 }, (_, i) => `${i}`);
+
+const formatDateForAPI = (dateString: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit", month: "short", year: "numeric",
+  });
+};
+
 //main body
 const EmployeeSnapshot: React.FC = () => {
-  const [view, setView] = useState<"table" | "editTemplate">("table");
+  const [view, setView] = useState<"table" | "editTemplate" | "schedule">(
+    "table"
+  );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState<any>({});
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // NEW: State for the inline schedule form
+  const [scheduleFormData, setScheduleFormData] = useState<
+    Omit<ScheduleData, "startDate"> & { startDate: string }
+  >({
+    frequency: "",
+    startDate: "",
+    hours: "",
+    minutes: "",
+    format: "EXCEL",
+    to: "",
+    cc: "",
+    subject: "Scheduled Report: Employee Snapshot",
+    body: "Please find the attached report: Employee Snapshot.",
+  });
 
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const dispatch = useAppDispatch();
-  const { employees, status, error, total, limit, isDownloading } =
-    useAppSelector((state) => state.employeeSnapshot);
+  const navigate = useNavigate();
+  const {
+    employees,
+    status,
+    error,
+    total,
+    limit,
+    isDownloading,
+    reportId,
+    reportExists,
+    scheduleStatus,
+  } = useAppSelector((state) => state.employeeSnapshot);
 
   useEffect(() => {
     dispatch(
@@ -206,22 +254,376 @@ const EmployeeSnapshot: React.FC = () => {
     dispatch(downloadEmployeeSnapshot({ format, filters: activeFilters }));
   };
 
+  const handleDeleteClick = () => {
+    if (!reportId) {
+      toast.error("Report ID is missing. Cannot delete.");
+      return;
+    }
+    setIsDeleteModalOpen(true);
+  };
+
+  // NEW: Handler to confirm and dispatch the delete action
+  const confirmDelete = async () => {
+    if (!reportId) return;
+
+    try {
+      await dispatch(deleteEmployeeSnapshot(reportId)).unwrap();
+      // NEW: On success, go to page 1 and re-fetch the data
+      setSearchParams({ page: "1" });
+      dispatch(
+        fetchEmployeeSnapshot({
+          page: 1,
+          limit,
+          filters: activeFilters,
+        })
+      );
+    } catch (err: any) {
+      console.error("Failed to delete report:", err);
+    } finally {
+      setIsDeleteModalOpen(false);
+    }
+  };
+
+  const handleScheduleClick = () => {
+    if (!reportId) {
+      toast.error("Cannot schedule a report without a Report ID.");
+      return;
+    }
+    setView("schedule");
+  };
+
+  // NEW: Handler for schedule form input changes
+  const handleScheduleFormChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setScheduleFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // NEW: Handler for schedule form submission
+  const handleScheduleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reportId) {
+      toast.error("Report ID is missing.");
+      return;
+    }
+    const requiredFields: (keyof ScheduleData)[] = [
+      "frequency",
+      "startDate",
+      "hours",
+      "minutes",
+      "to",
+      "subject",
+      "body",
+    ];
+    if (
+      requiredFields.some(
+        (field) => !(scheduleFormData[field] as string)?.trim()
+      )
+    ) {
+      toast.error("Please fill out all required fields.");
+      return;
+    }
+
+    const payload: ScheduleData = {
+      ...scheduleFormData,
+      startDate: formatDateForAPI(scheduleFormData.startDate),
+    };
+
+    const toastId = toast.loading("Scheduling report...");
+    try {
+      await dispatch(
+        scheduleEmployeeSnapshot({ reportId, scheduleData: payload })
+      ).unwrap();
+      toast.update(toastId, {
+        render: "Report scheduled successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 5000,
+      });
+      dispatch(resetScheduleStatus());
+      navigate("/reports/scheduled");
+    } catch (err: any) {
+      toast.update(toastId, {
+        render: err.message || "Failed to schedule report.",
+        type: "error",
+        isLoading: false,
+        autoClose: 5000,
+      });
+    }
+  };
+
   if (view === "editTemplate") {
     return <EmployeeReportTemplate onBack={handleBackFromTemplate} />;
   }
+  // NEW: Inline rendering for the Schedule Report Form
+  if (view === "schedule") {
+    const isSubmitting = scheduleStatus === "loading";
+    return (
+      <div className="p-8 bg-gray-50 min-h-screen">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Schedule Report</h1>
+          <p className="text-sm text-gray-500">
+            <Link to="/reports/all">Reports</Link> / Schedule Report
+          </p>
+        </div>
+        <div className="bg-white p-8 rounded-lg shadow-sm">
+          <div className="inline-block bg-purple-100 text-purple-800 text-sm font-medium px-4 py-1 rounded-full mb-8">
+            Schedule Email For Report: Employee Snapshot
+          </div>
+          <form onSubmit={handleScheduleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="frequency"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Frequency
+                </label>
+                <select
+                  id="frequency"
+                  name="frequency"
+                  value={scheduleFormData.frequency}
+                  onChange={handleScheduleFormChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled>
+                    Select One
+                  </option>
+                  {frequencyOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="startDate"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Start Date
+                </label>
+                <input
+                  id="startDate"
+                  name="startDate"
+                  type="date"
+                  value={scheduleFormData.startDate}
+                  onChange={handleScheduleFormChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="hours"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Hours (24h)
+                </label>
+                <select
+                  id="hours"
+                  name="hours"
+                  value={scheduleFormData.hours}
+                  onChange={handleScheduleFormChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled>
+                    Select Hour
+                  </option>
+                  {hourOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt.padStart(2, "0")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="minutes"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Minutes
+                </label>
+                <select
+                  id="minutes"
+                  name="minutes"
+                  value={scheduleFormData.minutes}
+                  onChange={handleScheduleFormChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled>
+                    Select Minute
+                  </option>
+                  {minuteOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt.padStart(2, "0")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Send As
+              </label>
+              <div className="flex items-center space-x-6">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="format"
+                    value="EXCEL"
+                    checked={scheduleFormData.format === "EXCEL"}
+                    onChange={handleScheduleFormChange}
+                    className="h-4 w-4 text-purple-600"
+                  />
+                  <span>EXCEL</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="format"
+                    value="CSV"
+                    checked={scheduleFormData.format === "CSV"}
+                    onChange={handleScheduleFormChange}
+                    className="h-4 w-4 text-purple-600"
+                  />
+                  <span>CSV</span>
+                </label>
+              </div>
+            </div>
+            <div className="mt-6 space-y-4">
+              <div>
+                <label
+                  htmlFor="to"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  To
+                </label>
+                <input
+                  id="to"
+                  name="to"
+                  type="email"
+                  value={scheduleFormData.to}
+                  onChange={handleScheduleFormChange}
+                  placeholder="comma,separated,emails"
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="cc"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  CC
+                </label>
+                <input
+                  id="cc"
+                  name="cc"
+                  type="email"
+                  value={scheduleFormData.cc}
+                  onChange={handleScheduleFormChange}
+                  placeholder="comma,separated,emails"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="subject"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Email Subject
+                </label>
+                <input
+                  id="subject"
+                  name="subject"
+                  type="text"
+                  value={scheduleFormData.subject}
+                  onChange={handleScheduleFormChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="body"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Email Body
+                </label>
+                <textarea
+                  id="body"
+                  name="body"
+                  value={scheduleFormData.body}
+                  onChange={handleScheduleFormChange}
+                  rows={3}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+            </div>
+            <div className="mt-8">
+              <div className="flex items-center space-x-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-[#7F56D9] text-white font-semibold py-2 px-6 rounded-lg hover:bg-opacity-90 disabled:bg-gray-400"
+                >
+                  {isSubmitting ? "SUBMITTING..." : "SUBMIT"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView("table")}
+                  disabled={isSubmitting}
+                  className="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300"
+                >
+                  CANCEL
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   const renderContent = () => {
+    // NEW: Add this block at the top to handle the "not found" case
+    if (status === "failed" && !reportExists) {
+      return (
+        <div className="text-center p-10 space-y-4">
+          <p className="text-gray-600">{error}</p>
+          <button
+            onClick={() => navigate("/reports/create")}
+            className="bg-[#741CDD] text-white font-semibold py-2 px-6 rounded-full hover:bg-[#5f17b8] transition-colors"
+          >
+            Create Report
+          </button>
+        </div>
+      );
+    }
+
     if (status === "loading") {
       return <TableSkeleton rows={limit} />;
     }
+
+    // This now handles all OTHER kinds of failures
     if (status === "failed") {
       return (
         <div className="text-center p-10 text-red-500">Error: {error}</div>
       );
     }
+
     if (employees.length === 0 && status === "succeeded") {
       return <div className="text-center p-10">No employee data found.</div>;
     }
+
     return (
       <>
         <div className="overflow-x-auto">
@@ -242,7 +644,6 @@ const EmployeeSnapshot: React.FC = () => {
       </>
     );
   };
-
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-start mb-6">
@@ -260,36 +661,66 @@ const EmployeeSnapshot: React.FC = () => {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setView("editTemplate")}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer"
+              disabled={
+                status === "loading" || status === "failed" || !reportId
+              }
+              // FIX: Added disabled styles
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               EDIT TEMPLATE
             </button>
             <button
               onClick={() => handleDownload("csv")}
-              disabled={isDownloading}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50"
+              disabled={
+                isDownloading ||
+                status === "loading" ||
+                status === "failed" ||
+                !reportId
+              }
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isDownloading ? "DOWNLOADING..." : "DOWNLOAD CSV"}
             </button>
             <button
               onClick={() => handleDownload("excel")}
-              disabled={isDownloading}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50"
+              disabled={
+                isDownloading ||
+                status === "loading" ||
+                status === "failed" ||
+                !reportId
+              }
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isDownloading ? "DOWNLOADING..." : "DOWNLOAD EXCEL"}
             </button>
             <button
               onClick={() => setIsFilterOpen(true)}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer"
+              disabled={
+                status === "loading" || status === "failed" || !reportId
+              }
+              // FIX: Added disabled styles
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               FILTER
             </button>
-            {/* <button className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer">
+            <button
+              onClick={handleScheduleClick} // Use the new handler
+              disabled={
+                status === "loading" || status === "failed" || !reportId
+              }
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               SCHEDULE REPORT
-            </button> */}
-            {/* <button className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600 transition-colors cursor-pointer">
+            </button>
+            <button
+              onClick={handleDeleteClick}
+              disabled={
+                !reportId || status === "loading" || status === "failed"
+              }
+              className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               DELETE
-            </button> */}
+            </button>
           </div>
         </div>
       </div>
@@ -299,6 +730,18 @@ const EmployeeSnapshot: React.FC = () => {
         onClose={() => setIsFilterOpen(false)}
         onApplyFilters={handleApplyFilters}
       />
+      <AlertModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Report"
+        icon={<Trash2 size={32} className="text-red-500" />}
+      >
+        <p>
+          Are you sure you want to delete this report? This action cannot be
+          undone.
+        </p>
+      </AlertModal>
     </div>
   );
 };

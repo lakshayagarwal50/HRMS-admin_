@@ -7,6 +7,7 @@ import type { AppDispatch, RootState } from "../../../store/store";
 import {
   scheduleReportAPI,
   resetScheduleStatus,
+  
 } from "../../../store/slice/reportSlice";
 import { type ScheduleReportData } from "../../../store/slice/reportSlice";
 
@@ -18,6 +19,7 @@ interface ScheduleReportProps {
   reportName: string;
   reportId: string;
   onCancel: () => void;
+  onSubmit: (formData: any) => void;
 }
 
 //  format date from YYYY-MM-DD to DD MMM YYYY
@@ -36,6 +38,7 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
   reportName,
   reportId,
   onCancel,
+  onSubmit,
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();

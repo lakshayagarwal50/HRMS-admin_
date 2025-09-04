@@ -29,6 +29,17 @@ export interface EmployeeData {
 
 export type SnapshotTemplateConfig = Record<string, boolean>;
 
+export interface ScheduleData {
+  frequency: string;
+  startDate: string;
+  hours: string;
+  minutes: string;
+  format: "CSV" | "EXCEL";
+  to: string;
+  cc?: string;
+  subject: string;
+  body: string;
+}
 interface EmployeeSnapshotState {
   employees: EmployeeData[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -37,8 +48,11 @@ interface EmployeeSnapshotState {
   limit: number;
   total: number;
   templateId: string | null;
+  reportId: string | null;
+  reportExists: boolean; 
   templateData: SnapshotTemplateConfig | null;
   isDownloading: boolean;
+  scheduleStatus: 'idle' | 'loading' | 'succeeded' | 'failed'; // NEW
 }
 
 interface FetchedData {
@@ -47,6 +61,7 @@ interface FetchedData {
   limit: number;
   total: number;
   templateId: string;
+  reportId: string; 
 }
 
 
@@ -59,8 +74,11 @@ const initialState: EmployeeSnapshotState = {
   limit: 10,
   total: 0,
   templateId: null,
+  reportId: null,
+  reportExists: true,
   templateData: null,
   isDownloading: false,
+  scheduleStatus: 'idle', // NEW
 };
 
 //fetch employee snapshot thunk
@@ -76,7 +94,12 @@ export const fetchEmployeeSnapshot = createAsyncThunk<
       const response = await axiosInstance.get('/report/getAll/employeeSnapshot/employeeSnapshot', {
         params: { page, limit, ...filters },
       });
+      
       const data = response.data;
+
+      if (data.message && data.message.toLowerCase().includes("not found")) {
+      }
+
       const mappedEmployees: EmployeeData[] = data.employees.map((emp: any) => ({
         name: emp.name,
         emp_id: emp.emp_id, 
@@ -98,14 +121,17 @@ export const fetchEmployeeSnapshot = createAsyncThunk<
         workingPattern: emp.workingPattern,
         phone: emp.phone,
       }));
+      
       return {
         employees: mappedEmployees,
         page: data.page,
         limit: data.limit,
         total: data.total,
         templateId: data.templateId,
+        reportId: data.reportId,
       };
     } catch (error: unknown) {
+      // The original catch block can remain for other types of errors
       if (isAxiosError(error) && error.response) {
         return rejectWithValue(error.response.data?.message || 'Failed to fetch report.');
       }
@@ -178,15 +204,50 @@ export const downloadEmployeeSnapshot = createAsyncThunk(
     }
   }
 );
+//delete thunk
+export const deleteEmployeeSnapshot = createAsyncThunk<
+  string, // This is the return type on success (e.g., the deleted reportId)
+  string, // This is the argument type (the reportId to delete)
+  { rejectValue: string }
+>(
+  'employeeSnapshot/deleteReport',
+  async (reportId, { rejectWithValue }) => {
+    try {
+      // Assumes a RESTful API endpoint like: DELETE /report/delete/:id
+      const response = await axiosInstance.delete(`/report/delete/${reportId}`);
+      toast.success(response.data.message || "Report deleted successfully!");
+      return reportId;
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to delete report.');
+      }
+      return rejectWithValue('An unknown error occurred while deleting the report.');
+    }
+  }
+);
+//schedule employee snapshot thunk
+export const scheduleEmployeeSnapshot = createAsyncThunk(
+  'employeeSnapshot/scheduleReport',
+  async ({ reportId, scheduleData }: { reportId: string; scheduleData: ScheduleData }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(`/report/schedule/create/${reportId}`, scheduleData);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to schedule report');
+    }
+  }
+);
 
+//slice
 const employeeSnapshotSlice = createSlice({
   name: 'employeeSnapshot',
   initialState,
-  reducers: {},
+  reducers: { resetScheduleStatus: (state) => {
+    state.scheduleStatus = 'idle';
+  }},
   extraReducers: (builder) => {
     builder
-    //for fetching employee snapshot data
-      .addCase(fetchEmployeeSnapshot.pending, (state) => { state.status = 'loading'; state.error = null; })
+      .addCase(fetchEmployeeSnapshot.pending, (state) => { state.status = 'loading'; state.error = null; state.reportExists = true; })
       .addCase(fetchEmployeeSnapshot.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.employees = action.payload.employees;
@@ -194,8 +255,18 @@ const employeeSnapshotSlice = createSlice({
         state.limit = action.payload.limit;
         state.total = action.payload.total;
         state.templateId = action.payload.templateId;
+        state.reportId = action.payload.reportId;
+        state.reportExists = true;
       })
-      .addCase(fetchEmployeeSnapshot.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload || 'Something went wrong'; })
+      .addCase(fetchEmployeeSnapshot.rejected, (state, action) => {
+        state.status = 'failed';
+        const errorMessage = action.payload || 'Something went wrong';
+        state.error = errorMessage;
+        
+        if (errorMessage.toLowerCase().includes("not found")) {
+          state.reportExists = false;
+        }
+      })
       //for fetching the template settings
       .addCase(fetchTemplateSettings.pending, (state) => { state.status = 'loading'; })
       .addCase(fetchTemplateSettings.fulfilled, (state, action) => {
@@ -235,8 +306,33 @@ const employeeSnapshotSlice = createSlice({
         state.isDownloading = false;
         state.error = action.payload as string;
       })
+      // The delete reducers remain the same, as the re-fetch logic will be in the component
+      .addCase(deleteEmployeeSnapshot.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(deleteEmployeeSnapshot.fulfilled, (state) => {
+        state.status = 'succeeded';
+        state.employees = [];
+        state.total = 0;
+        state.reportId = null;
+      })
+      .addCase(deleteEmployeeSnapshot.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      })
+       // NEW: Cases for handling the schedule thunk
+       .addCase(scheduleEmployeeSnapshot.pending, (state) => {
+        state.scheduleStatus = 'loading';
+      })
+      .addCase(scheduleEmployeeSnapshot.fulfilled, (state) => {
+        state.scheduleStatus = 'succeeded';
+      })
+      .addCase(scheduleEmployeeSnapshot.rejected, (state, action) => {
+        state.scheduleStatus = 'failed';
+        state.error = action.payload as string; // You can use this error if needed
+      })
       ;
   },
 });
-
+export const { resetScheduleStatus } = employeeSnapshotSlice.actions;
 export default employeeSnapshotSlice.reducer;

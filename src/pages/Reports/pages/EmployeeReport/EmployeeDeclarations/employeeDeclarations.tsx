@@ -55,6 +55,43 @@ const mockData: EmployeeDeclaration[] = Array.from({ length: 15 }, (_, i) => ({
   _24B: 0.0,
 }));
 
+// Skeleton Component
+const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
+  rows = 10,
+  columns = 18, 
+}) => {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="flex space-x-4 px-4">
+        {Array.from({ length: columns }).map((_, index) => (
+          <div
+            key={index}
+            className="h-4 bg-gray-200 rounded"
+            style={{ width: `${100 / columns}%` }}
+          ></div>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        {Array.from({ length: rows }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center space-x-4 p-4 border-t border-gray-100"
+          >
+            {Array.from({ length: columns }).map((_, colIndex) => (
+              <div
+                key={colIndex}
+                className="h-5 bg-gray-200 rounded"
+                style={{ width: `${100 / columns}%` }}
+              ></div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const formatCurrency = (value: number) =>
   `₹ ${value.toLocaleString("en-IN", {
     minimumFractionDigits: 2,
@@ -64,6 +101,14 @@ const formatCurrency = (value: number) =>
 const employeeDeclarations: React.FC = () => {
   const [view, setView] = useState<"table" | "editTemplate">("table");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); 
+    return () => clearTimeout(timer);
+  }, []);
 
   const columns: Column<EmployeeDeclaration>[] = [
     { key: "name", header: "Name" },
@@ -146,7 +191,6 @@ const employeeDeclarations: React.FC = () => {
           Employees Declarations Report
         </h1>
         <div className="flex flex-col items-end space-y-3">
-          
           <p className="text-sm text-gray-500">
             <Link to="/reports/all">Reports</Link>
             {" / "}
@@ -179,14 +223,18 @@ const employeeDeclarations: React.FC = () => {
 
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <div className="overflow-x-auto">
-          <Table
-            data={mockData}
-            columns={columns}
-            showSearch={false}
-            showPagination={true}
-            defaultItemsPerPage={10}
-            className="w-[1350px]"
-          />
+          {isLoading ? (
+            <TableSkeleton rows={10} columns={columns.length} />
+          ) : (
+            <Table
+              data={mockData}
+              columns={columns}
+              showSearch={false}
+              showPagination={true}
+              defaultItemsPerPage={10}
+              className="w-[1350px]"
+            />
+          )}
         </div>
       </div>
 
