@@ -64,16 +64,24 @@ export const refreshToken = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
   "auth/logout",
-  async (_, { rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
-      await logoutAPI();
+      // Try to get from Redux state
+      const state: any = getState();
+      const refreshToken = state.auth.refreshToken || localStorage.getItem("refreshToken");
+
+      if (!refreshToken) {
+        throw new Error("No refresh token available for logout");
+      }
+
+      await logoutAPI(refreshToken);
     } catch (error) {
       console.warn("Logout API failed, clearing session locally.", error);
-      console.log(rejectWithValue);
+      return rejectWithValue("Logout failed");
     }
-   
   }
 );
+
 
 const authSlice = createSlice({
   name: "auth",

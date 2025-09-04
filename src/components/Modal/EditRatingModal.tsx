@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
-// --- TYPE DEFINITIONS ---
-// These should match the types in your RatingModal component
 interface Skill {
   name: string;
   score: number;
@@ -20,7 +18,6 @@ interface EditRatingModalProps {
   ratingData: ProjectRating | null;
 }
 
-// --- Reusable Rating Scale Component ---
 const RatingScale: React.FC = () => (
     <div className="bg-gray-50 p-4 rounded-lg border">
         <h3 className="text-md font-semibold text-gray-800 mb-3">Rating Scale</h3>
@@ -34,7 +31,6 @@ const RatingScale: React.FC = () => (
     </div>
 );
 
-// --- Reusable Criteria Row Component ---
 const CriteriaRow: React.FC<{
     criteria: string;
     empScore: number;
@@ -45,20 +41,18 @@ const CriteriaRow: React.FC<{
         <span className="text-sm font-medium text-gray-800">{criteria}</span>
         <span className="text-sm text-center">{empScore.toFixed(1)}</span>
         <div className="flex justify-center">
-            {/* Changed from buttons to a number input */}
             <input
                 type="number"
                 value={yourScore}
                 onChange={(e) => {
                     const newScore = parseFloat(e.target.value);
-                    // Allow scores between 0 and 5
                     if (!isNaN(newScore) && newScore >= 0 && newScore <= 5) {
                         onScoreChange(newScore);
                     } else if (e.target.value === '') {
-                        onScoreChange(0); // Reset to 0 if input is cleared
+                        onScoreChange(0); 
                     }
                 }}
-                step="0.1" // Allow decimal increments
+                step="0.1" 
                 min="0"
                 max="5"
                 className="w-20 text-center border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
@@ -68,13 +62,11 @@ const CriteriaRow: React.FC<{
     </div>
 );
 
-
-// --- MAIN COMPONENT ---
 const EditRatingModal: React.FC<EditRatingModalProps> = ({ isOpen, onClose, ratingData }) => {
   const [scores, setScores] = useState<{ [key: string]: number }>({});
   const [developmentArea, setDevelopmentArea] = useState('');
 
-  // Populate form with existing data when the modal opens
+ 
   useEffect(() => {
     if (isOpen && ratingData) {
       const initialScores = ratingData.skills.reduce((acc, skill) => {
@@ -82,7 +74,7 @@ const EditRatingModal: React.FC<EditRatingModalProps> = ({ isOpen, onClose, rati
         return acc;
       }, {} as { [key: string]: number });
       setScores(initialScores);
-      setDevelopmentArea(''); // Reset development area
+      setDevelopmentArea('');
     }
   }, [isOpen, ratingData]);
 
@@ -124,14 +116,13 @@ const EditRatingModal: React.FC<EditRatingModalProps> = ({ isOpen, onClose, rati
 
             <main className="flex-1 p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
-                    {/* Header Row */}
                     <div className="grid grid-cols-4 py-2 border-b font-semibold text-xs text-gray-500 uppercase">
                         <span>Criterias</span>
                         <span className="text-center">Emp Score</span>
                         <span className="text-center">Your Rating</span>
                         <span className="text-center">Your Score</span>
                     </div>
-                    {/* Criteria Rows */}
+                    
                     <div className="divide-y">
                         {ratingData.skills.map(skill => (
                             <CriteriaRow
@@ -144,7 +135,7 @@ const EditRatingModal: React.FC<EditRatingModalProps> = ({ isOpen, onClose, rati
                         ))}
                     </div>
 
-                    {/* Overall Score & Development Area */}
+                    
                     <div className="mt-6 p-4 bg-purple-50 rounded-lg flex items-center justify-between">
                         <span className="text-md font-bold text-gray-800">Overall Score</span>
                         <span className="text-2xl font-extrabold text-purple-700">{calculateOverallScore().toFixed(1)}</span>

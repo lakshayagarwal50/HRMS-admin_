@@ -82,7 +82,7 @@ export const fetchEmployeeRatingDetail = createAsyncThunk(
   'employeeRatingDetail/fetch',
   async ({ employeeId, year }: { employeeId: string; year: string }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get('/api/ratings/get', {
+      const response = await axiosInstance.get('/ratings/get', {
         params: { employeeId, year },
       });
       if (!response.data?.success || !Array.isArray(response.data.data) || response.data.data.length === 0) {
@@ -102,14 +102,13 @@ export const updateEmployeeRating = createAsyncThunk(
     'employeeRatingDetail/update',
     async (payload: UpdateRatingPayload, { rejectWithValue, dispatch }) => {
         try {
-            // *** THIS IS THE CORRECTED PART ***
-            // Using PUT method and the correct endpoint
-            await axiosInstance.put('/api/ratings/update', payload);
+         
+            await axiosInstance.put('/ratings/update', payload);
             
-            // On success, re-fetch the data to ensure the UI is up-to-date
+            
             const { employeeId, year } = payload;
             dispatch(fetchEmployeeRatingDetail({ employeeId, year }));
-            return; // Return nothing as re-fetch handles the state update
+            return; 
         } catch (error) {
             if (isAxiosError(error)) {
                 return rejectWithValue(error.response?.data?.message || 'Failed to update rating');
@@ -120,7 +119,6 @@ export const updateEmployeeRating = createAsyncThunk(
 );
 
 
-// --- SLICE DEFINITION ---
 const employeeRatingDetailSlice = createSlice({
   name: 'employeeRatingDetail',
   initialState,
@@ -146,7 +144,6 @@ const employeeRatingDetailSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(updateEmployeeRating.pending, (state) => {
-        // You can set a specific 'updating' status here if needed
       });
   },
 });

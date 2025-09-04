@@ -4,7 +4,7 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; 
 
 // --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/locations/';
+const API_BASE_URL = '/locations/';
 
 // --- TYPE DEFINITIONS ---
 // This is the shape of the data coming from the API

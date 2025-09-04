@@ -14,7 +14,6 @@ import {
   type Report,
 } from "../../../store/slice/reportSlice";
 
-
 //skeleton
 const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   return (
@@ -122,17 +121,6 @@ const AllReports: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
 
-  const handleRun = (id: string) =>
-    toast.success(`Running report ${id}...`, {
-      icon: "🚀",
-      className: "bg-blue-50 text-blue-800",
-    });
-  const handleEdit = (id: string) =>
-    toast("Opening template editor...", {
-      icon: "📝",
-      className: "bg-blue-50 text-blue-800",
-    });
-
   const handleDeleteClick = (report: Report) => {
     setReportToDelete(report);
     setIsDeleteModalOpen(true);
@@ -175,8 +163,8 @@ const AllReports: React.FC = () => {
   };
 
   const handlePageChange = (newPage: number) => {
-    setSearchParams({ page: String(newPage) }); //change the query parameters in the URL
-    window.scrollTo(0, 0); //scrolls them back to the top of the page to see the new content
+    setSearchParams({ page: String(newPage) });
+    window.scrollTo(0, 0);
   };
 
   const columns: Column<Report>[] = [
@@ -194,25 +182,13 @@ const AllReports: React.FC = () => {
       render: (row) => (
         <div className="flex items-center space-x-1">
           <button
-            onClick={() => handleRun(row.id)}
-            className="flex items-center justify-center space-x-1 px-2 py-1 text-xs text-white bg-[#741CDD] rounded hover:bg-[#5f17b8]"
-          >
-            <Play size={12} />
-            <span>Run</span>
-          </button>
-          <button
             onClick={() => handleDeleteClick(row)}
             className="flex items-center justify-center px-2 py-1 text-xs text-white bg-red-500 rounded hover:bg-red-600"
           >
             <Trash2 size={12} className="mr-1" />
             <span>Delete</span>
           </button>
-          <button
-            onClick={() => handleEdit(row.id)}
-            className="flex items-center justify-center px-2 py-1 text-xs text-[#741CDD] bg-white border border-[#741CDD] rounded hover:bg-[#741CDD]/10"
-          >
-            <span>Edit Template</span>
-          </button>
+
           <button
             onClick={() => handleSchedule(row)}
             className="flex items-center justify-center space-x-1 px-2 py-1 text-xs text-white bg-[#741CDD] rounded hover:bg-[#5f17b8]"

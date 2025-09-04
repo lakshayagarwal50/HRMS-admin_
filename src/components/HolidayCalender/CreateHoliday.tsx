@@ -3,19 +3,19 @@ import { useSelector, useDispatch } from 'react-redux';
 import { X, ChevronDown } from 'lucide-react';
 import SidePanelForm from '../../components/common/SidePanelForm';
 
-// --- Redux Imports ---
+
 import { addHolidayCalendarEntry, type NewHolidayCalendarEntry } from '../../store/slice/holidayCalendarSlice';
 import { fetchHolidayConfigurations,} from '../../store/slice/holidayconfigurationSlice';
 import type { RootState, AppDispatch } from '../../store/store';
 import toast from 'react-hot-toast';
 
-// --- PROPS DEFINITION ---
+
 interface CreateHolidayFormProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// --- MAIN COMPONENT ---
+
 const CreateHolidayForm: React.FC<CreateHolidayFormProps> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { items: holidayGroups, status: groupStatus } = useSelector((state: RootState) => state.holidayConfigurations);
@@ -26,14 +26,14 @@ const CreateHolidayForm: React.FC<CreateHolidayFormProps> = ({ isOpen, onClose }
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
 
-  // Fetch holiday groups if they aren't loaded
+
   useEffect(() => {
     if (isOpen && groupStatus === 'idle') {
       dispatch(fetchHolidayConfigurations());
     }
   }, [isOpen, groupStatus, dispatch]);
   
-  // Reset form state when the panel is closed
+ 
   useEffect(() => {
     if (!isOpen) {
         setType('');
@@ -90,7 +90,7 @@ const CreateHolidayForm: React.FC<CreateHolidayFormProps> = ({ isOpen, onClose }
       submitText="Save"
     >
       <div className="space-y-4">
-        {/* Type */}
+     
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Type <span className="text-red-500">*</span></label>
           <select value={type} onChange={e => setType(e.target.value)} required className="w-full p-2 border border-gray-300 rounded-md bg-white">
@@ -101,19 +101,19 @@ const CreateHolidayForm: React.FC<CreateHolidayFormProps> = ({ isOpen, onClose }
           </select>
         </div>
 
-        {/* Name */}
+    
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
           <input type="text" value={name} placeholder='Name of Festival' onChange={e => setName(e.target.value)} required className="w-full p-2 border border-gray-300 rounded-md"/>
         </div>
 
-        {/* Date */}
+        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
           <input type="date" value={date} onChange={e => setDate(e.target.value)} required className="w-full p-2 border border-gray-300 rounded-md"/>
         </div>
 
-        {/* Group Multi-select */}
+       
         <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Group</label>
             <div className="relative">

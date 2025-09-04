@@ -7,6 +7,7 @@ import type { AppDispatch, RootState } from "../../../store/store";
 import {
   scheduleReportAPI,
   resetScheduleStatus,
+  
 } from "../../../store/slice/reportSlice";
 import { type ScheduleReportData } from "../../../store/slice/reportSlice";
 
@@ -18,6 +19,7 @@ interface ScheduleReportProps {
   reportName: string;
   reportId: string;
   onCancel: () => void;
+  onSubmit: (formData: any) => void;
 }
 
 //  format date from YYYY-MM-DD to DD MMM YYYY
@@ -36,6 +38,7 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
   reportName,
   reportId,
   onCancel,
+  onSubmit,
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -48,7 +51,7 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
     startDate: "",
     hours: "",
     minutes: "",
-    format: "EXCEL",
+    format: "XLSX",
     to: "",
     cc: "",
     subject: `Scheduled Report: ${reportName}`,
@@ -234,12 +237,12 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
                 <input
                   type="radio"
                   name="format"
-                  value="EXCEL"
-                  checked={formData.format === "EXCEL"}
+                  value="XLSX"
+                  checked={formData.format === "XLSX"}
                   onChange={handleChange}
                   className="h-4 w-4 text-purple-600"
                 />
-                <span>EXCEL</span>
+                <span>XLSX</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input

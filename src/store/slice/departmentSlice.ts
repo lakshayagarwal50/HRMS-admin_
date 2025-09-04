@@ -2,10 +2,8 @@ import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadActio
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-// --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/departments/';
+const API_BASE_URL = '/departments/';
 
-// --- TYPE DEFINITIONS ---
 export interface Department {
   id: string;
   name: string;
@@ -32,7 +30,7 @@ const initialState: DepartmentsState = {
   error: null,
 };
 
-// --- ASYNCHRONOUS THUNKS ---
+
 
 export const fetchDepartments = createAsyncThunk(
     'departments/fetchDepartments', 
@@ -53,7 +51,7 @@ export const addDepartment = createAsyncThunk(
         try {
             const payload = { ...newDepartment, status: 'active' };
             await axiosInstance.post(API_BASE_URL, payload);
-            // *** THE FIX ***: After adding, re-fetch the entire list.
+        
             dispatch(fetchDepartments());
         } catch (error) {
             if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to add department');
@@ -68,7 +66,7 @@ export const updateDepartment = createAsyncThunk(
         try {
             const { id, ...data } = department;
             await axiosInstance.put(`${API_BASE_URL}${id}`, data);
-            // *** THE FIX ***: After updating, re-fetch the entire list.
+        
             dispatch(fetchDepartments());
         } catch (error) {
             if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update department');
@@ -78,7 +76,7 @@ export const updateDepartment = createAsyncThunk(
 );
 
 
-// --- SLICE DEFINITION ---
+
 const departmentSlice = createSlice({
   name: 'departments',
   initialState,
@@ -89,8 +87,6 @@ const departmentSlice = createSlice({
         state.status = 'succeeded';
         state.items = action.payload;
       })
-      // We no longer need to manually add/update the state here, as the fetch action handles it.
-      // We can just set the status to 'loading' to provide immediate UI feedback.
       .addCase(addDepartment.fulfilled, (state) => {
         state.status = 'loading'; 
       })

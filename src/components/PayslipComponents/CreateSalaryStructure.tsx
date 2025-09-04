@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import SidePanelForm from '../../components/common/SidePanelForm'; // Adjust path if needed
+import SidePanelForm from '../../components/common/SidePanelForm'; 
 import toast from 'react-hot-toast';
 
-// --- TYPE DEFINITIONS ---
-// This defines the data structure for the form submission
 interface NewSalaryStructureData {
   groupName: string;
   code: string;
@@ -16,7 +14,6 @@ interface CreateSalaryStructureProps {
   onSubmit: (data: NewSalaryStructureData) => void;
 }
 
-// --- MAIN COMPONENT ---
 const CreateSalaryStructure: React.FC<CreateSalaryStructureProps> = ({ isOpen, onClose, onSubmit }) => {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
@@ -32,8 +29,6 @@ const CreateSalaryStructure: React.FC<CreateSalaryStructureProps> = ({ isOpen, o
   toast.success('Group created successfully!');
 };
 
-
-  // Reset form when the panel is closed
   useEffect(() => {
     if (!isOpen) {
       setName('');

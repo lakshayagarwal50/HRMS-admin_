@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback, type ChangeEvent } from 'react';
+import React, { useState, useEffect, useMemo, type ChangeEvent } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, RefreshCw, ServerCrash, X } from 'lucide-react';
+import { ChevronRight, RefreshCw, ServerCrash, } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '../../../store/store';
 import { fetchSalaryComponents, updateSalaryComponent, type UpdateComponentPayload } from '../../../store/slice/salaryComponentSlice';
 
-// --- UI State Components ---
+
 const FormSkeleton: React.FC = () => (
     <div className="w-full bg-white p-6 rounded-lg shadow-md animate-pulse">
         <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>

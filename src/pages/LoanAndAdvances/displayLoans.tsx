@@ -10,13 +10,11 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import toast from "react-hot-toast"; 
-
+import toast from "react-hot-toast";
 
 import Table, { type Column } from "../../components/common/Table";
 import LoanConfirmationModal from "../../features/EmployeeSetup/list/modal/LoanConfirmationModal";
 import { type FormField } from "../../components/common/GenericForm";
-
 
 import { type RootState, type AppDispatch } from "../../store/store";
 import {
@@ -33,6 +31,40 @@ interface FilterState {
   endDate: string;
   statuses: Status[];
 }
+
+//Skeleton Loader Component
+const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
+  return (
+    <div className="space-y-4 animate-pulse bg-white p-6 rounded-lg shadow-sm">
+      <div className="flex space-x-4 px-4">
+        <div className="h-4 bg-gray-200 rounded w-[20%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[10%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[10%]"></div>
+      </div>
+
+      <div className="space-y-2">
+        {Array.from({ length: rows }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center space-x-4 p-4 border-t border-gray-100"
+          >
+            <div className="h-5 bg-gray-200 rounded w-[20%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[10%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[10%]"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const approveLoanFields: FormField[] = [
   {
@@ -229,7 +261,6 @@ const FilterModal: React.FC<{
   };
 
   const handleApply = () => {
-   
     if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
       toast.error("End date cannot be before the start date.", {
         className: "bg-orange-50 text-orange-800",
@@ -632,9 +663,7 @@ const DisplayLoans: React.FC = () => {
           </button>
         </div>
 
-        {status === "loading" && (
-          <div className="text-center p-4">Loading...</div>
-        )}
+        {status === "loading" && <TableSkeleton rows={itemsPerPage} />}
         {status === "failed" && (
           <div className="text-center p-4 text-gray-500">
             Could not load data. Please try again.

@@ -6,12 +6,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   fetchOrganizationSettings,
   updateOrganizationSettings,
-  uploadOrganizationLogo, // Import the new action
+  uploadOrganizationLogo, 
   type OrganizationSettings,
-} from '../../../store/slice/organizationSlice'; // Adjust path as needed
+} from '../../../store/slice/organizationSlice'; 
 import type { RootState, AppDispatch } from '../../../store/store';
 
-// Skeleton Loading UI
+
 const FormSkeleton: React.FC = () => (
   <div className="w-full bg-white p-8 rounded-lg shadow-md animate-pulse">
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -31,7 +31,7 @@ const FormSkeleton: React.FC = () => (
   </div>
 );
 
-// Error UI
+
 const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ onRetry, error }) => (
   <div className="text-center py-10 px-4 bg-red-50 border border-red-200 rounded-lg">
     <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
@@ -50,7 +50,7 @@ const ErrorState: React.FC<{ onRetry: () => void; error: string | null }> = ({ o
   </div>
 );
 
-// Form Input component
+
 const FormInput: React.FC<{
   label: string;
   name: keyof Omit<OrganizationSettings, 'logoUrl'>;
@@ -92,7 +92,6 @@ const OrganizationSettingsPage: React.FC = () => {
 
   useEffect(() => {
     if (settings) {
-      // Omit logoUrl when setting form data, as it's handled separately
       const { logoUrl: _, ...rest } = settings;
       setFormData(rest);
     }

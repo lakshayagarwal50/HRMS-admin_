@@ -5,7 +5,6 @@ import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../../store/store';
 import { addRole, type RolePayload } from '../../../store/slice/roleSlice';
 
-// --- TYPE DEFINITIONS ---
 type Permission = {
     name: string;
     enabled: boolean;
@@ -23,13 +22,10 @@ interface RoleFormData {
     permissions: Record<string, PermissionGroup>;
 }
 
-// --- INITIAL DATA ---
 const createPermissions = (...names: string[]): Permission[] => 
     names.map(name => ({ name, enabled: false }));
 
-// This is the complete and corrected list of all permissions from your API docs
 const initialPermissions: Record<string, PermissionGroup> = {
-    // Column 1
     myHolidays: { feature: 'My Holidays', permissions: createPermissions('view') },
     holidayConfiguration: { feature: 'Holiday Configuration', permissions: createPermissions('view', 'add', 'edit', 'delete') },
     holidayCalendar: { feature: 'Holiday Calendar', permissions: createPermissions('view', 'add', 'edit', 'delete') },
@@ -65,7 +61,7 @@ const initialPermissions: Record<string, PermissionGroup> = {
     employeesDeclaration: { feature: 'Employees Declaration', permissions: createPermissions('view', 'edit') },
     reports: { feature: 'Reports', permissions: createPermissions('view', 'add', 'edit', 'delete', 'download') },
     
-    // Column 2
+    // Column 2 
     myForm16: { feature: 'My Form 16', permissions: createPermissions('download') },
     employeesForm16: { feature: 'Employees Form 16', permissions: createPermissions('upload', 'download') },
     employeeSetUp: { feature: 'Employee set up', permissions: [] },
@@ -99,7 +95,7 @@ const initialPermissions: Record<string, PermissionGroup> = {
     webCheckInSettings: { feature: 'Web Check-in Settings', permissions: createPermissions('view', 'add', 'edit') },
 };
 
-// --- Helper function to transform UI state to API format ---
+
 const transformPermissionsForAPI = (permissions: Record<string, PermissionGroup>) => {
     const apiPermissions: Record<string, Record<string, boolean>> = {};
     for (const key in permissions) {
@@ -115,7 +111,7 @@ const transformPermissionsForAPI = (permissions: Record<string, PermissionGroup>
 };
 
 
-// --- MAIN CREATE ROLE PAGE COMPONENT ---
+
 const CreateRolePage: React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
@@ -150,7 +146,7 @@ const CreateRolePage: React.FC = () => {
             name: formData.name,
             code: formData.code,
             description: formData.description,
-            status: 'Active', // Default status for new roles
+            status: 'Active', 
             permissions: transformPermissionsForAPI(formData.permissions),
         };
 
@@ -202,14 +198,14 @@ const CreateRolePage: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-12 gap-y-4">
-                        {/* Column 1 */}
+                      
                         <div>
                             {permissionKeysCol1.map(key => {
                                 const group = formData.permissions[key];
                                 return <PermissionRow key={key} feature={group.feature} permissions={group.permissions} onPermissionChange={(perm, enabled) => handlePermissionChange(key, perm, enabled)} />;
                             })}
                         </div>
-                        {/* Column 2 */}
+                      
                         <div>
                             {permissionKeysCol2.map(key => {
                                 const group = formData.permissions[key];
@@ -228,7 +224,7 @@ const CreateRolePage: React.FC = () => {
     );
 };
 
-// --- Reusable Components (can be moved to their own files) ---
+
 const PermissionCheckbox: React.FC<{ label: string; checked: boolean; onChange: () => void; }> = ({ label, checked, onChange }) => (
     <div className="flex items-center">
         <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 text-purple-600 border-gray-300 rounded" />

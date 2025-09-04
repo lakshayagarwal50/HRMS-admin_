@@ -46,6 +46,8 @@ import dashboardReducer from "./slice/dashboardSlice";
 import attendanceReportReducer from './slice/attendanceReportSlice';
 import payslipSummaryReducer from './slice/payslipSummarySlice';
 import leaveReportReducer from "./slice/leaveReportSlice";
+import auditHistoryReducer from "./slice/auditHistorySlice";
+import payslipReportReducer from "./slice/payslipReportSlice";
 
 export const store = configureStore({
   reducer: {
@@ -94,7 +96,11 @@ export const store = configureStore({
     attendanceReport: attendanceReportReducer,
     payslipSummary: payslipSummaryReducer,
     leaveReport: leaveReportReducer,
+    auditHistory: auditHistoryReducer,
+     payslipReport: payslipReportReducer,
+
   },
+
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store/store';
 import { fetchRatingCriteria, deleteRatingCriteria, type RatingCriteria } from '../../store/slice/ratingCriteriaSlice';
 
-// --- Skeleton Loader Component ---
+
 const SkeletonRow = () => (
     <tr className="border-b last:border-b-0 animate-pulse">
         <td className="w-1/12 px-4 py-3">

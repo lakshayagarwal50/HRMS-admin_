@@ -2,23 +2,21 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-// --- Base URL for the API endpoint ---
-const API_BASE_URL = '/api/eventNotification/notification/get';
 
-// --- TYPE DEFINITIONS ---
-// This interface now matches the structure of a single record from your API
+const API_BASE_URL = '/eventNotification/notification/get';
+
+
 export interface Notification {
   id: string;
   type: string;
-  name: string; // This is the employee's name
+  name: string; 
   status: string;
-  date: string; // The date the request was made
+  date: string; 
   startDate: string;
   endDate: string;
   duration: number;
 }
 
-// The API response is an object with a 'records' array
 interface ApiResponse {
     total: number;
     page: number;
@@ -26,7 +24,7 @@ interface ApiResponse {
     records: Notification[];
 }
 
-// Defines the structure for this slice's state
+
 export interface NotificationState {
   items: Notification[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -39,7 +37,7 @@ const initialState: NotificationState = {
   error: null,
 };
 
-// --- ASYNCHRONOUS THUNKS ---
+
 export const fetchNotifications = createAsyncThunk(
     'notifications/fetch', 
     async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
@@ -49,7 +47,7 @@ export const fetchNotifications = createAsyncThunk(
                 headers: { Authorization: `Bearer ${token}` },
                 params: { page, limit },
             });
-            // Correctly extract the 'records' array from the response data
+            
             return response.data.records;
         } catch (error) {
             if (isAxiosError(error)) {
@@ -60,7 +58,7 @@ export const fetchNotifications = createAsyncThunk(
     }
 );
 
-// --- SLICE DEFINITION ---
+
 const notificationSlice = createSlice({
   name: 'notifications',
   initialState,

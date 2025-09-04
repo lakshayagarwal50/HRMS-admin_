@@ -5,13 +5,13 @@ import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../../store/store';
 import { addSalaryComponent, type NewSalaryComponentPayload } from '../../../store/slice/salaryComponentSlice';
 
-// --- MAIN ADD PAGE COMPONENT ---
+
 const AddSalaryComponentPage: React.FC = () => {
     const { structureId } = useParams<{ structureId: string }>();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
     
-    // Local state to manage the form inputs
+    
     const [formData, setFormData] = useState({
         name: '',
         code: '',
@@ -23,10 +23,10 @@ const AddSalaryComponentPage: React.FC = () => {
         adjustmentBalanced: false,
         calculationType: 'fixed',
         value: '0',
-        testAmount: '0', // Ensure testAmount is part of the form state
+        testAmount: '0', 
     });
 
-    // **CORRECTED:** Removed useCallback to ensure this function always has the latest state.
+
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         const isCheckbox = type === 'checkbox';
@@ -39,7 +39,6 @@ const AddSalaryComponentPage: React.FC = () => {
         }
     };
 
-    // **CORRECTED:** Removed useCallback to ensure this function always has the latest state.
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!structureId || !formData.name || !formData.code) {
@@ -54,7 +53,7 @@ const AddSalaryComponentPage: React.FC = () => {
             showOnPayslip: formData.showOnPayslip,
             calculationType: formData.calculationType,
             value: formData.value,
-            testAmount: formData.testAmount, // Send the test amount to the API
+            testAmount: formData.testAmount, 
             otherSetting: {
                 taxable: formData.taxable,
                 leaveBased: formData.leaveBased,

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
@@ -14,7 +13,7 @@ import DsrDetailModal from "./common/DsrDetailModal";
 import DsrFilterSidebar from "./pages/DsrFilterSidebar";
 import { MoreHorizontal, Filter, Search } from "lucide-react";
 import { Link } from "react-router-dom";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
 
 const renderStatusBadge = (status: string) => {
   let baseClasses = "px-3 py-1 text-xs font-medium rounded-md";
@@ -45,7 +44,44 @@ const renderStatusBadge = (status: string) => {
 
 type DsrFilterState = any;
 
-const DisplayDSR = () => { 
+// NEW: Skeleton Loader Component
+const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
+  return (
+    <div className="space-y-4 animate-pulse">
+      {/* Skeleton Header */}
+      <div className="flex space-x-4 px-4">
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[10%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[20%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[15%]"></div>
+        <div className="h-4 bg-gray-200 rounded w-[10%]"></div>
+      </div>
+
+      {/* Skeleton Rows */}
+      <div className="space-y-2">
+        {Array.from({ length: rows }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center space-x-4 p-4 border-t border-gray-100"
+          >
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[10%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[20%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[15%]"></div>
+            <div className="h-5 bg-gray-200 rounded w-[10%]"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+//main body
+const DisplayDSR = () => {
   const dispatch = useAppDispatch();
   const {
     dsrList,
@@ -222,8 +258,8 @@ const DisplayDSR = () => {
   ];
 
   const renderContent = () => {
-    if (status === "loading") {
-      return <div className="text-center p-8">Loading...</div>;
+    if (status === "loading" && dsrList.length === 0) {
+      return <TableSkeleton rows={itemsPerPage} />;
     }
     if (status === "failed") {
       return (
@@ -310,4 +346,4 @@ const DisplayDSR = () => {
   );
 };
 
-export default DisplayDSR; 
+export default DisplayDSR;

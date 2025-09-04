@@ -141,10 +141,6 @@ const EmployeeSnapshotFilters: React.FC<EmployeeSnapshotFiltersProps> = ({
               <Play size={16} />
               <span>Run</span>
             </button>
-            <button className="flex items-center space-x-2 bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-lg hover:bg-purple-200 transition-colors">
-              <Download size={16} />
-              <span>Download</span>
-            </button>
           </div>
 
           <div className="p-6 overflow-y-auto flex-grow">

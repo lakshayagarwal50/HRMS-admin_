@@ -1,115 +1,145 @@
 //imports
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Filter } from "lucide-react";
-import Table, { type Column } from "../../../components/common/Table"; 
+import React, { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+// import { Filter } from "lucide-react";
+import toast from "react-hot-toast";
+import Table, { type Column } from "../../../components/common/Table";
 
-//interface
-interface AuditLog {
-  id: number;
-  activityTime: string;
-  object: string;
-  type: {
-    name: string;
-    severity: "Info" | "Warning" | "Error";
-  };
-  message: string;
-  who: string;
-}
+// Redux imports
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchAuditHistory,
+  type AuditLog,
+} from "../../../store/slice/auditHistorySlice";
+import type { AppDispatch, RootState } from "../../../store/store";
 
-//mock data
-const mockData: AuditLog[] = [
-  {
-    id: 1,
-    activityTime: "15 Jan 2023, 15:02",
-    object: "jackson.graham@example.com",
-    type: { name: "Ramesh Sharma", severity: "Info" },
-    message: "Attendance(Date=01/10/2022) is Created",
-    who: "Admin email ID",
-  },
-  {
-    id: 2,
-    activityTime: "30 Dec 2022, 15:02",
-    object: "felicia.reid@example.com",
-    type: { name: "Richa Verma", severity: "Info" },
-    message: "Attendance(Date=02/10/2022) is Created",
-    who: "Admin email ID",
-  },
-  {
-    id: 3,
-    activityTime: "12 Nov 2022, 15:02",
-    object: "jessica.hanson@example.com",
-    type: { name: "Raghu Nadh", severity: "Info" },
-    message: "PostDateStatus Changed from false to true",
-    who: "Admin email ID",
-  },
-  {
-    id: 4,
-    activityTime: "3 Nov 2022, 15:02",
-    object: "alma.lawson@example.com",
-    type: { name: "Swapna Shinde", severity: "Info" },
-    message: "Attendance(Date=03/10/2022) is Created",
-    who: "Admin email ID",
-  },
-  {
-    id: 5,
-    activityTime: "17 Nov 2022, 15:02",
-    object: "georgia.young@example.com",
-    type: { name: "Yasmin Gowda", severity: "Info" },
-    message: "Department(name=test,code=test2) is Created",
-    who: "Admin email ID",
-  },
-  {
-    id: 6,
-    activityTime: "14 Oct 2022, 15:02",
-    object: "nevaeh.simmons@example.com",
-    type: { name: "Kapil Ojha", severity: "Info" },
-    message: "Name Changed from test to test2",
-    who: "Admin email ID",
-  },
-  {
-    id: 7,
-    activityTime: "20 Oct 2022, 15:02",
-    object: "tanya.hill@example.com",
-    type: { name: "Kishore Kumar", severity: "Info" },
-    message: "Code Changed from test to test2",
-    who: "Admin email ID",
-  },
-  {
-    id: 8,
-    activityTime: "13 Oct 2022, 15:02",
-    object: "debra.holt@example.com",
-    type: { name: "Anuja Shinde", severity: "Info" },
-    message:
-      "Employee(karthik123) logged In with IP(123.235.76.166, 34.111.160.148,35.191.15.5, 127.0.0.6) and OS:Windows, Browser:Chrome(106.0.0.0)",
-    who: "Employee name",
-  },
-  {
-    id: 9,
-    activityTime: "12 Nov 2022, 11:02",
-    object: "deanna.curtis@example.com",
-    type: { name: "Priyanka Jadhav", severity: "Info" },
-    message:
-      "Employee(arun123) logged In with IP(123.235.76.166, 34.111.160.148,35.191.15.5) and OS:Windows, Browser:Chrome(106.0.0.0)",
-    who: "Employee name",
-  },
-  {
-    id: 10,
-    activityTime: "1 Nov 2022, 15:02",
-    object: "tim.jennings@example.com",
-    type: { name: "Suraj Pandey", severity: "Info" },
-    message:
-      "Employee(arun123) logged In with IP(123.235.76.166, 34.111.160.148,35.191.15.5, 127.0.0.6) and OS:Windows, Browser:Chrome(106.0.0.0)",
-    who: "Employee name",
-  },
-];
+// skeleton component
+const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="flex space-x-4 px-4">
+        <div className="h-4 bg-gray-200 rounded w-2/12"></div>{" "}
+        <div className="h-4 bg-gray-200 rounded w-1/12"></div> {/* Object */}
+        <div className="h-4 bg-gray-200 rounded w-2/12"></div> {/* Type */}
+        <div className="h-4 bg-gray-200 rounded w-6/12"></div> {/* Message */}
+        <div className="h-4 bg-gray-200 rounded w-1/12"></div> {/* Who? */}
+      </div>
 
-//main code
+      <div className="space-y-2">
+        {Array.from({ length: rows }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center space-x-4 p-4 border-t border-gray-100"
+          >
+            <div className="h-5 bg-gray-200 rounded w-2/12"></div>
+            <div className="h-5 bg-gray-200 rounded w-1/12"></div>
+            <div className="h-5 bg-gray-200 rounded w-2/12"></div>
+            <div className="h-5 bg-gray-200 rounded w-6/12"></div>
+            <div className="h-5 bg-gray-200 rounded w-1/12"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// pagination logic
+const Pagination: React.FC<{
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
+  if (totalPages <= 1) return null;
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  return (
+    <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-700">
+      <span>
+        Showing {startItem} to {endItem} of {totalItems} items
+      </span>
+      <div className="flex space-x-1">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-1 border rounded ${
+              currentPage === page
+                ? "bg-[#741CDD] text-white"
+                : "bg-white hover:bg-gray-100"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// main body
 const AuditHistory: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { logs, status, error, totalPages, totalItems } = useSelector(
+    (state: RootState) => state.auditHistory
+  );
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const [itemsPerPage] = useState(10);
+
+  useEffect(() => {
+    dispatch(fetchAuditHistory({ page: currentPage, limit: itemsPerPage }));
+  }, [dispatch, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    if (status === "failed" && error) {
+      toast.error(error);
+    }
+  }, [status, error]);
+
+  //functions
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({ page: String(newPage) });
+    window.scrollTo(0, 0);
+  };
+
+  //date format
+  const formatDateTime = (isoString: string) => {
+    if (!isoString) return "N/A";
+    return new Date(isoString).toLocaleString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
 
   const columns: Column<AuditLog>[] = [
-    { key: "activityTime", header: "Activity Time" },
+    {
+      key: "activityTime",
+      header: "Activity Time",
+      render: (row) => formatDateTime(row.activityTime),
+    },
     { key: "object", header: "Object" },
     {
       key: "type",
@@ -134,6 +164,45 @@ const AuditHistory: React.FC = () => {
     { key: "who", header: "Who?" },
   ];
 
+  const renderContent = () => {
+    if (status === "loading" && logs.length === 0) {
+      return <TableSkeleton rows={itemsPerPage} />;
+    }
+
+    if (status === "failed" && logs.length === 0) {
+      return (
+        <div className="text-center p-10 text-red-500">Error: {error}</div>
+      );
+    }
+
+    if (status === "succeeded" && logs.length === 0) {
+      return (
+        <div className="text-center p-10 text-gray-500">
+          No audit history found.
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <Table
+          data={logs}
+          columns={columns}
+          showSearch={false}
+          showPagination={false}
+          className="min-w-full"
+        />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+        />
+      </div>
+    );
+  };
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
@@ -141,30 +210,18 @@ const AuditHistory: React.FC = () => {
         <div className="flex items-center gap-4">
           <p className="text-sm text-gray-500">
             <Link to="/dashboard">Dashboard</Link> /{" "}
-            <Link to="/reports">Reports</Link> / Audit History
+            <Link to="/reports/all">Reports</Link> / Audit History
           </p>
-          <button
+          {/* <button
             onClick={() => setIsFilterOpen(true)}
             className="bg-[#741CDD] text-white p-2 rounded-md hover:opacity-90 transition-opacity"
           >
             <Filter size={20} />
-          </button>
+          </button> */}
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="overflow-x-auto">
-          <Table
-            data={mockData}
-            columns={columns}
-            showSearch={false}
-            showPagination={true}
-            className="w-[1350px]"
-          />
-        </div>
-      </div>
-
-     
+      <div className="bg-white p-6 rounded-lg shadow-sm">{renderContent()}</div>
     </div>
   );
 };

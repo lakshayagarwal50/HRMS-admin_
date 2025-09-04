@@ -69,7 +69,7 @@ export const fetchAllDsrs = createAsyncThunk<
     if (filters.approvalStatuses.length > 0) params.myApprovalStatus = filters.approvalStatuses.join(',');
 
     try {
-      const response = await axiosInstance.get('/api/dsr/get', { params });
+      const response = await axiosInstance.get('/dsr/get', { params });
       return response.data as DsrEntry[];
     } catch (error) {
       return rejectWithValue(isAxiosError(error) ? error.response?.data?.message : 'Failed to fetch DSR list.');
@@ -91,7 +91,7 @@ export const approveDsr = createAsyncThunk<
 
     try {
       await axiosInstance.put(
-        `/api/dsr/update/${originalDsr.id}`,
+        `/dsr/update/${originalDsr.id}`,
         requestBody
       );
       return requestBody; 
@@ -116,7 +116,7 @@ export const declineDsr = createAsyncThunk<
 
     try {
       await axiosInstance.put(
-        `/api/dsr/update/${dsr.id}`,
+        `/dsr/update/${dsr.id}`,
         requestBody
       );
       return requestBody;

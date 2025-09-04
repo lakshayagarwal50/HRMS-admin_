@@ -2,9 +2,8 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services'; 
 
-const API_BASE_URL = '/api/leaveRequest';
+const API_BASE_URL = '/leaveRequest';
 
-// --- TYPE DEFINITIONS ---
 export interface LeaveBalanceDetails {
     leaveTaken: number;
     balance: number;
@@ -33,7 +32,7 @@ export interface LeaveRequest {
   leaveBalance: LeaveBalance;
 }
 
-// This type should match the one in your filter component
+
 export interface LeaveFilters {
   leaveTypes: string[];
   approvalStatus: string[];
@@ -62,18 +61,16 @@ const initialState: LeaveRequestState = {
   error: null,
 };
 
-// --- ASYNCHRONOUS THUNKS ---
 export const fetchLeaveRequests = createAsyncThunk(
   'leaveRequests/fetch',
   async (filters: LeaveFilters | null, { rejectWithValue }) => {
     try {
       const token = "YOUR_FIREBASE_ID_TOKEN";
       
-      // Correctly build query parameters for axios
+    
       const params: Record<string, string> = {};
       if (filters) {
-          // The API docs show single query params, so we'll take the first selected value for each filter.
-          // If your API supports multiple values, you might need to adjust this.
+          
           if (filters.leaveTypes.length > 0) params.leaveType = filters.leaveTypes[0];
           if (filters.approvalStatus.length > 0) params.finalApprovalStatus = filters.approvalStatus[0];
           if (filters.departments.length > 0) params.department = filters.departments[0];
@@ -81,7 +78,7 @@ export const fetchLeaveRequests = createAsyncThunk(
       
       const response = await axiosInstance.get(`${API_BASE_URL}/get`, {
         headers: { 'Authorization': `Bearer ${token}` },
-        params, // Pass the params object to axios
+        params,
       });
       return response.data.data as LeaveRequest[];
     } catch (error) {

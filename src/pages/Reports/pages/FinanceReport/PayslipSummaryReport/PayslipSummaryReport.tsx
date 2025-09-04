@@ -1,4 +1,5 @@
-//import
+
+//imports
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Table, { type Column } from "../../../../../components/common/Table";
@@ -9,11 +10,16 @@ import type { RootState, AppDispatch } from "../../../../../store/store";
 import {
   fetchPayslipSummary,
   downloadPayslipSummary,
+  deletePayslipSummary, 
+  schedulePayslipSummary,
+  resetScheduleStatus,
+  type ScheduleData,
 } from "../../../../../store/slice/payslipSummarySlice";
+import { toast } from "react-toastify";
+import AlertModal from "../../../../../components/Modal/AlertModal"; 
+import { Trash2 } from "lucide-react"; 
 
-import toast from "react-hot-toast";
-
-// interface
+// INTERFACE
 interface PayslipSummary {
   name: string;
   emp_id: string;
@@ -33,7 +39,7 @@ interface PayslipSummary {
   eesi: string | null;
 }
 
-//currency change
+// HELPER FUNCTIONS
 const formatCurrency = (value: number | null | undefined) => {
   if (value === null || value === undefined) return "N/A";
   return `₹ ${value.toLocaleString("en-IN", {
@@ -53,7 +59,7 @@ const renderStatus = (status: "Active" | "Inactive") => {
   );
 };
 
-//skeleton loader
+// CHILD COMPONENTS
 const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => (
   <div className="space-y-4 animate-pulse">
     <div className="h-8 bg-gray-200 rounded w-full mb-4"></div>
@@ -63,7 +69,6 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => (
   </div>
 );
 
-//pagination
 const Pagination: React.FC<{
   currentPage: number;
   totalPages: number;
@@ -102,28 +107,61 @@ const Pagination: React.FC<{
   );
 };
 
-// main body
-const REPORT_NOT_FOUND_ERROR =
-  'Report for type "payslipSummary" not found. Please create this report first.';
+const frequencyOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
+const hourOptions = Array.from({ length: 24 }, (_, i) => `${i}`);
+const minuteOptions = Array.from({ length: 60 }, (_, i) => `${i}`);
 
+const formatDateForAPI = (dateString: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+// MAIN COMPONENT
 const PayslipSummaryReport: React.FC = () => {
-  const [view, setView] = useState<"report" | "template">("report");
+  
+  const [view, setView] = useState<"report" | "template" | "schedule">(
+    "report"
+  );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [currentFilters, setCurrentFilters] = useState({});
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // NEW: State for modals and inline form
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [scheduleFormData, setScheduleFormData] = useState<
+    Omit<ScheduleData, "startDate"> & { startDate: string }
+  >({
+    frequency: "",
+    startDate: "",
+    hours: "",
+    minutes: "",
+    format: "XLSX",
+    to: "",
+    cc: "",
+    subject: "Scheduled Report: Payslip Summary",
+    body: "Please find the attached report: Payslip Summary.",
+  });
+
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const [itemsPerPage] = useState(10);
+  const itemsPerPage = 10;
 
   const {
     reportData,
-    isReportLoading,
-    reportError,
+    status,
+    error,
     totalPages,
     totalItems,
     isDownloading,
+    reportId,
+    reportExists,
+    scheduleStatus,
   } = useSelector((state: RootState) => state.payslipSummary);
 
   useEffect(() => {
@@ -134,13 +172,13 @@ const PayslipSummaryReport: React.FC = () => {
         filter: currentFilters,
       })
     );
-  }, [dispatch, currentPage, itemsPerPage]);
+  }, [dispatch, currentPage, itemsPerPage, currentFilters]);
 
   useEffect(() => {
-    if (reportError && reportError.includes(REPORT_NOT_FOUND_ERROR)) {
-      toast.error(reportError);
+    if (status === "failed" && error && reportExists) {
+      toast.error(error);
     }
-  }, [reportError]);
+  }, [status, error, reportExists]);
 
   const handlePageChange = (newPage: number) => {
     setSearchParams({ page: String(newPage) });
@@ -148,7 +186,13 @@ const PayslipSummaryReport: React.FC = () => {
   };
 
   const handleBackFromTemplate = () => {
-    dispatch(fetchPayslipSummary({ page: currentPage, limit: itemsPerPage }));
+    dispatch(
+      fetchPayslipSummary({
+        page: currentPage,
+        limit: itemsPerPage,
+        filter: currentFilters,
+      })
+    );
     setView("report");
   };
 
@@ -187,38 +231,118 @@ const PayslipSummaryReport: React.FC = () => {
 
   const handleApplyFilters = (filters: any) => {
     setCurrentFilters(filters);
-    setSearchParams({ page: "1" }); // Reset to page 1 on new filter
+    setSearchParams({ page: "1" });
     setIsFilterOpen(false);
   };
 
-  const handleDownload = (format: "csv" | "excel") => {
+  const handleDownload = (format: "csv" | "xlsx") => {
     if (isDownloading) return;
-    toast(`Your ${format.toUpperCase()} download will begin shortly...`);
-    // Pass the current filters to the download action
     dispatch(downloadPayslipSummary({ format, filter: currentFilters }));
+    toast.info(`Your ${format.toUpperCase()} download will begin shortly...`);
   };
 
+  const handleDeleteClick = () => {
+    if (!reportId) {
+      toast.error("Report ID is missing. Cannot delete.");
+      return;
+    }
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!reportId) return;
+    try {
+      await dispatch(deletePayslipSummary(reportId)).unwrap();
+      setSearchParams({ page: "1" });
+      dispatch(
+        fetchPayslipSummary({ page: 1, limit: itemsPerPage, filter: {} })
+      );
+    } catch (err: any) {
+      console.error("Failed to delete report:", err);
+    } finally {
+      setIsDeleteModalOpen(false);
+    }
+  };
+
+  const handleScheduleClick = () => {
+    if (!reportId) {
+      toast.error("Cannot schedule report without a Report ID.");
+      return;
+    }
+    setView("schedule");
+  };
+
+  const handleScheduleFormChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    setScheduleFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleScheduleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reportId) return;
+
+    const payload: ScheduleData = {
+      ...scheduleFormData,
+      startDate: formatDateForAPI(scheduleFormData.startDate),
+    };
+
+    const toastId = toast.loading("Scheduling report...");
+    try {
+      await dispatch(
+        schedulePayslipSummary({ reportId, scheduleData: payload })
+      ).unwrap();
+      toast.update(toastId, {
+        render: "Report scheduled successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 5000,
+      });
+      dispatch(resetScheduleStatus());
+      navigate("/reports/scheduled");
+    } catch (err: any) {
+      toast.update(toastId, {
+        render: err.message || "Failed to schedule report.",
+        type: "error",
+        isLoading: false,
+        autoClose: 5000,
+      });
+    }
+  };
+
+  // UPDATED: renderContent function to use new logic
   const renderContent = () => {
-    if (isReportLoading && reportData.length === 0) {
+    if (status === "failed" && !reportExists) {
+      return (
+        <div className="text-center p-10 space-y-4">
+          <p className="text-gray-600">{error}</p>
+          <button
+            onClick={() => navigate("/reports/create")}
+            className="font-semibold py-2 px-6 rounded-full text-white bg-[#741CDD] hover:bg-[#5f17b3]"
+          >
+            Create Report
+          </button>
+        </div>
+      );
+    }
+    if (status === "loading" && reportData.length === 0) {
       return <TableSkeleton rows={itemsPerPage} />;
     }
-    if (reportError) {
-      if (reportError.includes(REPORT_NOT_FOUND_ERROR)) {
-        return (
-          <div className="flex flex-col items-center justify-center py-20">
-            <p className="text-lg text-gray-600 mb-4">{reportError}</p>
-            <button
-              onClick={() => navigate("/reports/create")}
-              className="font-semibold py-2 px-6 rounded-full text-white"
-              style={{ backgroundColor: "#741CDD" }}
-            >
-              Create Payslip Summary Report
-            </button>
-          </div>
-        );
-      }
+    if (status === "failed") {
+      return <p className="p-10 text-center text-red-500">Error: {error}</p>;
+    }
+    if (reportData.length === 0 && status === "succeeded") {
       return (
-        <p className="p-10 text-center text-red-500">Error: {reportError}</p>
+        <div className="text-center p-10">
+          <p className="text-lg text-gray-600">
+            No data available for this report.
+          </p>
+        </div>
       );
     }
     return (
@@ -226,8 +350,7 @@ const PayslipSummaryReport: React.FC = () => {
         <Table
           data={reportData}
           columns={columns}
-          showSearch={true}
-          searchPlaceholder="Search Employees..."
+          showSearch={false}
           showPagination={false}
         />
         <Pagination
@@ -245,6 +368,241 @@ const PayslipSummaryReport: React.FC = () => {
     return <PayslipSummaryTemplate onBack={handleBackFromTemplate} />;
   }
 
+  // NEW: Inline render for schedule form
+  if (view === "schedule") {
+    const isSubmitting = scheduleStatus === "loading";
+    return (
+      <div className="p-8 bg-gray-50 min-h-screen">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Schedule Report</h1>
+          <p className="text-sm text-gray-500">
+            <Link to="/reports/all">Reports</Link> / Schedule Report
+          </p>
+        </div>
+        <div className="bg-white p-8 rounded-lg shadow-sm">
+          <div className="inline-block bg-purple-100 text-purple-800 text-sm font-medium px-4 py-1 rounded-full mb-8">
+            Schedule Email For Report: Payslip Summary
+          </div>
+          <form onSubmit={handleScheduleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="frequency"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Frequency
+                </label>
+                <select
+                  id="frequency"
+                  name="frequency"
+                  value={scheduleFormData.frequency}
+                  onChange={handleScheduleFormChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled>
+                    Select One
+                  </option>
+                  {frequencyOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="startDate"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Start Date
+                </label>
+                <input
+                  id="startDate"
+                  name="startDate"
+                  type="date"
+                  value={scheduleFormData.startDate}
+                  onChange={handleScheduleFormChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="hours"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Hours (24h)
+                </label>
+                <select
+                  id="hours"
+                  name="hours"
+                  value={scheduleFormData.hours}
+                  onChange={handleScheduleFormChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled>
+                    Select Hour
+                  </option>
+                  {hourOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt.padStart(2, "0")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="minutes"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Minutes
+                </label>
+                <select
+                  id="minutes"
+                  name="minutes"
+                  value={scheduleFormData.minutes}
+                  onChange={handleScheduleFormChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled>
+                    Select Minute
+                  </option>
+                  {minuteOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt.padStart(2, "0")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Send As
+              </label>
+              <div className="flex items-center space-x-6">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="format"
+                    value="XLSX"
+                    checked={scheduleFormData.format === "XLSX"}
+                    onChange={handleScheduleFormChange}
+                    className="h-4 w-4 text-purple-600"
+                  />
+                  <span>XLSX</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="format"
+                    value="CSV"
+                    checked={scheduleFormData.format === "CSV"}
+                    onChange={handleScheduleFormChange}
+                    className="h-4 w-4 text-purple-600"
+                  />
+                  <span>CSV</span>
+                </label>
+              </div>
+            </div>
+            <div className="mt-6 space-y-4">
+              <div>
+                <label
+                  htmlFor="to"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  To
+                </label>
+                <input
+                  id="to"
+                  name="to"
+                  type="email"
+                  value={scheduleFormData.to}
+                  onChange={handleScheduleFormChange}
+                  placeholder="comma,separated,emails"
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="cc"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  CC
+                </label>
+                <input
+                  id="cc"
+                  name="cc"
+                  type="email"
+                  value={scheduleFormData.cc}
+                  onChange={handleScheduleFormChange}
+                  placeholder="comma,separated,emails"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="subject"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Email Subject
+                </label>
+                <input
+                  id="subject"
+                  name="subject"
+                  type="text"
+                  value={scheduleFormData.subject}
+                  onChange={handleScheduleFormChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="body"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Email Body
+                </label>
+                <textarea
+                  id="body"
+                  name="body"
+                  value={scheduleFormData.body}
+                  onChange={handleScheduleFormChange}
+                  rows={3}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+            </div>
+            <div className="mt-8">
+              <div className="flex items-center space-x-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-[#7F56D9] text-white font-semibold py-2 px-6 rounded-lg hover:bg-opacity-90 disabled:bg-gray-400"
+                >
+                  {isSubmitting ? "SUBMITTING..." : "SUBMIT"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView("report")}
+                  disabled={isSubmitting}
+                  className="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300"
+                >
+                  CANCEL
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-start mb-6">
@@ -255,36 +613,44 @@ const PayslipSummaryReport: React.FC = () => {
           <p className="text-sm text-gray-500">
             <Link to="/reports">Reports</Link> / Payslip Summary Report
           </p>
+          {/* UPDATED: Added new buttons with consistent disabled logic */}
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setView("template")}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200"
+              disabled={status !== "succeeded" || !reportId}
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               EDIT TEMPLATE
             </button>
             <button
               onClick={() => handleDownload("csv")}
-              disabled={isDownloading}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50"
+              disabled={isDownloading || status !== "succeeded" || !reportId}
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isDownloading ? "DOWNLOADING..." : "DOWNLOAD CSV"}
             </button>
             <button
-              onClick={() => handleDownload("excel")}
-              disabled={isDownloading}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50"
+              onClick={() => handleDownload("xlsx")}
+              disabled={isDownloading || status !== "succeeded" || !reportId}
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD EXCEL"}
+              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD XLSX"}
             </button>
-            {/* <button
-              onClick={() => setIsFilterOpen(true)}
-              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200"
+
+            <button
+              onClick={handleScheduleClick}
+              disabled={status !== "succeeded" || !reportId}
+              className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              FILTER
-            </button> */}
-            {/* <button className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600">
+              SCHEDULE REPORT
+            </button>
+            <button
+              onClick={handleDeleteClick}
+              disabled={status !== "succeeded" || !reportId}
+              className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               DELETE
-            </button> */}
+            </button>
           </div>
         </div>
       </div>
@@ -294,6 +660,18 @@ const PayslipSummaryReport: React.FC = () => {
         onClose={() => setIsFilterOpen(false)}
         onApplyFilters={handleApplyFilters}
       />
+      <AlertModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Report"
+        icon={<Trash2 size={32} className="text-red-500" />}
+      >
+        <p>
+          Are you sure you want to delete this report? This action cannot be
+          undone.
+        </p>
+      </AlertModal>
     </div>
   );
 };

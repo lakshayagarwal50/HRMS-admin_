@@ -1,16 +1,15 @@
 import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
-import { axiosInstance } from '../../services'; // 1. Use axiosInstance
+import { axiosInstance } from '../../services'; 
 
-// --- CONSTANTS ---
-const API_BASE_URL = '/api/holidayCalendar/';
 
-// --- TYPE DEFINITIONS ---
+const API_BASE_URL = '/holidayCalendar/';
+
 export interface HolidayCalendarEntry {
   id: string;
   name: string;
   type: string;
-  date: string; // ISO date string
+  date: string; 
   holidayGroups: string[];
   createdBy: string;
   createdAt: string;
@@ -30,14 +29,9 @@ const initialState: HolidayCalendarState = {
   error: null,
 };
 
-// --- ASYNC THUNKS ---
 
-/**
- * FETCH: Fetches all holiday calendar entries from the server.
- */
 export const fetchHolidayCalendar = createAsyncThunk('holidayCalendar/fetch', async (_, { rejectWithValue }) => {
   try {
-    // 2. Use axiosInstance directly without manual token handling
     const response = await axiosInstance.get(`${API_BASE_URL}get`);
     return response.data as HolidayCalendarEntry[];
   } catch (error) {
@@ -46,9 +40,7 @@ export const fetchHolidayCalendar = createAsyncThunk('holidayCalendar/fetch', as
   }
 });
 
-/**
- * ADD: Creates a new holiday calendar entry on the server.
- */
+
 export const addHolidayCalendarEntry = createAsyncThunk('holidayCalendar/add', async (newEntry: NewHolidayCalendarEntry, { rejectWithValue }) => {
     const apiRequestBody = {
         name: newEntry.name,
@@ -58,13 +50,13 @@ export const addHolidayCalendarEntry = createAsyncThunk('holidayCalendar/add', a
     };
 
     try {
-        // 3. Use axiosInstance for the POST request
+        
         const response = await axiosInstance.post(`${API_BASE_URL}create`, apiRequestBody);
         return { 
             ...newEntry, 
             id: response.data.id,
-            createdBy: 'current-user-id', // Placeholder
-            createdAt: new Date().toISOString(), // Placeholder
+            createdBy: 'current-user-id', 
+            createdAt: new Date().toISOString(), 
         } as HolidayCalendarEntry;
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to create holiday');
@@ -72,15 +64,13 @@ export const addHolidayCalendarEntry = createAsyncThunk('holidayCalendar/add', a
     }
 });
 
-/**
- * UPDATE: Updates an existing holiday calendar entry on the server.
- */
+
 export const updateHolidayCalendarEntry = createAsyncThunk('holidayCalendar/update', async (entry: HolidayCalendarEntry, { rejectWithValue }) => {
     const { id, name, type, date, holidayGroups } = entry;
     const apiRequestBody = { name, type, date, holidayGroups };
 
     try {
-        // 4. Use axiosInstance for the PUT request
+        
         await axiosInstance.put(`${API_BASE_URL}update/${id}`, apiRequestBody);
         return entry;
     } catch (error) {
@@ -89,12 +79,10 @@ export const updateHolidayCalendarEntry = createAsyncThunk('holidayCalendar/upda
     }
 });
 
-/**
- * DELETE: Deletes a holiday calendar entry from the server.
- */
+
 export const deleteHolidayCalendarEntry = createAsyncThunk('holidayCalendar/delete', async (id: string, { rejectWithValue }) => {
     try {
-        // 5. Use axiosInstance for the DELETE request
+        
         await axiosInstance.delete(`${API_BASE_URL}delete/${id}`);
         return id;
     } catch (error) {
@@ -104,14 +92,13 @@ export const deleteHolidayCalendarEntry = createAsyncThunk('holidayCalendar/dele
 });
 
 
-// --- SLICE DEFINITION ---
 const holidayCalendarSlice = createSlice({
   name: 'holidayCalendar',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fulfilled cases for each thunk
+    
       .addCase(fetchHolidayCalendar.fulfilled, (state, action: PayloadAction<HolidayCalendarEntry[]>) => {
         state.status = 'succeeded';
         state.items = action.payload;
@@ -131,7 +118,6 @@ const holidayCalendarSlice = createSlice({
           state.status = 'succeeded';
           state.items = state.items.filter(item => item.id !== action.payload);
       })
-      // Use `addMatcher` to handle common pending and rejected states for all thunks
       .addMatcher(isPending(fetchHolidayCalendar, addHolidayCalendarEntry, updateHolidayCalendarEntry, deleteHolidayCalendarEntry), (state) => {
           state.status = 'loading';
           state.error = null;
