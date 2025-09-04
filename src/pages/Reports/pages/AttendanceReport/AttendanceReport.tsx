@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Table, { type Column } from "../../../../components/common/Table";
 import AttendanceSummaryReportFilters, {type  AttendanceFilters } from "./component/AttendanceSummaryReportFilters";
@@ -65,6 +64,7 @@ const AttendanceReport: React.FC = () => {
     (state) => state.attendanceReport
   );
 
+  const navigate = useNavigate();
   
   useEffect(() => {
     dispatch(fetchAttendanceSummary({ page: currentPage, limit, filter: currentFilters }));
@@ -125,16 +125,14 @@ const AttendanceReport: React.FC = () => {
           </p>
           <div className="flex items-center space-x-2 flex-wrap gap-y-2">
             <button onClick={() => setView("template")} className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200">EDIT TEMPLATE</button>
-            {/* <button onClick={() => setIsFilterOpen(true)} className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200">FILTER</button> */}
-            {/* <button onClick={() => handleDownload("csv")} disabled={isDownloading} className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-blue-600 disabled:opacity-50">
-              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD CSV"}
-            </button> */}
+            
              <button onClick={() => handleDownload("csv")} disabled={isDownloading} className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200">
               {isDownloading ? "DOWNLOADING..." : "DOWNLOAD CSV"}
             </button>
             <button onClick={() => handleDownload("xlsx")} disabled={isDownloading} className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200">
               {isDownloading ? "DOWNLOADING..." : "DOWNLOAD xlsx"}
             </button>
+            <button onClick={() => navigate('/reports/all')} className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200">SCHEDULE REPORT</button>
           </div>
         </div>
       </div>

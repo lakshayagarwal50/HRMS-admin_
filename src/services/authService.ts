@@ -9,7 +9,7 @@ import { refreshToken } from '../features/auth/authSlice';
  * @param credentials The user's email and password.
  */
 export const loginAPI = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  const response = await axiosInstance.post('/auth/login', credentials);
+  const response = await axiosInstance.post('api/auth/login', credentials);
   return response.data;
 };
 
@@ -18,7 +18,7 @@ export const loginAPI = async (credentials: LoginCredentials): Promise<AuthRespo
  * @param refreshToken The user's refresh token.
  */
 export const refreshTokenAPI = async (refreshToken: string): Promise<RefreshTokenResponse> => {
-  const response = await axiosInstance.post('/auth/refresh', { refreshToken });
+  const response = await axiosInstance.post('api/auth/refresh', { refreshToken });
   return response.data;
 };
 
@@ -26,8 +26,14 @@ export const refreshTokenAPI = async (refreshToken: string): Promise<RefreshToke
 /**
  * @description Sends a POST request to the logout endpoint.
  */
-export const logoutAPI = async (): Promise<{ message: string }> => {
-  // The interceptor will add the Authorization header
-  const response = await axiosInstance.post('/auth/logout', {});
+// export const logoutAPI = async (): Promise<{ message: string }> => {
+//   // The interceptor will add the Authorization header
+//   const response = await axiosInstance.post('/auth/logout', {});
+//   return response.data;
+// };
+
+
+export const logoutAPI = async (refreshToken: string): Promise<{ message: string }> => {
+  const response = await axiosInstance.post('api/auth/logout', { refreshToken });
   return response.data;
 };
