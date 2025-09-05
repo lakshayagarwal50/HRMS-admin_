@@ -35,7 +35,6 @@ const DsrFilterSidebar: React.FC<FilterSidebarProps> = ({
     return null;
   }, [filters]);
 
-  // ✅ UPDATED: This handler now only allows one selection at a time
   const handleCheckboxChange = (
     type: "submission" | "approval",
     value: string
@@ -47,14 +46,13 @@ const DsrFilterSidebar: React.FC<FilterSidebarProps> = ({
     let newValues: string[];
 
     if (currentValues.includes(value)) {
-      // If it's already checked, uncheck it by clearing the array
+      // If already checked, uncheck it by clearing the array
       newValues = [];
     } else {
-      // If it's not checked, check it by setting the array to ONLY this value
+      // If not checked, check it by setting the array to ONLY this value
       newValues = [value];
     }
 
-    // Reset all other filter types and set the new value for the current type
     setFilters({ ...initialFilters, [key]: newValues });
   };
 
@@ -132,7 +130,7 @@ const DsrFilterSidebar: React.FC<FilterSidebarProps> = ({
                     checked={filters.submissionStatuses.includes(status)}
                     onChange={() => handleCheckboxChange("submission", status)}
                     className="h-4 w-4 text-[#741CDD] border-gray-300 rounded focus:ring-[#741CDD] disabled:opacity-50"
-                    // ✅ UPDATED: Disable if another checkbox in this group is checked
+                    //Disable if another checkbox in this group is checked
                     disabled={
                       (!!activeFilterKey && activeFilterKey !== "submission") ||
                       (filters.submissionStatuses.length > 0 &&
@@ -170,7 +168,7 @@ const DsrFilterSidebar: React.FC<FilterSidebarProps> = ({
                     checked={filters.approvalStatuses.includes(status)}
                     onChange={() => handleCheckboxChange("approval", status)}
                     className="h-4 w-4 text-[#741CDD] border-gray-300 rounded focus:ring-[#741CDD] disabled:opacity-50"
-                    // ✅ UPDATED: Disable if another checkbox in this group is checked
+                    //  Disable if another checkbox in this group is checked
                     disabled={
                       (!!activeFilterKey && activeFilterKey !== "approval") ||
                       (filters.approvalStatuses.length > 0 &&

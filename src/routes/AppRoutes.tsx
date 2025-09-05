@@ -160,9 +160,9 @@ const AppRoutes = () => (
               employeeName={""}
               selectedMonth={""}
               selectedYear={""}
-              // onClose={function (): void {
-              //   throw new Error("Function not implemented.");
-              // }}
+              onClose={function (): void {
+                throw new Error("Function not implemented.");
+              }}
             /> //create payslip
           }
         />

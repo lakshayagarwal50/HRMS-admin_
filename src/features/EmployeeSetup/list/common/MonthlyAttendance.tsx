@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { axiosInstance } from "../../../../services"; 
+import { axiosInstance } from "../../../../services";
 import UpdateAttendanceModal from "../modal/UpdateAttendanceModal";
-import toast from "react-hot-toast"; 
-
+import toast from "react-hot-toast";
 
 type AttendanceStatus = "P" | "W" | "L" | "HD" | "H" | "AB";
 
@@ -62,14 +60,12 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
     MonthlyApiResponse["days"]
   >({});
   const [loading, setLoading] = useState(true);
-  
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
-  
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
   const fetchMonthlyData = async () => {
     setLoading(true);
-    
+
     const monthIndex = calendarMonths.indexOf(month) + 1;
     try {
       const response = await axiosInstance.get<MonthlyApiResponse>(
@@ -78,7 +74,6 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
       );
       setAttendanceDays(response.data.days);
     } catch (err) {
-      
       toast.error("Failed to fetch monthly attendance.", {
         className: "bg-red-50 text-red-800",
       });
@@ -92,17 +87,15 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
     fetchMonthlyData();
   }, [employee, year, month]);
 
-  
   const handleUpdateSubmit = () => {
     toast.success("Attendance updated successfully!", {
       className: "bg-green-50 text-green-800",
     });
-   
+
     fetchMonthlyData();
     setIsUpdateModalOpen(false);
   };
 
-  
   const handleOpenUpdateModal = () => {
     setIsUpdateModalOpen(true);
   };
@@ -118,14 +111,13 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
           Loading Monthly View...
         </div>
       );
-    
 
     const gridCells = [];
     for (let i = 0; i < firstDayOfWeek; i++) {
       gridCells.push(
         <div
           key={`empty-${i}`}
-          className="border border-gray-100 rounded-md"
+          className="border border-gray-400 rounded-md"
         ></div>
       );
     }
@@ -135,11 +127,11 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
       gridCells.push(
         <div
           key={day}
-          className={`border rounded-md p-2 text-center text-white cursor-pointer ${
+          className={`border rounded-md p-2 text-center text-black cursor-pointer ${
             config?.color.replace("bg-", "bg-").replace("-100", "-500") ??
             "bg-gray-50"
           }`}
-          onClick={handleOpenUpdateModal} 
+          onClick={handleOpenUpdateModal}
         >
           <div className="font-bold text-lg">
             {day.toString().padStart(2, "0")}
@@ -180,7 +172,7 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
 
       <div className="mt-8 flex items-center space-x-4">
         <button
-          onClick={handleOpenUpdateModal} 
+          onClick={handleOpenUpdateModal}
           className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors"
         >
           UPDATE
@@ -198,7 +190,6 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
         onClose={() => setIsUpdateModalOpen(false)}
         onSuccess={handleUpdateSubmit}
         employeeCode={employee.employeeCode}
-        
       />
     </div>
   );
