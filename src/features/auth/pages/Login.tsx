@@ -12,8 +12,8 @@ const Login = () => {
 
   const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const [email, setEmail] = useState("admin@superadmin.com");
-  const [password, setPassword] = useState("admin011"); 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState(""); 
 
   
   useEffect(() => {
