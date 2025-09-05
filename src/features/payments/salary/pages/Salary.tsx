@@ -2,8 +2,6 @@ import  { useState } from 'react';
 import Table, { type Column } from '../../../../components/common/Table';
 import { MoreHorizontal } from 'lucide-react';
 
-// --- Type Definitions ---
-// In a real application, these types would be moved to a dedicated file like `src/types/payroll.ts`
 interface SalaryPeriod {
   id: number;
   paymentType: string;
@@ -23,8 +21,7 @@ interface EmployeeSalaryDetail {
   status: 'Pending' | 'Paid' | 'Failed';
 }
 
-// --- Dummy Data ---
-// This data simulates what you would fetch from your API, likely using a Redux Toolkit slice.
+
 const salaryPeriodsData: SalaryPeriod[] = [
   { id: 1, paymentType: 'October 2022', referenceId: '5151', status: 'Pending', amount: 166824.00, date: '25 Sep 2022 05:00' },
   { id: 2, paymentType: 'September 2022', referenceId: '58415', status: 'Pending', amount: 166824.00, date: '25 Aug 2022 05:00' },
@@ -40,11 +37,7 @@ const employeeSalaryDetailsData: EmployeeSalaryDetail[] = [
     { id: 103, employeeName: 'Guy Hawkins', employeeId: '1541', payslip: 'October 2022', netAmount: 92140.00, processAmount: 92140.00, status: 'Pending' },
 ];
 
-// --- Reusable Helper Components ---
 
-/**
- * Renders a styled status badge based on the status string.
- */
 const StatusBadge = ({ status }: { status: 'Pending' | 'Paid' | 'Failed' }) => {
   const baseClasses = 'px-3 py-1 text-xs font-semibold rounded-md inline-block';
   switch (status) {
@@ -59,9 +52,7 @@ const StatusBadge = ({ status }: { status: 'Pending' | 'Paid' | 'Failed' }) => {
   }
 };
 
-/**
- * Renders the salary summary card shown in the detailed view.
- */
+
 const SalarySummaryCard = ({ period }: { period: SalaryPeriod }) => (
   <div className="bg-white p-6 rounded-lg shadow-md w-full lg:w-1/3">
     <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Salary Summary</h3>
@@ -76,11 +67,11 @@ const SalarySummaryCard = ({ period }: { period: SalaryPeriod }) => (
       </div>
       <div className="flex justify-between">
         <span className="text-gray-500">Reference Id</span>
-        <span className="font-medium text-gray-900">578</span> {/* From screenshot */}
+        <span className="font-medium text-gray-900">578</span> 
       </div>
       <div className="flex justify-between">
         <span className="text-gray-500">Payment process date</span>
-        <span className="font-medium text-gray-900">11/10/2022 14:00</span> {/* From screenshot */}
+        <span className="font-medium text-gray-900">11/10/2022 14:00</span> 
       </div>
       <div className="flex justify-between items-center">
         <span className="text-gray-500">Status</span>
@@ -89,7 +80,7 @@ const SalarySummaryCard = ({ period }: { period: SalaryPeriod }) => (
       <div className="flex justify-between">
         <span className="text-gray-500">Amount</span>
         <span className="font-medium text-gray-900">
-           {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(92140.00)} {/* From screenshot */}
+           {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(92140.00)} 
         </span>
       </div>
     </div>
@@ -97,30 +88,22 @@ const SalarySummaryCard = ({ period }: { period: SalaryPeriod }) => (
 );
 
 
-// --- Main Salary Component ---
 
 const Salary = () => {
-    // State to toggle between the main list view and the detailed view
     const [selectedPeriod, setSelectedPeriod] = useState<SalaryPeriod | null>(null);
 
-    /**
-     * Handles clicking the "View" action or a table row to show details.
-     */
+    
     const handleViewDetails = (period: SalaryPeriod) => {
-        // In a real app, you would fetch details for this period ID from the server
+      
         setSelectedPeriod(period);
     };
     
-    /**
-     * Resets the view to the main salary periods list.
-     */
+   
     const handleGoBack = () => {
         setSelectedPeriod(null);
     };
 
-    /**
-     * Formats a number into Indian Rupee currency format.
-     */
+    
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
@@ -128,7 +111,7 @@ const Salary = () => {
         }).format(amount);
     };
 
-    // Column definitions for the main salary periods table
+ 
     const salaryPeriodColumns: Column<SalaryPeriod>[] = [
         { key: 'paymentType', header: 'Payment Type' },
         { key: 'referenceId', header: 'Reference Id' },
@@ -185,9 +168,6 @@ const Salary = () => {
         },
     ];
 
-    /**
-     * Renders the breadcrumb navigation, which changes based on the current view.
-     */
     const Breadcrumb = () => (
         <div className="text-sm text-gray-500 mb-4">
             <span>Dashboard / Payments / </span>
@@ -208,7 +188,7 @@ const Salary = () => {
             <Breadcrumb />
 
             {selectedPeriod ? (
-                // --- Detailed View ---
+               
                 <div className="flex flex-col lg:flex-row gap-6 mt-4">
                     <div className="flex-1 bg-white rounded-lg shadow-md p-4">
                        <Table 
@@ -221,7 +201,6 @@ const Salary = () => {
                     <SalarySummaryCard period={selectedPeriod} />
                 </div>
             ) : (
-                // --- Main List View ---
                 <div className="bg-white p-4 rounded-lg shadow-md">
                    <Table
                      data={salaryPeriodsData}

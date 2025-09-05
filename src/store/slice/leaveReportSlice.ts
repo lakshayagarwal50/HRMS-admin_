@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../services";
 import {type RootState } from "../store";
 
-// Interfaces to match the new API response structure
+
 interface LeaveCategoryDetails {
   leaveTaken: number;
   balance: number;
@@ -40,10 +40,10 @@ interface LeaveReportState {
   error: string | null;
   successMessage: string | null;
   templateId: string | null;
-  isDownloading: boolean; // <-- ADDED for download state
+  isDownloading: boolean; 
 }
 
-// Initial State
+
 const initialState: LeaveReportState = {
   data: [],
   template: null,
@@ -57,10 +57,10 @@ const initialState: LeaveReportState = {
   error: null,
   successMessage: null,
   templateId: null,
-  isDownloading: false, // <-- INITIALIZE download state
+  isDownloading: false, 
 };
 
-// Async Thunks
+
 
 export const fetchLeaveSummaryReport = createAsyncThunk(
   "leaveReport/fetchSummary",
@@ -139,7 +139,6 @@ export const downloadLeaveReport = createAsyncThunk(
   }
 );
 
-// Slice
 const leaveReportSlice = createSlice({
   name: "leaveReport",
   initialState,
@@ -152,7 +151,7 @@ const leaveReportSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Summary Report
+ 
       .addCase(fetchLeaveSummaryReport.pending, (state) => {
         state.loading = 'pending';
         state.error = null;
@@ -173,7 +172,7 @@ const leaveReportSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // Fetch Template
+     
       .addCase(fetchLeaveTemplate.pending, (state) => {
         state.loading = 'pending';
         state.error = null;
@@ -187,7 +186,7 @@ const leaveReportSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // Update Template
+      
       .addCase(updateLeaveTemplate.pending, (state) => {
         state.loading = 'pending';
         state.error = null;
@@ -202,7 +201,7 @@ const leaveReportSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // Download Report
+   
       .addCase(downloadLeaveReport.pending, (state) => {
         state.isDownloading = true;
         state.error = null;
