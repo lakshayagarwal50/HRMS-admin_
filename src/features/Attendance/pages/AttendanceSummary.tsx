@@ -385,7 +385,7 @@ const AttendanceSummary = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 w-[97rem] max-w-8xl">
+    <div className="p-4 sm:p-6 lg:p-8 w-[97rem] ">
       {view === "list" ? (
         <AttendanceListView
           employees={employees}
