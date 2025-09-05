@@ -1,4 +1,4 @@
-// src/features/auth/pages/Login.tsx
+
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -12,10 +12,10 @@ const Login = () => {
 
   const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const [email, setEmail] = useState("admin@superadmin.com");
-  const [password, setPassword] = useState("admin011"); // Pre-fill for convenience
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState(""); 
 
-  // Effect to navigate to dashboard upon successful authentication
+  
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/dashboard");
