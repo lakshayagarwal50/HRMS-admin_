@@ -50,7 +50,7 @@ const FormInput: React.FC<{
   </div>
 );
 
-// --- Main Detail Page Component ---
+//main page
 const DisplayLoanDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();

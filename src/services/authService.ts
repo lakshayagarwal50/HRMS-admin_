@@ -26,8 +26,14 @@ export const refreshTokenAPI = async (refreshToken: string): Promise<RefreshToke
 /**
  * @description Sends a POST request to the logout endpoint.
  */
-export const logoutAPI = async (): Promise<{ message: string }> => {
-  // The interceptor will add the Authorization header
-  const response = await axiosInstance.post('/auth/logout', {});
+// export const logoutAPI = async (): Promise<{ message: string }> => {
+//   // The interceptor will add the Authorization header
+//   const response = await axiosInstance.post('/auth/logout', {});
+//   return response.data;
+// };
+
+
+export const logoutAPI = async (refreshToken: string): Promise<{ message: string }> => {
+  const response = await axiosInstance.post('/auth/logout', { refreshToken });
   return response.data;
 };

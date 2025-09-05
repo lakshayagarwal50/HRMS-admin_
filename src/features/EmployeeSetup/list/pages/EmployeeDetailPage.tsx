@@ -414,6 +414,7 @@ export default function EmployeeDetailPage() {
   const navigate = useNavigate();
   const { employeeCode } = useParams<{ employeeCode: string }>();
   const location = useLocation();
+  //get mainEmployeeId and payslipComponent from location state
   const mainEmployeeId = (location.state as { mainEmployeeId?: string })
     ?.mainEmployeeId;
   const payslipComponent = (location.state as { payslipComponent?: string })
@@ -653,7 +654,6 @@ export default function EmployeeDetailPage() {
     }
   };
 
-  
   const handleConfirmationSubmit = async (data: Record<string, any>) => {
     if (!confirmingLoan || !employeeCode || !confirmationAction) return;
 
@@ -699,7 +699,6 @@ export default function EmployeeDetailPage() {
     }
   };
 
- 
   const handlePreviousJobSave = async (
     jobData: Partial<PreviousJob>,
     jobId?: string

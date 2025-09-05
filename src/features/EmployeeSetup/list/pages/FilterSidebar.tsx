@@ -18,6 +18,7 @@ interface FilterSidebarProps {
   onClear: () => void;
 }
 
+//main body
 const FilterSidebar: React.FC<FilterSidebarProps> = ({
   initialFilters,
   isOpen,

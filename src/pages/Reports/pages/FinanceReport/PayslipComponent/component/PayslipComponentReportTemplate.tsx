@@ -1,211 +1,131 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
-import Table, { type Column } from "../../../../../../components/common/Table"; // Adjust path as needed
-import Modal from "../../../../../../components/common/NotificationModal"; // Adjust path as needed
+import { toast } from "react-toastify";
+import Table, {
+  type Column,
+} from "../../../../../../components/common/Table";
+import Modal from "../../../../../../components/common/NotificationModal";
+import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
+import {
+  fetchPayslipTemplateById,
+  updatePayslipTemplate,
+} from "../../../../../../store/slice/payslipReportSlice";
 
-// Define the type for each field in the template
 interface TemplateField {
-  id: number;
-  s_no: number;
-  name: string; // The data key
-  label: string; // The user-friendly label
-  value: string; // The custom value from the input field
+  key: string;
+  label: string;
   isEnabled: boolean;
 }
 
-// --- Data specific to a Payslip Component Report ---
-const initialFields: TemplateField[] = [
-  {
-    id: 1,
-    s_no: 1,
-    name: "employee_name",
-    label: "Employee Name",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 2,
-    s_no: 2,
-    name: "employee_id",
-    label: "Employee ID",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 3,
-    s_no: 3,
-    name: "component_name",
-    label: "Component Name",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 4,
-    s_no: 4,
-    name: "component_type",
-    label: "Component Type",
-    value: "",
-    isEnabled: true,
-  },
-  { id: 5, s_no: 5, name: "basic", label: "Basic", value: "", isEnabled: true },
-  {
-    id: 6,
-    s_no: 6,
-    name: "hra",
-    label: "House Rent Allowance",
-    value: "",
-    isEnabled: true,
-  },
-  {
-    id: 7,
-    s_no: 7,
-    name: "conveyance",
-    label: "Conveyance",
-    value: "",
-    isEnabled: false,
-  },
-  {
-    id: 8,
-    s_no: 8,
-    name: "provident_fund",
-    label: "Provident Fund",
-    value: "",
-    isEnabled: false,
-  },
-  {
-    id: 9,
-    s_no: 9,
-    name: "professional_tax",
-    label: "Professional Tax",
-    value: "",
-    isEnabled: false,
-  },
-  {
-    id: 10,
-    s_no: 10,
-    name: "gross_earnings",
-    label: "Gross Earnings",
-    value: "",
-    isEnabled: false,
-  },
-  {
-    id: 11,
-    s_no: 11,
-    name: "total_deductions",
-    label: "Total Deductions",
-    value: "",
-    isEnabled: false,
-  },
-  {
-    id: 12,
-    s_no: 12,
-    name: "net_pay",
-    label: "Net Pay",
-    value: "",
-    isEnabled: false,
-  },
-];
+const fieldLabelMapping: Record<string, string> = {
+  name: "Employee Name",
+  emp_id: "Employee ID",
+  phoneNum: "Phone Number",
+  comName: "Component Name",
+  comtype: "Component Type",
+  status: "Status",
+  designation: "Designation",
+  department: "Department",
+  location: "Location",
+  code: "Code",
+  amount: "Amount",
+};
 
 interface PayslipComponentReportTemplateProps {
+  templateId: string | null;
   onBack?: () => void;
 }
 
 const PayslipComponentReportTemplate: React.FC<
   PayslipComponentReportTemplateProps
-> = ({ onBack }) => {
-  const [fields, setFields] = useState<TemplateField[]>(initialFields);
-
-  // Reused state logic for modal management
+> = ({ templateId, onBack }) => {
+  const dispatch = useAppDispatch();
+  const { template, loading, error } = useAppSelector(
+    (state) => state.payslipReport
+  );
+  const [fields, setFields] = useState<TemplateField[]>([]);
   const [modalState, setModalState] = useState({
     isOpen: false,
-    title: "",
-    message: "",
     onConfirm: () => {},
-    type: "warning" as "warning" | "info" | "success" | "error",
   });
 
-  // Reused handler functions
-  const handleLabelChange = (id: number, newValue: string) => {
+  useEffect(() => {
+    if (templateId) {
+      dispatch(fetchPayslipTemplateById(templateId));
+    }
+  }, [dispatch, templateId]);
+
+  useEffect(() => {
+    if (template) {
+      const formattedFields = Object.entries(template)
+        .filter(([, value]) => typeof value === "boolean")
+        .map(([key, value]) => ({
+          key,
+          label: fieldLabelMapping[key] || key.replace(/_/g, " "),
+          isEnabled: value,
+        }));
+      setFields(formattedFields);
+    }
+  }, [template]);
+
+  useEffect(() => {
+    if (error) toast.error(error);
+  }, [error]);
+
+  const handleCheckboxChange = (key: string) => {
     setFields(
       fields.map((field) =>
-        field.id === id ? { ...field, value: newValue } : field
+        field.key === key ? { ...field, isEnabled: !field.isEnabled } : field
       )
     );
   };
-
-  const handleCheckboxChange = (id: number) => {
-    setFields(
-      fields.map((field) =>
-        field.id === id ? { ...field, isEnabled: !field.isEnabled } : field
-      )
-    );
-  };
-
-  // Reused modal logic
-  const closeModal = () => setModalState({ ...modalState, isOpen: false });
 
   const handleUpdateClick = () => {
-    setModalState({
-      isOpen: true,
-      title: "Do you want to continue with savings?",
-      message:
-        "This will update report template settings and sequence as you select.",
-      onConfirm: confirmUpdate,
-      type: "warning",
-    });
-  };
-
-  const handleRefreshClick = () => {
-    setModalState({
-      isOpen: true,
-      title: "Do you want to refresh the page?",
-      message:
-        "This will refresh the page and any changes you made will not be saved.",
-      onConfirm: confirmRefresh,
-      type: "warning",
-    });
+    setModalState({ isOpen: true, onConfirm: confirmUpdate });
   };
 
   const confirmUpdate = () => {
-    console.log("Saving updated fields:", fields);
+    if (!templateId) {
+      toast.error("Template ID is missing.");
+      closeModal();
+      return;
+    }
+    const templateData = fields.reduce((acc, field) => {
+      acc[field.key] = field.isEnabled;
+      return acc;
+    }, {} as Record<string, boolean>);
+
+    dispatch(updatePayslipTemplate({ templateId, templateData }));
     closeModal();
   };
 
-  const confirmRefresh = () => {
-    setFields(initialFields);
-    closeModal();
-  };
+  const closeModal = () =>
+    setModalState({ isOpen: false, onConfirm: () => {} });
 
-  // Reused column definition for the table
   const columns: Column<TemplateField>[] = [
-    { key: "s_no", header: "S no.", className: "w-1/12" },
-    { key: "name", header: "Name", className: "w-4/12 font-mono text-sm" },
     {
-      key: "label",
-      header: "Label",
-      className: "w-5/12",
-      render: (row) => (
-        <input
-          type="text"
-          placeholder={row.label}
-          value={row.value || row.label}
-          onChange={(e) => handleLabelChange(row.id, e.target.value)}
-          className="w-full p-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-purple-500"
-        />
-      ),
+      key: "s_no",
+      header: "S no.",
+      className: "w-1/12",
+      // --- FIX HERE ---
+      // Find the index of the row within the `fields` array to calculate the serial number
+      render: (row) => <span>{fields.findIndex((f) => f.key === row.key) + 1}</span>,
     },
+    { key: "label", header: "Label", className: "w-8/12" },
     {
       key: "action",
-      header: "Action",
-      className: "w-2/12 text-center",
+      header: "Enabled",
+      className: "w-3/12 text-center",
       render: (row) => (
         <label className="flex justify-center items-center cursor-pointer">
           <input
             type="checkbox"
             checked={row.isEnabled}
-            onChange={() => handleCheckboxChange(row.id)}
+            onChange={() => handleCheckboxChange(row.key)}
             className="sr-only peer"
+            disabled={loading}
           />
           <div className="w-6 h-6 border-2 border-gray-300 rounded-md flex items-center justify-center peer-checked:bg-[#741CDD] peer-checked:border-[#741CDD] transition-colors">
             <Check
@@ -224,39 +144,39 @@ const PayslipComponentReportTemplate: React.FC<
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">
-          Payslip Component Report Template
+          Edit Payslip Component Report Template
         </h1>
-
         <p className="text-sm text-gray-500">
-          <Link to="/reports/all">Reports</Link>
-          {" / "}
-          <Link to="/reports/scheduled">Scheduled Reports</Link>
-          {" / "}
-          Payslip Component Report Template
+          <Link to="/reports/all">Reports</Link> / Payslip Component Report
+          Template
         </p>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <Table
-          data={fields}
-          columns={columns}
-          showSearch={false}
-          showPagination={false}
-        />
-      </div>
+      {loading && fields.length === 0 && (
+        <p className="text-center p-4">Loading template...</p>
+      )}
+      {!loading && error && (
+        <p className="text-center text-red-500 p-4">{error}</p>
+      )}
+
+      {!loading && !error && fields.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <Table
+            data={fields}
+            columns={columns}
+            showSearch={false}
+            showPagination={false}
+          />
+        </div>
+      )}
 
       <div className="mt-8 flex items-center space-x-4">
         <button
           onClick={handleUpdateClick}
           className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors"
+          disabled={loading || fields.length === 0}
         >
-          UPDATE
-        </button>
-        <button
-          onClick={handleRefreshClick}
-          className="bg-[#741CDD] text-white font-semibold py-2 px-8 rounded-lg hover:bg-opacity-90 transition-colors"
-        >
-          REFRESH
+          {loading ? "SAVING..." : "SAVE CHANGES"}
         </button>
         <button
           onClick={onBack}
@@ -270,9 +190,9 @@ const PayslipComponentReportTemplate: React.FC<
         isOpen={modalState.isOpen}
         onClose={closeModal}
         onConfirm={modalState.onConfirm}
-        title={modalState.title}
-        message={modalState.message}
-        type={modalState.type}
+        title="Confirm Update"
+        message="Are you sure you want to save these changes to the template?"
+        type="warning"
         confirmButtonText="CONFIRM"
         cancelButtonText="CANCEL"
       />
