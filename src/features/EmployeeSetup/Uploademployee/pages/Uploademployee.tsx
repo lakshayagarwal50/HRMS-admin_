@@ -315,7 +315,7 @@ export default function UploadEmployee() {
         "Leave Type": "",
         "Working Pattern": "",
         "Holiday Group": "",
-        "Location": "noida",
+        "Location": "Noida",
         "Payslip Component": "",
       },
       {
