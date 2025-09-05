@@ -103,13 +103,26 @@ export const fetchEmployeeSnapshot = createAsyncThunk<
       }
 
       const mappedEmployees: EmployeeData[] = data.employees.map((emp: any) => ({
-        name: emp.name, emp_id: emp.emp_id, status: emp.status,
-        joiningDate: emp.joining_date, designation: emp.designation,
-        department: emp.department, location: emp.location, gender: emp.gender,
-        email: emp.email, pan: emp.pan, grossPaid: parseFloat(emp.gross_salary) || 0,
-        lossOfPay: emp.lossOfPay, taxPaid: emp.taxPaid, netPaid: emp.netPay,
-        leaveType: emp.leave, leavesAdjusted: emp.leaveAdjustment, 
-        leaveBalance: emp.leaveBalance, workingPattern: emp.workingPattern, phone: emp.phone,
+        name: emp.name, 
+        emp_id: emp.emp_id, 
+        status: emp.status,
+        joiningDate: emp.joining_date,
+         designation: emp.designation,
+        department: emp.department,
+         location: emp.location,
+          gender: emp.gender,
+        email: emp.email,
+         pan: emp.pan,
+          grossPaid: parseFloat(emp.gross_salary) || 0,
+
+        lossOfPay: emp.lossOfPay,
+         taxPaid: emp.taxPaid,
+          netPaid: emp.netPay,
+        leaveType: emp.leave, 
+        leavesAdjusted: emp.leaveAdjustment, 
+        leaveBalance: emp.leaveBalance, 
+        workingPattern: emp.workingPattern, 
+        phone: emp.phone,
       }));
       
       return {

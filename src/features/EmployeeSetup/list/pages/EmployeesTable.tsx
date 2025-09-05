@@ -58,10 +58,11 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
 
 //main body
 const EmployeesTable: React.FC = () => {
+  //hooks
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-
+  // Read the 'page' parameter from the URL, defaulting to 1
   const currentPageFromUrl = parseInt(searchParams.get("page") || "1", 10);
 
   const {
@@ -72,7 +73,7 @@ const EmployeesTable: React.FC = () => {
     limit,
     total,
     inviteStatus,
-  } = useSelector((state: RootState) => state.employees);
+  } = useSelector((state: RootState) => state.employees); //read dta from store
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalType, setModalType] = useState<
@@ -116,7 +117,9 @@ const EmployeesTable: React.FC = () => {
   }, [inviteStatus, dispatch]);
 
   const employeesData = useMemo(() => {
+    //format raw data
     if (!Array.isArray(employeesFromStore)) return [];
+
     return employeesFromStore.map((apiEmp: any) => ({
       id: apiEmp.id,
       code: apiEmp.employeeCode,
@@ -139,7 +142,9 @@ const EmployeesTable: React.FC = () => {
     return employeesData.filter((emp) => {
       const empDate = new Date(
         emp.date.replace(/(\d{2}) (\w{3}) (\d{4})/, "$2 $1, $3")
-      );
+      ); //Input format → DD Mon YYYY
+      //Output format → Mon DD, YYYY
+
       const startDate = reduxFilters.startDate
         ? new Date(reduxFilters.startDate)
         : null;
@@ -172,6 +177,7 @@ const EmployeesTable: React.FC = () => {
     setSearchParams({ page: `${currentPageFromUrl - 1}` });
   };
 
+  //dropdownactions==5actions
   const handleAction = (actionName: string, employee: Employee) => {
     setEmployeeForModal(employee);
     setActionToConfirm(actionName);
@@ -369,7 +375,7 @@ const EmployeesTable: React.FC = () => {
       />
     );
   };
-
+  //main JSX
   return (
     <div className="px-4 py-6 w-full">
       <div className="flex justify-between items-center mb-4">
