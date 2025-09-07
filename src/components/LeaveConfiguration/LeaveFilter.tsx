@@ -16,9 +16,9 @@ interface LeaveFilterProps {
 }
 
 
-const leaveTypeOptions = ['Planned leave', 'Casual leave', 'Privileged leave', 'Sick leave'];
+const leaveTypeOptions = ['Planned', 'Casual', 'Privileged', 'Sick'];
 const approvalStatusOptions = ['Pending', 'Approved', 'Rejected'];
-const departmentOptions = ['Developer', 'Designer', 'Business analyst'];
+const departmentOptions = ['Developer', 'Designer','Development'];
 
 
 const FilterGroup: React.FC<{
