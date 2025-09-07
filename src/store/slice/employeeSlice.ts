@@ -4,6 +4,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services/index'; 
 import type { Employee } from '../../types';
+import type { RootState } from '../store';
 import type { BankDetails } from './bankSlice';
 
 export interface FilterState {
@@ -80,11 +81,24 @@ export interface EmployeeDetail {
   loan: LoanDetails[] | null;
 }
 
+// export interface EmployeeState {
+//   employees: Employee[];
+//   currentEmployee: EmployeeDetail | null;
+//   filters: FilterState;
+//   loading: boolean;
+//   error: string | null;
+//   limit: number;
+//   total: number;
+//   inviteStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
+//   inviteError: string | null;
+// }
 export interface EmployeeState {
-  employees: Employee[];
+  employees: Employee[]; // This will still be used for paginated data
+  allEmployees: Employee[]; // ✨ ADDED: To store all employees
   currentEmployee: EmployeeDetail | null;
   filters: FilterState;
   loading: boolean;
+  allEmployeesLoading: boolean; // ✨ ADDED: Specific loading state for the new fetch
   error: string | null;
   limit: number;
   total: number;
@@ -94,6 +108,7 @@ export interface EmployeeState {
 
 export const initialState: EmployeeState = {
   employees: [],
+  allEmployees: [], // ✨ ADDED
   currentEmployee: null,
   filters: {
     startDate: '',
@@ -103,6 +118,7 @@ export const initialState: EmployeeState = {
     location: '',
   },
   loading: false,
+  allEmployeesLoading: false, // ✨ ADDED
   error: null,
   limit: 10,
   total: 0,
@@ -131,6 +147,48 @@ export const fetchEmployees = createAsyncThunk<
   }
 );
 
+export const fetchAllEmployees = createAsyncThunk<
+  Employee[], // This thunk will return a single flat array of all employees
+  void,       // It doesn't need any arguments
+  { rejectValue: string, state: { employees: EmployeeState } }
+>(
+  'employees/fetchAllEmployees',
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      // Step 1: Fetch the first page to get total count
+      const limit = getState().employees.limit;
+      const initialResponse = await axiosInstance.get(`/employees/getAll?page=1&limit=${limit}`);
+      const { total, employees: firstPageEmployees } = initialResponse.data;
+
+      const totalPages = Math.ceil(total / limit);
+      
+      // If there's only one page, just return its data
+      if (totalPages <= 1) {
+        return firstPageEmployees;
+      }
+
+      // Step 2: Create promises for all remaining pages (from page 2 onwards)
+      const pagePromises = [];
+      for (let page = 2; page <= totalPages; page++) {
+        pagePromises.push(axiosInstance.get(`/employees/getAll?page=${page}&limit=${limit}`));
+      }
+
+      // Step 3: Fetch all other pages concurrently
+      const responses = await Promise.all(pagePromises);
+      const otherPagesEmployees = responses.flatMap(response => response.data.employees);
+
+      // Step 4: Combine the first page with the rest and return
+      return [...firstPageEmployees, ...otherPagesEmployees];
+
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data?.message || 'Failed to fetch all employees');
+      }
+      return rejectWithValue('An unknown error occurred.');
+    }
+  }
+);
+
 export const fetchEmployeeDetails = createAsyncThunk<
   EmployeeDetail,
   string,
@@ -153,12 +211,14 @@ export const fetchEmployeeDetails = createAsyncThunk<
 export const deleteEmployee = createAsyncThunk<
   string,
   string,
-  { rejectValue: string }
+  { state: RootState; rejectValue: string }
 >(
   'employees/deleteEmployee',
-  async (id, { rejectWithValue }) => {
+  async (id, { dispatch,rejectWithValue }) => {
     try {
       await axiosInstance.delete(`/employees/delete/${id}`);
+      // ✨ On success, dispatch the action to refetch all employees
+      dispatch(fetchAllEmployees());
       return id;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
@@ -172,12 +232,14 @@ export const deleteEmployee = createAsyncThunk<
 export const updateEmployeeStatus = createAsyncThunk<
   Employee,
   { id: string; status: string },
-  { rejectValue: string }
+  { state: RootState; rejectValue: string }
 >(
   'employees/updateEmployeeStatus',
-  async ({ id, status }, { rejectWithValue }) => {
+  async ({ id, status }, { dispatch,rejectWithValue }) => {
     try {
       const response = await axiosInstance.patch(`/employees/status/${id}`, { status });
+      // ✨ On success, dispatch the action to refetch all employees
+      dispatch(fetchAllEmployees());
       return response.data as Employee;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
@@ -219,14 +281,16 @@ export const uploadProfilePicture = createAsyncThunk<
 export const sendInviteEmail = createAsyncThunk<
   { message: string }, 
   string,              
-  { rejectValue: string }
+  { state: RootState; rejectValue: string }
 >(
   'employees/sendInviteEmail',
-  async (employeeCode, { rejectWithValue }) => {
+  async (employeeCode, { dispatch,rejectWithValue }) => {
     try {
       const response = await axiosInstance.post(
         `/employees/sendEmail/${employeeCode}`
       );
+       // ✨ On success, dispatch the action to refetch all employees
+       dispatch(fetchAllEmployees());
       return response.data;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
@@ -277,6 +341,20 @@ const employeeSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+      // ✨ ADDED: Cases for the new fetchAllEmployees thunk
+      .addCase(fetchAllEmployees.pending, (state) => {
+        state.allEmployeesLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllEmployees.fulfilled, (state, action: PayloadAction<Employee[]>) => {
+        state.allEmployeesLoading = false;
+        state.allEmployees = action.payload;
+        state.total = action.payload.length; // Update total to reflect the full count
+      })
+      .addCase(fetchAllEmployees.rejected, (state, action) => {
+        state.allEmployeesLoading = false;
+        state.error = action.payload as string;
+      })
       .addCase(fetchEmployeeDetails.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -291,15 +369,15 @@ const employeeSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(deleteEmployee.fulfilled, (state, action: PayloadAction<string>) => {
-        state.employees = state.employees.filter(
-          (emp) => emp.id !== action.payload
-        );
+        // state.employees = state.employees.filter(
+        //   (emp) => emp.id !== action.payload
+        // );
       })
       .addCase(updateEmployeeStatus.fulfilled, (state, action: PayloadAction<Employee>) => {
-        const index = state.employees.findIndex(emp => emp.id === action.payload.id);
-        if (index !== -1) {
-          state.employees[index] = action.payload;
-        }
+        // const index = state.employees.findIndex(emp => emp.id === action.payload.id);
+        // if (index !== -1) {
+        //   state.employees[index] = action.payload;
+        // }
       })
       .addCase(uploadProfilePicture.pending, (state) => {
         state.loading = true; 

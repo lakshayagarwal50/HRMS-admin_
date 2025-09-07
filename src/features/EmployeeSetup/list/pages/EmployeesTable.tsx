@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import toast from "react-hot-toast"; 
+import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import Table, { type Column } from "../../../../components/common/Table";
 import Modal from "../../../../components/common/NotificationModal";
 import { Filter } from "lucide-react";
 import {
   fetchEmployees,
+  fetchAllEmployees,
   deleteEmployee,
   updateEmployeeStatus,
   setFilters as setReduxFilters,
@@ -61,13 +62,15 @@ const EmployeesTable: React.FC = () => {
   //hooks
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  // const [searchParams, setSearchParams] = useSearchParams();
   // Read the 'page' parameter from the URL, defaulting to 1
-  const currentPageFromUrl = parseInt(searchParams.get("page") || "1", 10);
+  // const currentPageFromUrl = parseInt(searchParams.get("page") || "1", 10);
 
   const {
-    employees: employeesFromStore,
-    loading,
+    // employees: employeesFromStore,
+    // loading,
+    allEmployees: employeesFromStore, // ✨ CHANGED: Use allEmployees
+    allEmployeesLoading: loading,
     error,
     filters: reduxFilters,
     limit,
@@ -88,11 +91,18 @@ const EmployeesTable: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
 
-  const totalPages = Math.ceil(total / limit);
+  // const totalPages = Math.ceil(total / limit);
+
+  // useEffect(() => {
+  //   dispatch(fetchEmployees({ page: currentPageFromUrl, limit }));
+  // }, [dispatch, currentPageFromUrl, limit]);
 
   useEffect(() => {
-    dispatch(fetchEmployees({ page: currentPageFromUrl, limit }));
-  }, [dispatch, currentPageFromUrl, limit]);
+    // Fetch all employees only if the list is empty
+    if (employeesFromStore.length === 0) {
+      dispatch(fetchAllEmployees());
+    }
+  }, [dispatch, employeesFromStore.length]);
 
   useEffect(() => {
     if (error) {
@@ -169,13 +179,13 @@ const EmployeesTable: React.FC = () => {
     });
   }, [employeesData, reduxFilters]);
 
-  const handleNextPage = () => {
-    setSearchParams({ page: `${currentPageFromUrl + 1}` });
-  };
+  // const handleNextPage = () => {
+  //   setSearchParams({ page: `${currentPageFromUrl + 1}` });
+  // };
 
-  const handlePrevPage = () => {
-    setSearchParams({ page: `${currentPageFromUrl - 1}` });
-  };
+  // const handlePrevPage = () => {
+  //   setSearchParams({ page: `${currentPageFromUrl - 1}` });
+  // };
 
   //dropdownactions==5actions
   const handleAction = (actionName: string, employee: Employee) => {
@@ -372,6 +382,8 @@ const EmployeesTable: React.FC = () => {
         data={filteredEmployees}
         columns={columns}
         className="w-[70vw] text-sm"
+        showPagination={true} // ✨ ADDED: Enable client-side pagination
+        showSearch={true}
       />
     );
   };
@@ -381,11 +393,14 @@ const EmployeesTable: React.FC = () => {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Employees</h1>
         <div className="text-sm font-medium">
-          <Link to="/dashboard" className="text-gray-500 hover:text-[#741CDD]">
+          {/* <Link to="/dashboard" className="text-gray-500 hover:text-[#741CDD]">
             Dashboard
-          </Link>
+          </Link> */}
           <span className="text-gray-500 mx-2">/</span>
-          <Link to="/dashboard" className="text-gray-500 hover:text-[#741CDD]">
+          <Link
+            to="/employees/list"
+            className="text-gray-500 hover:text-[#741CDD]"
+          >
             Employee Setup
           </Link>
           <span className="text-gray-500 mx-2">/</span>
@@ -412,7 +427,7 @@ const EmployeesTable: React.FC = () => {
 
         <div className="overflow-x-auto">{renderTableContent()}</div>
 
-        <div className="flex justify-center items-center mt-4 space-x-2">
+        {/* <div className="flex justify-center items-center mt-4 space-x-2">
           <button
             onClick={handlePrevPage}
             disabled={currentPageFromUrl <= 1 || loading}
@@ -438,7 +453,7 @@ const EmployeesTable: React.FC = () => {
           >
             Next
           </button>
-        </div>
+        </div> */}
       </div>
 
       <FilterSidebar

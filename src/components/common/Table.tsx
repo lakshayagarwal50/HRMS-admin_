@@ -1,4 +1,4 @@
-import React, { useState, type ReactNode } from "react";
+import React, { useEffect,useState, type ReactNode } from "react";
 
 export interface Column<T> {
   key: keyof T | "action";
@@ -33,6 +33,11 @@ const Table = <T extends object>({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // 2. Add a useEffect hook to reset the page when the search term changes.
+  useEffect(() => {
+    setCurrentPage(1); // Go back to the first page of results
+  }, [searchTerm]);
 
   const filteredData = data.filter((row) =>
     Object.values(row).some((value) =>
@@ -89,7 +94,6 @@ const Table = <T extends object>({
               }}
               className="border rounded-md pl-8 pr-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            
           </div>
         )}
       </div>
