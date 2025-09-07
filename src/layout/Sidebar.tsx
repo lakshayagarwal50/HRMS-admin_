@@ -44,7 +44,7 @@ interface MenuItem {
 
 const mainMenuItems: MenuItem[] = [
   { label: "Getting Started", icon: Rocket, link: "/getting-started" },
-  { label: "Dashboard", icon: LayoutDashboard, link: "/" },
+  { label: "Dashboard", icon: LayoutDashboard, link: "/dashboard" },
   {
     label: "Employee Setup",
     icon: Users,
