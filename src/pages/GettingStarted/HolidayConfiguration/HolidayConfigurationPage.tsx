@@ -67,7 +67,7 @@ const CreateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => voi
     return;
   }
 
-  dispatch(addHolidayConfiguration({ groupName: name, code, description }));
+  dispatch(addHolidayConfiguration({ name: name, code, description }));
   toast.success('Holiday configuration added successfully!');
   onClose();
 };
@@ -109,7 +109,7 @@ const UpdateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => voi
 
   useEffect(() => {
     if (configData) {
-      setName(configData.groupName);
+      setName(configData.name);
       setCode(configData.code);
       setDescription(configData.description);
     }
@@ -123,7 +123,7 @@ const UpdateHolidayConfiguration: React.FC<{ isOpen: boolean; onClose: () => voi
     return;
   }
 
-  dispatch(updateHolidayConfiguration({ ...configData, groupName: name, code, description }));
+  dispatch(updateHolidayConfiguration({ ...configData, name: name, code, description }));
   toast.success('Holiday configuration updated successfully!');
   onClose();
 };
@@ -187,7 +187,7 @@ const HolidayConfigurationPage: React.FC = () => {
 
   const columns = useMemo<Column<HolidayConfigDisplay>[]>(() => [
     { key: 's_no', header: 'S.No', className: 'w-16 text-center' },
-    { key: 'groupName', header: 'Group Name' },
+    { key: 'name', header: 'Group Name' },
     { key: 'code', header: 'Code' },
     { key: 'description', header: 'Description' },
     {

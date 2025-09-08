@@ -211,7 +211,7 @@
 
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { MoreHorizontal, SlidersHorizontal, X, ServerCrash, RefreshCw } from 'lucide-react';
+import { MoreHorizontal, SlidersHorizontal, X, ServerCrash, RefreshCw, ChevronRight } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 
@@ -383,9 +383,11 @@ const EmployeeLeaveRequestPage: React.FC = () => {
         <div className="flex justify-between items-center flex-wrap gap-4">
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Employee Leaves Request</h1>
-                <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mt-1">
-                    Dashboard / Leave configuration / Employees leave requests
-                </nav>
+                <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mt-1 flex items-center">
+                <span className="hover:text-gray-700">Leave Configuration</span>
+                 <ChevronRight size={16} className="mx-1" />
+                <span className="font-medium text-gray-800">Employee Leaves Request</span>
+          </nav>
             </div>
             <div className="flex items-center gap-4">
                 <button 
