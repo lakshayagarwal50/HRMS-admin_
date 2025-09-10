@@ -35,7 +35,8 @@ const CrystalRunPage: React.FC = () => {
                 <div className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-900">Crystal run</h1>
                     <nav aria-label="Breadcrumb" className="flex items-center text-sm text-gray-500">
-                        <Link to="/dashboard" className="hover:text-gray-700">Dashboard</Link>
+                        <span className="font-medium text-gray-800">Payroll</span>
+                        
                         <ChevronRight size={16} className="mx-2" />
                         <span className="font-medium text-gray-800">Crystal Run</span>
                     </nav>
