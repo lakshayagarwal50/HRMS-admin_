@@ -1,4 +1,3 @@
-
 import type { FormField } from "./GenericForm";
 
 export const generalInfoFields: FormField[] = [
@@ -115,6 +114,15 @@ export const bankDetailsFields: FormField[] = [
     type: "text",
     required: true,
     spanFull: true,
+    allowedChars: "alpha-space",
+    validation: (value) => {
+      // This regex ensures the value contains only letters (upper/lowercase) and spaces.
+      const regex = /^[a-zA-Z\s]+$/;
+      if (!regex.test(value)) {
+        return "Bank name can only contain letters and spaces.";
+      }
+      return null; // Return null if validation passes
+    },
   },
   {
     name: "branchName",
@@ -122,6 +130,13 @@ export const bankDetailsFields: FormField[] = [
     type: "text",
     required: true,
     spanFull: true,
+    allowedChars: "alpha-space",
+    validation: (value) => {
+      if (!value || value.trim() === "") {
+        return "Branch name is required.";
+      }
+      return null;
+    },
   },
   {
     name: "accountName",
@@ -129,6 +144,13 @@ export const bankDetailsFields: FormField[] = [
     type: "text",
     required: true,
     spanFull: true,
+    allowedChars: "alpha-space",
+    validation: (value) => {
+      if (!value || value.trim() === "") {
+        return "Account name is required.";
+      }
+      return null;
+    },
   },
   {
     name: "accountType",
@@ -147,6 +169,15 @@ export const bankDetailsFields: FormField[] = [
     type: "text",
     required: true,
     spanFull: true,
+    allowedChars: "numeric",
+    validation: (value) => {
+      if (!value) return "Account number is required.";
+      const accNumRegex = /^\d{10}$/;
+      if (!accNumRegex.test(value)) {
+        return "Account number must be exactly 10 digits.";
+      }
+      return null;
+    },
   },
   {
     name: "ifscCode",
@@ -154,10 +185,18 @@ export const bankDetailsFields: FormField[] = [
     type: "text",
     required: true,
     spanFull: true,
+    allowedChars: "alphanumeric",
+    validation: (value) => {
+      if (!value) return "IFSC code is required.";
+      // Validates format like SBIN0123456
+      const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+      if (!ifscRegex.test(value.toUpperCase())) {
+        return "Please enter a valid 11-character IFSC code.";
+      }
+      return null;
+    },
   },
 ];
-
-
 
 export const loanInfoFields: FormField[] = [
   {
@@ -193,8 +232,6 @@ export const loanInfoFields: FormField[] = [
     placeholder: "Urgent requirement",
   },
 ];
-
-
 
 export const approveLoanFields: FormField[] = [
   { name: "loanAmount", label: "Loan Amount", type: "number", required: true },

@@ -172,3 +172,4 @@ const authSlice = createSlice({
 
 export const { checkAuthStatus } = authSlice.actions;
 export default authSlice.reducer;
+

@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { createReportAPI } from "../../../store/slice/reportSlice"; 
-import type { AppDispatch, RootState } from "../../../store/store"; 
+import { createReportAPI } from "../../../store/slice/reportSlice";
+import type { AppDispatch, RootState } from "../../../store/store";
 
 //options for report type
 const reportTypeOptions = [
@@ -20,7 +20,7 @@ const reportTypeOptions = [
 
 //main body
 const CreateReport: React.FC = () => {
-  const navigate = useNavigate();//link component
+  const navigate = useNavigate(); //link component
   const dispatch = useDispatch<AppDispatch>(); //This hook gives you the dispatch function, which is your "waiter" for sending actions to the Redux store
   const { status, error } = useSelector((state: RootState) => state.reports); //read data from the Redux store.
 
@@ -29,17 +29,23 @@ const CreateReport: React.FC = () => {
     name: "",
     description: "",
   });
-
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+
+    // Regex to test for letters and spaces only
+    const regex = /^[A-Za-z\s]*$/;
+
+    // Only update the state if the new value matches the regex
+    if (regex.test(value)) {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

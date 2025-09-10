@@ -2,7 +2,6 @@ import React, { useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 
-
 import type { AppDispatch, RootState } from "../../../../store/store";
 import { uploadProfilePicture } from "../../../../store/slice/employeeSlice";
 import type { EmployeeDetail } from "../../../../store/slice/employeeSlice";

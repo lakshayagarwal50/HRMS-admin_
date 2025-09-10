@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
 
 import type { AppDispatch, RootState } from "../../../../store/store";
 import { fetchEmployeeDetails } from "../../../../store/slice/employeeSlice";
@@ -55,6 +55,30 @@ import {
   type PreviousJob,
 } from "../../../../store/slice/previousJobSlice";
 
+import {
+  fetchLocations,
+  type Location,
+} from "../../../../store/slice/locationSlice"; // Add this
+
+import {
+  fetchDepartments,
+  type Department,
+} from "../../../../store/slice/departmentSlice";
+
+import {
+  fetchSalaryStructures,
+  type SalaryStructure,
+} from "../../../../store/slice/salaryStructureSlice";
+
+import {
+  fetchEmployeeDesignations,
+  resetEmployeeDesignations,
+  type Designation,
+} from "../../../../store/slice/employeeDesignationSlice";
+
+import { fetchRoles, type Role } from "../../../../store/slice/roleSlice";
+import { useMemo } from "react"; // Add this
+
 const EmployeeDetailHeaderSkeleton: React.FC = () => (
   <header className="mb-6 animate-pulse">
     <div className="h-8 bg-gray-200 rounded-md w-1/3 mb-2"></div>
@@ -62,9 +86,8 @@ const EmployeeDetailHeaderSkeleton: React.FC = () => (
   </header>
 );
 
-
 const ProfileSidebarSkeleton: React.FC = () => {
-  const SKELETON_ITEM_COUNT = 12; 
+  const SKELETON_ITEM_COUNT = 12;
   return (
     <div className="w-full md:w-[260px] font-sans shrink-0 animate-pulse">
       <ul className="list-none m-0 p-0 overflow-hidden rounded-lg border-2 border-gray-200">
@@ -92,6 +115,60 @@ const MainContentSkeleton: React.FC = () => (
   </div>
 );
 
+// const generalInfoFields: FormField[] = [
+//   {
+//     name: "title",
+//     label: "Title",
+//     type: "select",
+//     required: true,
+//     options: [
+//       { value: "MR", label: "MR" },
+//       { value: "MRS", label: "MRS" },
+//     ],
+//   },
+//   { name: "firstName", label: "First Name", type: "text", required: true },
+//   { name: "lastName", label: "Last Name", type: "text", required: true },
+//   { name: "empCode", label: "Employee ID", type: "text", required: true },
+//   {
+//     name: "status",
+//     label: "Status",
+//     type: "select",
+//     required: true,
+//     options: [
+//       { value: "Active", label: "Active" },
+//       { value: "Inactive", label: "Inactive" },
+//     ],
+//   },
+//   {
+//     name: "gender",
+//     label: "Gender",
+//     type: "select",
+//     required: true,
+//     options: [
+//       { value: "Male", label: "Male" },
+//       { value: "Female", label: "Female" },
+//     ],
+//   },
+//   { name: "phoneNum", label: "Phone Number", type: "text", required: true },
+//   {
+//     name: "maritalStatus",
+//     label: "Marital Status",
+//     type: "select",
+//     required: true,
+//     options: [
+//       { value: "Single", label: "Single" },
+//       { value: "Married", label: "Married" },
+//     ],
+//   },
+//   {
+//     name: "primaryEmail",
+//     label: "Email Primary",
+//     type: "email",
+//     required: true,
+//     spanFull: true,
+//   },
+// ];
+
 const generalInfoFields: FormField[] = [
   {
     name: "title",
@@ -102,10 +179,45 @@ const generalInfoFields: FormField[] = [
       { value: "MR", label: "MR" },
       { value: "MRS", label: "MRS" },
     ],
+    disabled: false, // Disabled
   },
-  { name: "firstName", label: "First Name", type: "text", required: true },
-  { name: "lastName", label: "Last Name", type: "text", required: true },
-  { name: "empCode", label: "Employee ID", type: "text", required: true },
+  {
+    name: "firstName",
+    label: "First Name",
+    type: "text",
+    allowedChars: "alpha-space",
+    required: true,
+    validation: (value) => {
+      if (!value || value.trim() === "") {
+        return "First name is required.";
+      }
+      if (value.length < 2) {
+        return "First name must be at least 2 characters long.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "lastName",
+    label: "Last Name",
+    type: "text",
+    allowedChars: "alpha-space",
+    required: true,
+    validation: (value) => {
+      true;
+      if (!value || value.trim() === "") {
+        return "Last name is required.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "empCode",
+    label: "Employee ID",
+    type: "text",
+    required: true,
+    disabled: true, // Disabled
+  },
   {
     name: "status",
     label: "Status",
@@ -115,6 +227,7 @@ const generalInfoFields: FormField[] = [
       { value: "Active", label: "Active" },
       { value: "Inactive", label: "Inactive" },
     ],
+    disabled: false, // Disabled
   },
   {
     name: "gender",
@@ -125,8 +238,24 @@ const generalInfoFields: FormField[] = [
       { value: "Male", label: "Male" },
       { value: "Female", label: "Female" },
     ],
+    disabled: false,
   },
-  { name: "phoneNum", label: "Phone Number", type: "text", required: true },
+  {
+    name: "phoneNum",
+    label: "Phone Number",
+    type: "text",
+    required: true,
+    disabled: false,
+    allowedChars: "numeric",
+    validation: (value) => {
+      if (!value) return "Phone number is required.";
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(value)) {
+        return "Phone number must be exactly 10 digits.";
+      }
+      return null;
+    },
+  },
   {
     name: "maritalStatus",
     label: "Marital Status",
@@ -136,6 +265,7 @@ const generalInfoFields: FormField[] = [
       { value: "Single", label: "Single" },
       { value: "Married", label: "Married" },
     ],
+    disabled: false, // Disabled
   },
   {
     name: "primaryEmail",
@@ -143,61 +273,71 @@ const generalInfoFields: FormField[] = [
     type: "email",
     required: true,
     spanFull: true,
+    disabled: false, // Disabled
+    validation: (value) => {
+      if (!value) return "Email is required.";
+      // Standard regex for basic email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        return "Please enter a valid email address.";
+      }
+      return null;
+    },
   },
 ];
 
-const professionalInfoFields: FormField[] = [
-  {
-    name: "location",
-    label: "Location",
-    type: "select",
-    options: [
-      { value: "Noida", label: "Noida" },
-      { value: "Gurgaon", label: "Gurgaon" },
-    ],
-  },
-  {
-    name: "department",
-    label: "Department",
-    type: "select",
-    options: [
-      { value: "HR", label: "HR" },
-      { value: "Design", label: "Design" },
-    ],
-  },
-  { name: "designation", label: "Designation", type: "text" },
-  {
-    name: "payslipComponent",
-    label: "Payslip Component",
-    type: "select",
-    options: [
-      { value: "Default", label: "Default" },
-      { value: "Intern", label: "Intern" },
-    ],
-  },
-  {
-    name: "taxRegime",
-    label: "Tax Regime",
-    type: "select",
-    options: [
-      { value: "Old", label: "Old" },
-      { value: "New", label: "New" },
-    ],
-  },
-  {
-    name: "holidayGroup",
-    label: "Holiday Group",
-    type: "select",
-    options: [{ value: "National Holidays", label: "National Holidays" }],
-  },
-  { name: "role", label: "Role", type: "text" },
-  { name: "reportingManager", label: "Reporting Manager", type: "text" },
-  { name: "workWeek", label: "Work Pattern", type: "text" },
-  { name: "ctcAnnual", label: "Yearly CTC", type: "number" },
-  { name: "rentalCity", label: "Rental City", type: "text" },
-  { name: "joiningDate", label: "Joining Date", type: "date" },
-  { name: "leavingDate", label: "Leaving Date", type: "date" },
-];
+// const professionalInfoFields: FormField[] = [
+//   {
+//     name: "location",
+//     label: "Location",
+//     type: "select",
+//     options: [
+//       { value: "Noida", label: "Noida" },
+//       { value: "Gurgaon", label: "Gurgaon" },
+//     ],
+//   },
+//   {
+//     name: "department",
+//     label: "Department",
+//     type: "select",
+//     options: [
+//       { value: "HR", label: "HR" },
+//       { value: "Design", label: "Design" },
+//     ],
+//   },
+//   { name: "designation", label: "Designation", type: "text" },
+//   {
+//     name: "payslipComponent",
+//     label: "Payslip Component",
+//     type: "select",
+//     options: [
+//       { value: "Default", label: "Default" },
+//       { value: "Intern", label: "Intern" },
+//     ],
+//   },
+//   {
+//     name: "taxRegime",
+//     label: "Tax Regime",
+//     type: "select",
+//     options: [
+//       { value: "Old", label: "Old" },
+//       { value: "New", label: "New" },
+//     ],
+//   },
+//   {
+//     name: "holidayGroup",
+//     label: "Holiday Group",
+//     type: "select",
+//     options: [{ value: "National Holidays", label: "National Holidays" }],
+//   },
+//   { name: "role", label: "Role", type: "text" },
+//   { name: "reportingManager", label: "Reporting Manager", type: "text" },
+//   { name: "workWeek", label: "Work Pattern", type: "text" },
+//   { name: "ctcAnnual", label: "Yearly CTC", type: "number" },
+//   { name: "rentalCity", label: "Rental City", type: "text" },
+//   { name: "joiningDate", label: "Joining Date", type: "date" },
+//   { name: "leavingDate", label: "Leaving Date", type: "date" },
+// ];
 
 const bankDetailsFields: FormField[] = [
   {
@@ -206,6 +346,18 @@ const bankDetailsFields: FormField[] = [
     type: "text",
     required: true,
     spanFull: true,
+    allowedChars: "alpha-space",
+    validation: (value) => {
+      // If the field has a value, check its format.
+      // The 'required' check is handled by the form itself.
+      if (value) {
+        const regex = /^[a-zA-Z\s]+$/;
+        if (!regex.test(value)) {
+          return "Bank name can only contain letters and spaces.";
+        }
+      }
+      return null; // If empty or valid, there is no error.
+    },
   },
   {
     name: "branchName",
@@ -238,6 +390,15 @@ const bankDetailsFields: FormField[] = [
     type: "text",
     required: true,
     spanFull: true,
+    allowedChars: "numeric",
+    validation: (value) => {
+      if (!value) return "Account number is required.";
+      const accNumRegex = /^\d{10}$/;
+      if (!accNumRegex.test(value)) {
+        return "Account number must be exactly 10 digits.";
+      }
+      return null;
+    },
   },
   {
     name: "ifscCode",
@@ -245,6 +406,16 @@ const bankDetailsFields: FormField[] = [
     type: "text",
     required: true,
     spanFull: true,
+    allowedChars: "alphanumeric",
+    validation: (value) => {
+      if (!value) return "IFSC code is required.";
+      // Validates format like SBIN0123456
+      const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+      if (!ifscRegex.test(value.toUpperCase())) {
+        return "Please enter a valid 11-character IFSC code.";
+      }
+      return null;
+    },
   },
 ];
 
@@ -348,6 +519,19 @@ const editLoanFields: FormField[] = [
     required: true,
     placeholder: "e.g., 400000",
     spanFull: true,
+    allowedChars: "numeric",
+    validation: (value) => {
+      // Convert the string value to a floating-point number
+      const numberValue = parseFloat(value);
+
+      // Check if the value is a valid number and is less than 0
+      if (!isNaN(numberValue) && numberValue < 0) {
+        return "Amount cannot be negative.";
+      }
+
+      // Return null or an empty string if there is no error
+      return null;
+    },
   },
   {
     name: "staffNote",
@@ -355,6 +539,25 @@ const editLoanFields: FormField[] = [
     type: "textarea",
     spanFull: true,
     placeholder: "Updated based on limit",
+    allowedChars: "alpha-space",
+    validation: (value) => {
+      // Ensure the value exists before checking its length
+      if (!value) {
+        // This can be handled by a separate 'required' check,
+        // but it's good practice to be safe.
+        return "Note is required.";
+      }
+
+      const len = value.length;
+
+      // Check if the length is outside the allowed range [10, 30]
+      if (len < 10 || len > 30) {
+        return `Must be 10-30 characters long. (Current: ${len})`;
+      }
+
+      // Return null or an empty string if validation passes
+      return null;
+    },
   },
 ];
 
@@ -368,8 +571,40 @@ const pfEsiFields: FormField[] = [
       { value: false, label: "No" },
     ],
   },
-  { name: "pfNum", label: "Employee PF Number", type: "text" },
-  { name: "uanNum", label: "Employee UAN Number", type: "text" },
+  {
+    name: "pfNum",
+    label: "Employee PF Number",
+    type: "text",
+    allowedChars: "alphanumeric",
+    validation: (value) => {
+      // This validation runs if the field has a value.
+      if (value) {
+        // Regex for 2 letters followed by 9 numbers.
+        const regex = /^[A-Z]{2}\d{9}$/;
+        if (!regex.test(value.toUpperCase())) {
+          return "Enter a valid 11-character PF number (e.g., PF123456789).";
+        }
+      }
+      return null; // No error if the field is empty or valid.
+    },
+  },
+  {
+    name: "uanNum",
+    label: "Employee UAN Number",
+    type: "text",
+    allowedChars: "numeric",
+    validation: (value) => {
+      // This validation runs if the field has a value.
+      if (value) {
+        // Regex for exactly 12 digits.
+        const regex = /^\d{12}$/;
+        if (!regex.test(value)) {
+          return "Please enter a valid 12-digit UAN.";
+        }
+      }
+      return null; // No error if the field is empty or valid.
+    },
+  },
   {
     name: "employeerPfEnable",
     label: "Employer PF Enabled",
@@ -388,7 +623,23 @@ const pfEsiFields: FormField[] = [
       { value: false, label: "No" },
     ],
   },
-  { name: "esiNum", label: "ESI Number", type: "text" },
+  {
+    name: "esiNum",
+    label: "ESI Number",
+    type: "text",
+    allowedChars: "alphanumeric",
+    validation: (value) => {
+      // This validation runs if the field has a value.
+      if (value) {
+        // Regex for 3 letters followed by 6 numbers.
+        const regex = /^[A-Z]{3}\d{6}$/;
+        if (!regex.test(value.toUpperCase())) {
+          return "Enter a valid 9-character ESI number (e.g., ESI123456).";
+        }
+      }
+      return null;
+    },
+  },
   {
     name: "professionalTax",
     label: "Professional Tax Enabled",
@@ -412,6 +663,26 @@ const pfEsiFields: FormField[] = [
 export default function EmployeeDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+
+  const { items: locations, status: locationStatus } = useSelector(
+    (state: RootState) => state.locations
+  );
+
+  const { items: departments, status: departmentStatus } = useSelector(
+    (state: RootState) => state.departments
+  );
+
+  // Add this selector for salary structures
+  const { data: salaryStructures } = useSelector(
+    (state: RootState) => state.salaryStructures
+  );
+
+  const { items: roles } = useSelector((state: RootState) => state.roles);
+
+  const { items: designations } = useSelector(
+    (state: RootState) => state.employeeDesignations
+  );
+
   const { employeeCode } = useParams<{ employeeCode: string }>();
   const location = useLocation();
   //get mainEmployeeId and payslipComponent from location state
@@ -434,6 +705,109 @@ export default function EmployeeDetailPage() {
   const [confirmationAction, setConfirmationAction] = useState<
     "approve" | "decline" | null
   >(null);
+
+  const professionalInfoFields: FormField[] = useMemo(
+    () => [
+      {
+        name: "location",
+        label: "Location",
+        type: "select",
+        // Map the fetched locations to the required { value, label } format
+        options:
+          locations.map((loc: Location) => ({
+            value: loc.city,
+            label: loc.city,
+          })) || [], // Use an empty array as a fallback
+      },
+      {
+        name: "department",
+        label: "Department",
+        type: "select",
+        options:
+          departments.map((dept: Department) => ({
+            value: dept.name,
+            label: dept.name,
+          })) || [],
+      },
+      {
+        name: "designation",
+        label: "Designation",
+        type: "select",
+        options:
+          designations.map((des: Designation) => ({
+            value: des.designationName,
+            label: des.designationName,
+          })) || [],
+      },
+      {
+        name: "payslipComponent",
+        label: "Payslip Component",
+        type: "select",
+
+        options:
+          salaryStructures.map((structure: SalaryStructure) => ({
+            value: structure.groupName,
+            label: structure.groupName,
+          })) || [],
+      },
+      {
+        name: "taxRegime",
+        label: "Tax Regime",
+        type: "select",
+        options: [
+          { value: "Old", label: "Old" },
+          { value: "New", label: "New" },
+        ],
+      },
+      {
+        name: "holidayGroup",
+        label: "Holiday Group",
+        type: "select",
+        options: [{ value: "National Holidays", label: "National Holidays" }],
+      },
+      {
+        name: "role",
+        label: "Role",
+        type: "select",
+        options:
+          roles.map((role: Role) => ({
+            value: role.name,
+            label: role.name,
+          })) || [],
+      },
+      {
+        name: "reportingManager",
+        label: "Reporting Manager",
+        type: "select",
+        options: [
+          { value: "Kushal Singh (1001)", label: "Kushal Singh (1001)" },
+          { value: "Rohit Sharma (1002)", label: "Rohit Sharma (1002)" },
+          { value: "Jane Doe (1003)", label: "Jane Doe (1003)" },
+        ],
+      },
+      {
+        name: "workWeek",
+        label: "Work Pattern",
+        type: "select",
+        options: [
+          { value: "Alternate", label: "Alternate" },
+          { value: "5 days Week", label: "5 days Week" },
+        ],
+      },
+      { name: "ctcAnnual", label: "Yearly CTC", type: "number" },
+      { name: "rentalCity", label: "Rental City", type: "text" },
+      { name: "joiningDate", label: "Joining Date", type: "date" },
+      { name: "leavingDate", label: "Leaving Date", type: "date" },
+    ],
+    [locations] // This dependency ensures the array is only rebuilt when locations data changes
+  );
+
+  useEffect(() => {
+    dispatch(fetchLocations());
+    dispatch(fetchDepartments());
+    dispatch(fetchSalaryStructures());
+    dispatch(fetchRoles());
+  }, [dispatch]);
 
   useEffect(() => {
     if (employeeCode) {
@@ -461,6 +835,14 @@ export default function EmployeeDetailPage() {
     return item || "General Info";
   };
   const handleEdit = (section: string, itemToEdit?: any) => {
+    if (
+      section === "professional" &&
+      currentEmployee?.professional.department
+    ) {
+      dispatch(
+        fetchEmployeeDesignations(currentEmployee.professional.department)
+      );
+    }
     setEditingSection(section);
     if (section === "loan_and_advances" && itemToEdit) {
       setEditingLoan(itemToEdit as LoanDetails);
@@ -856,6 +1238,7 @@ export default function EmployeeDetailPage() {
     const handleCancel = () => {
       setEditingSection(null);
       setEditingLoan(null);
+      dispatch(resetEmployeeDesignations());
     };
 
     switch (editingSection) {
@@ -1086,11 +1469,11 @@ export default function EmployeeDetailPage() {
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">{employeeName}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            <Link to="/dashboard" className="hover:text-[#741CDD]">
+            {/* <Link to="/dashboard" className="hover:text-[#741CDD]">
               Dashboard
-            </Link>
-            <span className="mx-2">/</span>
-            <Link to="/dashboard" className="hover:text-[#741CDD]">
+            </Link> */}
+            {/* <span className="mx-2">/</span> */}
+            <Link to="/employees/list" className="hover:text-[#741CDD]">
               Employee Setup
             </Link>
             <span className="mx-2">/</span>
@@ -1098,9 +1481,18 @@ export default function EmployeeDetailPage() {
               List
             </Link>
             <span className="mx-2">/</span>
-            <Link to={`/employees/list`} className="hover:text-[#741CDD]">
+            {/* <Link to={`/employees/list`} className="hover:text-[#741CDD]">
               Detail
-            </Link>
+            </Link> */}
+            <button
+              type="button"
+              onClick={() => {
+                // put your logic here (e.g., open detail section, set state)
+              }}
+              className="hover:text-[#741CDD]"
+            >
+              Detail
+            </button>
             <span className="mx-2">/</span>
             <span className="text-[#741CDD] font-medium">
               {getSectionTitle()}

@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { CalendarDays } from "lucide-react";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
 
+// Make sure these import paths are correct for your project
+import { type AppDispatch, type RootState } from "../../../../store/store"; // Adjust path if needed
+import { fetchDepartments } from "../../../../store/slice/departmentSlice"; // Adjust path if needed
+import {
+  fetchEmployeeDesignations,
+  resetEmployeeDesignations,
+} from "../../../../store/slice/employeeDesignationSlice"; // Adjust path if needed
+
+// 1. Updated Filters interface to support arrays for multi-select
 interface Filters {
   startDate: string;
   endDate: string;
-  department: string;
-  designation: string;
+  department: string[]; // Changed
+  designation: string[]; // Changed
   location: string;
 }
 
@@ -18,7 +28,6 @@ interface FilterSidebarProps {
   onClear: () => void;
 }
 
-//main body
 const FilterSidebar: React.FC<FilterSidebarProps> = ({
   initialFilters,
   isOpen,
@@ -27,40 +36,39 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   onClear,
 }) => {
   const [localFilters, setLocalFilters] = useState(initialFilters);
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
+  // 2. Connect to Redux store
+  const dispatch = useDispatch<AppDispatch>();
+  const { items: departmentOptions, status: departmentStatus } = useSelector(
+    (state: RootState) => state.departments
+  );
+  const { items: designationOptions, status: designationStatus } = useSelector(
+    (state: RootState) => state.employeeDesignations
+  );
+
+  // 3. Fetch departments when the sidebar opens
+  useEffect(() => {
+    if (isOpen && departmentStatus === "idle") {
+      dispatch(fetchDepartments());
+    }
+  }, [isOpen, departmentStatus, dispatch]);
+
+  // 4. Fetch designations whenever selected departments change
+  useEffect(() => {
+    dispatch(resetEmployeeDesignations()); // Clear old designations
+
+    if (localFilters.department.length > 0) {
+      // Fetch new designations for each selected department
+      localFilters.department.forEach((deptName) => {
+        dispatch(fetchEmployeeDesignations(deptName));
+      });
+    }
+  }, [localFilters.department, dispatch]);
+
+  // Sync with parent component's filters
   useEffect(() => {
     setLocalFilters(initialFilters);
-    if (initialFilters.startDate || initialFilters.endDate) {
-      setActiveFilter("date");
-    } else if (initialFilters.department !== "All") {
-      setActiveFilter("department");
-    } else if (initialFilters.designation !== "All") {
-      setActiveFilter("designation");
-    } else if (initialFilters.location) {
-      setActiveFilter("location");
-    } else {
-      setActiveFilter(null);
-    }
-  }, [initialFilters, isOpen]);
-
-  const departmentOptions = [
-    "All",
-    "Automation",
-    "IT",
-    "Testing",
-    "Development",
-    "Finance",
-    "HR",
-    "Design",
-  ];
-  const designationOptions = [
-    "All",
-    "Manager",
-    "Team member",
-    "Snr. HR",
-    "Junior HR",
-  ];
+  }, [initialFilters]);
 
   if (!isOpen) {
     return null;
@@ -68,16 +76,14 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
   const handleClear = () => {
     onClear();
-    setActiveFilter(null);
     toast("All filters have been cleared.", {
-      icon: "ℹ️", 
+      icon: "ℹ️",
       className: "bg-blue-50 text-blue-800",
     });
     onClose();
   };
 
   const handleApply = () => {
-    
     if (
       localFilters.startDate &&
       localFilters.endDate &&
@@ -86,9 +92,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       toast.error("End date cannot be before the start date.", {
         className: "bg-red-50 text-red-800",
       });
-      return; 
+      return;
     }
-
     onApply(localFilters);
     toast.success("Filters applied successfully!", {
       className: "bg-green-50 text-green-800",
@@ -96,10 +101,27 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     onClose();
   };
 
-  const getSectionClasses = (filterName: string) => {
-    return activeFilter && activeFilter !== filterName
-      ? "opacity-50 pointer-events-none"
-      : "";
+  // 5. Handler to toggle department selection
+  const handleDepartmentToggle = (deptName: string) => {
+    const newDepartments = localFilters.department.includes(deptName)
+      ? localFilters.department.filter((d) => d !== deptName)
+      : [...localFilters.department, deptName];
+
+    // Reset designations when departments change
+    setLocalFilters({
+      ...localFilters,
+      department: newDepartments,
+      designation: [],
+    });
+  };
+
+  // 6. Handler to toggle designation selection
+  const handleDesignationToggle = (desigName: string) => {
+    const newDesignations = localFilters.designation.includes(desigName)
+      ? localFilters.designation.filter((d) => d !== desigName)
+      : [...localFilters.designation, desigName];
+
+    setLocalFilters({ ...localFilters, designation: newDesignations });
   };
 
   return (
@@ -114,9 +136,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         <h2 className="text-lg font-semibold mb-4 text-gray-800">Filter</h2>
 
         <div className="flex-grow overflow-y-auto">
-          <div
-            className={`mb-4 transition-opacity ${getSectionClasses("date")}`}
-          >
+          {/* --- Date Section --- */}
+          <div className="mb-4 transition-opacity">
             <label className="block font-medium text-sm uppercase text-[#741CDD] mb-2">
               Joining Date
             </label>
@@ -124,13 +145,12 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               <input
                 type="date"
                 value={localFilters.startDate}
-                onChange={(e) => {
+                onChange={(e) =>
                   setLocalFilters({
                     ...localFilters,
                     startDate: e.target.value,
-                  });
-                  setActiveFilter("date");
-                }}
+                  })
+                }
                 className="w-full border border-gray-300 rounded-md pl-3 pr-10 py-2"
               />
               <CalendarDays
@@ -145,10 +165,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               <input
                 type="date"
                 value={localFilters.endDate}
-                onChange={(e) => {
-                  setLocalFilters({ ...localFilters, endDate: e.target.value });
-                  setActiveFilter("date");
-                }}
+                onChange={(e) =>
+                  setLocalFilters({ ...localFilters, endDate: e.target.value })
+                }
                 className="w-full border border-gray-300 rounded-md pl-3 pr-10 py-2"
               />
               <CalendarDays
@@ -158,75 +177,74 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
             </div>
           </div>
 
-          <div
-            className={`mb-4 transition-opacity ${getSectionClasses(
-              "department"
-            )}`}
-          >
+          {/* --- Department Section --- */}
+          <div className="mb-4 transition-opacity">
             <label className="block font-medium text-sm uppercase text-[#741CDD] mb-2">
               Department
             </label>
             <div className="flex flex-col gap-2">
-              {departmentOptions.map((dept) => (
-                <button
-                  key={dept}
-                  onClick={() => {
-                    setLocalFilters({ ...localFilters, department: dept });
-                    setActiveFilter("department");
-                  }}
-                  className={`px-4 py-2 rounded-md text-sm w-full text-left ${
-                    localFilters.department === dept
-                      ? "bg-[#741CDD] text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  }`}
-                >
-                  {dept}
-                </button>
-              ))}
+              {departmentStatus === "loading" && <p>Loading...</p>}
+              {departmentStatus === "succeeded" &&
+                departmentOptions.map((dept) => (
+                  <button
+                    key={dept.id}
+                    onClick={() => handleDepartmentToggle(dept.name)}
+                    className={`px-4 py-2 rounded-md text-sm w-full text-left ${
+                      localFilters.department.includes(dept.name)
+                        ? "bg-[#741CDD] text-white"
+                        : "bg-gray-100 hover:bg-gray-200"
+                    }`}
+                  >
+                    {dept.name}
+                  </button>
+                ))}
             </div>
           </div>
-          <div
-            className={`mb-4 transition-opacity ${getSectionClasses(
-              "designation"
-            )}`}
-          >
+
+          {/* --- Designation Section --- */}
+          <div className="mb-4 transition-opacity">
             <label className="block font-medium text-sm uppercase text-[#741CDD] mb-2">
               Designation
             </label>
             <div className="flex flex-col gap-2">
-              {designationOptions.map((desig) => (
-                <button
-                  key={desig}
-                  onClick={() => {
-                    setLocalFilters({ ...localFilters, designation: desig });
-                    setActiveFilter("designation");
-                  }}
-                  className={`px-4 py-2 rounded-md text-sm w-full text-left ${
-                    localFilters.designation === desig
-                      ? "bg-[#741CDD] text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  }`}
-                >
-                  {desig}
-                </button>
-              ))}
+              {localFilters.department.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  Select a department to see designations.
+                </p>
+              ) : designationStatus === "loading" ? (
+                <p>Loading...</p>
+              ) : designationStatus === "succeeded" &&
+                designationOptions.length > 0 ? (
+                designationOptions.map((desig) => (
+                  <button
+                    key={desig.id}
+                    onClick={() => handleDesignationToggle(desig.name)}
+                    className={`px-4 py-2 rounded-md text-sm w-full text-left ${
+                      localFilters.designation.includes(desig.name)
+                        ? "bg-[#741CDD] text-white"
+                        : "bg-gray-100 hover:bg-gray-200"
+                    }`}
+                  >
+                    {desig.name}
+                  </button>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No designations found.</p>
+              )}
             </div>
           </div>
-          <div
-            className={`mb-4 transition-opacity ${getSectionClasses(
-              "location"
-            )}`}
-          >
+
+          {/* --- Location Section --- */}
+          <div className="mb-4 transition-opacity">
             <label className="block font-medium text-sm uppercase text-[#741CDD] mb-2">
               Location
             </label>
             <input
               type="text"
               value={localFilters.location}
-              onChange={(e) => {
-                setLocalFilters({ ...localFilters, location: e.target.value });
-                setActiveFilter("location");
-              }}
+              onChange={(e) =>
+                setLocalFilters({ ...localFilters, location: e.target.value })
+              }
               className="w-full border border-gray-300 rounded-md px-3 py-2"
               placeholder="e.g., Delhi"
             />

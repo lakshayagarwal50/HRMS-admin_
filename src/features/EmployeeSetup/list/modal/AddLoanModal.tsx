@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, type FormEvent } from "react";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
 
 interface LoanFormData {
   empName: string;
@@ -24,19 +23,59 @@ export default function AddLoanModal({
 }: AddLoanModalProps) {
   const [formData, setFormData] = useState<LoanFormData>(initialState);
 
+  const [errors, setErrors] = useState({
+    empName: "",
+    amountReq: "",
+    note: "",
+    staffNote: "",
+  });
+
   useEffect(() => {
     if (isOpen) {
       setFormData(initialState);
     }
   }, [isOpen, initialState]);
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
+    // 1. Update the form data first
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
+    }));
+
+    // 2. Perform validation and update errors
+    let errorMessage = "";
+    switch (name) {
+      case "empName":
+        // Rule: Only letters and spaces allowed
+        if (value && !/^[A-Za-z\s]+$/.test(value)) {
+          errorMessage = "Only letters and spaces are allowed.";
+        }
+        break;
+      case "amountReq":
+        // Rule: Must be a positive number or 0
+        if (value && parseFloat(value) < 0) {
+          errorMessage = "Amount must be 0 or greater.";
+        }
+        break;
+      case "note":
+      case "staffNote":
+        // Rule: Min 10 and Max 30 characters
+        if (value && (value.length < 10 || value.length > 30)) {
+          errorMessage = `Must be between 10 and 30 characters. (Current: ${value.length})`;
+        }
+        break;
+      default:
+        break;
+    }
+
+    // 3. Set the error message for the specific field
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: errorMessage,
     }));
   };
 
@@ -51,14 +90,14 @@ export default function AddLoanModal({
       toast.error("Please fill out all required fields.", {
         className: "bg-orange-50 text-orange-800",
       });
-      return; 
+      return;
     }
 
     if (Number(formData.amountReq) <= 0) {
       toast.error("Requested amount must be greater than zero.", {
         className: "bg-orange-50 text-orange-800",
       });
-      return; 
+      return;
     }
 
     onSubmit(formData);
@@ -113,9 +152,12 @@ export default function AddLoanModal({
                 id="empName"
                 name="empName"
                 value={formData.empName}
-                readOnly
+                onChange={handleChange}
                 className="mt-1 block w-full border-0 border-b border-gray-300 bg-slate-50 py-2 px-1 sm:text-sm text-gray-500"
               />
+              {errors.empName && (
+                <p className="mt-1 text-xs text-red-600">{errors.empName}</p>
+              )}
             </div>
             <div>
               <label
@@ -131,9 +173,13 @@ export default function AddLoanModal({
                 value={formData.amountReq}
                 onChange={handleChange}
                 placeholder="e.g., 500000"
+                min={0}
                 required
                 className={commonInputClasses}
               />
+              {errors.amountReq && (
+                <p className="mt-1 text-xs text-red-600">{errors.amountReq}</p>
+              )}
             </div>
             <div>
               <label
@@ -151,7 +197,10 @@ export default function AddLoanModal({
                 placeholder="e.g., Need for home repairs"
                 required
                 className={commonInputClasses}
-              />
+              />{" "}
+              {errors.note && (
+                <p className="mt-1 text-xs text-red-600">{errors.note}</p>
+              )}
             </div>
             <div>
               <label
@@ -169,7 +218,10 @@ export default function AddLoanModal({
                 placeholder="e.g., Urgent requirement"
                 required
                 className={commonInputClasses}
-              />
+              />{" "}
+              {errors.staffNote && (
+                <p className="mt-1 text-xs text-red-600">{errors.staffNote}</p>
+              )}
             </div>
           </div>
 

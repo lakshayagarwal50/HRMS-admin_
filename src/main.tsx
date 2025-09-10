@@ -19,12 +19,12 @@ store.dispatch(checkAuthStatus());
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
     {/* <BrowserRouter> */}
-      <ErrorBoundary>
-        <Toaster position="top-center" />
-        <BrowserRouter>
+    {/* <ErrorBoundary> */}
+      <Toaster position="top-center" />
+      <BrowserRouter>
         <App />
-        </BrowserRouter>
-      </ErrorBoundary>
+      </BrowserRouter>
+    {/* </ErrorBoundary> */}
     {/* </BrowserRouter> */}
   </Provider>
 );
