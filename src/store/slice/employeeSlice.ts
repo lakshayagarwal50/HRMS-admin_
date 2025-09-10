@@ -10,8 +10,8 @@ import type { BankDetails } from './bankSlice';
 export interface FilterState {
   startDate: string;
   endDate: string;
-  department: string;
-  designation: string;
+  department: string[];
+  designation: string[];
   location: string;
 }
 
@@ -113,8 +113,8 @@ export const initialState: EmployeeState = {
   filters: {
     startDate: '',
     endDate: '',
-    department: 'All',
-    designation: 'All',
+    department: [],
+    designation: [],
     location: '',
   },
   loading: false,
@@ -315,8 +315,8 @@ const employeeSlice = createSlice({
       state.filters = {
         startDate: '',
         endDate: '',
-        department: 'All',
-        designation: 'All',
+        department: [], // FIX: Should be an empty array
+        designation: [],
         location: '',
       };
     },

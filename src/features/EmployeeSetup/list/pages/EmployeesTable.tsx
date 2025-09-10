@@ -152,29 +152,34 @@ const EmployeesTable: React.FC = () => {
     return employeesData.filter((emp) => {
       const empDate = new Date(
         emp.date.replace(/(\d{2}) (\w{3}) (\d{4})/, "$2 $1, $3")
-      ); //Input format → DD Mon YYYY
-      //Output format → Mon DD, YYYY
-
+      );
       const startDate = reduxFilters.startDate
         ? new Date(reduxFilters.startDate)
         : null;
       const endDate = reduxFilters.endDate
         ? new Date(reduxFilters.endDate)
         : null;
+
       const matchDate =
         (!startDate || empDate >= startDate) &&
         (!endDate || empDate <= endDate);
+
+      // If the department array is empty, it's a match. Otherwise, check if the employee's department is in the array.
       const matchDepartment =
-        reduxFilters.department === "All" ||
-        emp.department === reduxFilters.department;
+        reduxFilters.department.length === 0 ||
+        reduxFilters.department.includes(emp.department);
+
+      // If the designation array is empty, it's a match. Otherwise, check if the employee's designation is in the array.
       const matchDesignation =
-        reduxFilters.designation === "All" ||
-        emp.designation === reduxFilters.designation;
+        reduxFilters.designation.length === 0 ||
+        reduxFilters.designation.includes(emp.designation);
+
       const matchLocation =
         !reduxFilters.location ||
         emp.location
           .toLowerCase()
           .includes(reduxFilters.location.toLowerCase());
+
       return matchDate && matchDepartment && matchDesignation && matchLocation;
     });
   }, [employeesData, reduxFilters]);
@@ -381,7 +386,7 @@ const EmployeesTable: React.FC = () => {
       <Table
         data={filteredEmployees}
         columns={columns}
-        className="w-[70vw] text-sm"
+        className="w-[75vw] text-sm"
         showPagination={true} // ✨ ADDED: Enable client-side pagination
         showSearch={true}
       />
@@ -396,7 +401,8 @@ const EmployeesTable: React.FC = () => {
           {/* <Link to="/dashboard" className="text-gray-500 hover:text-[#741CDD]">
             Dashboard
           </Link> */}
-          <span className="text-gray-500 mx-2">/</span>
+          {/* <span className="text-gray-500 mx-2">/</span> */}
+
           <Link
             to="/employees/list"
             className="text-gray-500 hover:text-[#741CDD]"
@@ -418,8 +424,9 @@ const EmployeesTable: React.FC = () => {
           </button>
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="p-2 bg-[#741CDD] rounded text-white hover:bg-[#5f3dbb] transition duration-200 cursor-pointer"
-            aria-label="Open filters"
+            // className="p-2 bg-[#741CDD] rounded text-white hover:bg-[#5f3dbb] transition duration-200 cursor-pointer"
+            // aria-label="Open filters"
+            className="bg-[#741CDD] rounded hover:bg-[#5b14a9] text-white px-4 py-2 text-sm rounded transition duration-200 cursor-pointer"
           >
             <Filter size={20} />
           </button>

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { MoreVertical, PenSquare, X } from "lucide-react";
 
@@ -8,33 +7,194 @@ import Table, { type Column } from "../../../../components/common/Table";
 import { SectionHeader, AddButton } from "../common/DetailItem";
 import GenericForm, {
   type FormField,
-} from "../../../../components/common/GenericForm"; 
+} from "../../../../components/common/GenericForm";
 
+const isNotNegative = (value: string, fieldName: string) => {
+  // This validation runs only if a value is entered
+  if (value) {
+    const amount = parseFloat(value);
+    if (isNaN(amount)) {
+      return "Please enter a valid number.";
+    }
+    if (amount < 0) {
+      return `${fieldName} cannot be negative.`;
+    }
+  }
+  return null; // No error
+};
 
 const previousJobFormFields: FormField[] = [
-  { name: "name", label: "Employer Name", type: "text", required: true },
+  {
+    name: "name",
+    label: "Employer Name",
+    type: "text",
+    required: true,
+    allowedChars: "alpha-space",
+    validation: (value) => {
+      if (value) {
+        const regex = /^[a-zA-Z\s]+$/;
+        if (!regex.test(value)) {
+          return "Employer name can only contain letters and spaces.";
+        }
+      }
+      return null;
+    },
+  },
   {
     name: "employerAddress",
     label: "Employer Address",
     type: "text",
     required: true,
     spanFull: true,
+    validation: (value) => {
+      if (value && value.length < 10) {
+        return "Please enter a complete address (at least 10 characters).";
+      }
+      return null; // No error if validation passes
+    },
   },
-  { name: "lastDate", label: "Last Date", type: "date", required: true },
-  { name: "ctc", label: "CTC", type: "number", required: true },
+  {
+    name: "lastDate",
+    label: "Last Date",
+    type: "date",
+    required: true,
+  },
+  {
+    name: "ctc",
+    label: "CTC",
+    type: "number",
+    required: true,
+    allowedChars: "numeric",
+    validation: (value) => {
+      if (value) {
+        const amount = parseFloat(value);
+        if (isNaN(amount)) {
+          return "Please enter a valid number.";
+        }
+        // This check ensures the value is not zero or negative.
+        if (amount <= 0) {
+          return "CTC must be a positive number greater than 0.";
+        }
+      }
+      return null; // No error
+    },
+  },
   {
     name: "grossAmt",
     label: "Gross Amount",
     type: "number",
     placeholder: "Please Select",
+    allowedChars: "numeric",
+    validation: (value) => {
+      if (value) {
+        const amount = parseFloat(value);
+        if (isNaN(amount)) {
+          return "Please enter a valid number.";
+        }
+        // This check ensures the value is not zero or negative.
+        if (amount <= 0) {
+          return "CTC must be a positive number greater than 0.";
+        }
+      }
+      return null; // No error
+    },
   },
-  { name: "taxableAmt", label: "Taxable Amount", type: "number" },
-  { name: "taxPaid", label: "Tax Paid", type: "number" },
-  { name: "employeePF", label: "Employee Provident Fund", type: "number" },
-  { name: "employerPF", label: "Employer Provident Fund", type: "number" },
-  { name: "professionalTax", label: "Professional Tax", type: "number" },
+  {
+    name: "taxableAmt",
+    label: "Taxable Amount",
+    type: "number",
+    allowedChars: "numeric",
+    validation: (value) => {
+      if (value) {
+        const amount = parseFloat(value);
+        if (isNaN(amount)) {
+          return "Please enter a valid number.";
+        }
+        // This check ensures the value is not zero or negative.
+        if (amount <= 0) {
+          return "CTC must be a positive number greater than 0.";
+        }
+      }
+      return null; // No error
+    },
+  },
+  {
+    name: "taxPaid",
+    label: "Tax Paid",
+    type: "number",
+    allowedChars: "numeric",
+    validation: (value) => {
+      if (value) {
+        const amount = parseFloat(value);
+        if (isNaN(amount)) {
+          return "Please enter a valid number.";
+        }
+        // This check ensures the value is not zero or negative.
+        if (amount <= 0) {
+          return "CTC must be a positive number greater than 0.";
+        }
+      }
+      return null; // No error
+    },
+  },
+  {
+    name: "employeePF",
+    label: "Employee Provident Fund",
+    type: "number",
+    allowedChars: "numeric",
+    validation: (value) => {
+      if (value) {
+        const amount = parseFloat(value);
+        if (isNaN(amount)) {
+          return "Please enter a valid number.";
+        }
+        // This check ensures the value is not zero or negative.
+        if (amount <= 0) {
+          return "CTC must be a positive number greater than 0.";
+        }
+      }
+      return null; // No error
+    },
+  },
+  {
+    name: "employerPF",
+    label: "Employer Provident Fund",
+    type: "number",
+    allowedChars: "numeric",
+    validation: (value) => {
+      if (value) {
+        const amount = parseFloat(value);
+        if (isNaN(amount)) {
+          return "Please enter a valid number.";
+        }
+        // This check ensures the value is not zero or negative.
+        if (amount <= 0) {
+          return "CTC must be a positive number greater than 0.";
+        }
+      }
+      return null; // No error
+    },
+  },
+  {
+    name: "professionalTax",
+    label: "Professional Tax",
+    type: "number",
+    allowedChars: "numeric",
+    validation: (value) => {
+      if (value) {
+        const amount = parseFloat(value);
+        if (isNaN(amount)) {
+          return "Please enter a valid number.";
+        }
+        // This check ensures the value is not zero or negative.
+        if (amount <= 0) {
+          return "CTC must be a positive number greater than 0.";
+        }
+      }
+      return null; // No error
+    },
+  },
 ];
-
 
 const initialJobState: Partial<PreviousJob> = {
   name: "",
@@ -50,7 +210,6 @@ const initialJobState: Partial<PreviousJob> = {
 };
 
 // --- Child Components ---
-
 
 const ActionCell: React.FC<{
   row: PreviousJob;
@@ -112,24 +271,22 @@ const PreviousJobDetails: React.FC<PreviousJobDetailsProps> = ({
   data,
   onSave,
 }) => {
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentJob, setCurrentJob] = useState<PreviousJob | null>(null);
 
-  
   const handleAddNew = () => {
-    setCurrentJob(null); 
+    setCurrentJob(null);
     setIsModalOpen(true);
   };
 
   const handleEdit = (job: PreviousJob) => {
-    setCurrentJob(job); 
+    setCurrentJob(job);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setCurrentJob(null); 
+    setCurrentJob(null);
   };
 
   const handleFormSubmit = (formData: Record<string, any>) => {
@@ -138,7 +295,6 @@ const PreviousJobDetails: React.FC<PreviousJobDetailsProps> = ({
     handleCloseModal();
   };
 
-  
   const columns = (
     onEdit: (job: PreviousJob) => void
   ): Column<PreviousJob>[] => [
@@ -160,12 +316,11 @@ const PreviousJobDetails: React.FC<PreviousJobDetailsProps> = ({
 
   const previousJobs = data.previous || [];
   const hasJobs = previousJobs && previousJobs.length > 0;
-  const totalColumns = columns(handleEdit); 
+  const totalColumns = columns(handleEdit);
   const isEditing = currentJob !== null;
 
   return (
     <>
-      
       <div>
         <SectionHeader
           title="Previous Job Details"
@@ -183,7 +338,6 @@ const PreviousJobDetails: React.FC<PreviousJobDetailsProps> = ({
         )}
       </div>
 
-      
       <div
         className={`fixed inset-0 bg-black bg-black/50 z-40 transition-opacity duration-300 ease-in-out ${
           isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -195,7 +349,7 @@ const PreviousJobDetails: React.FC<PreviousJobDetailsProps> = ({
         className={`fixed top-0 right-0 h-full bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isModalOpen ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ width: "min(45%, 700px)" }} 
+        style={{ width: "min(45%, 700px)" }}
       >
         {isModalOpen && (
           <GenericForm
