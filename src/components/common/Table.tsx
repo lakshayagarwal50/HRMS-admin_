@@ -86,7 +86,12 @@ const Table = <T extends object>({
               type="text"
               placeholder={searchPlaceholder}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+             onChange={(e) => {
+                setSearchTerm(e.target.value);
+                // --- THIS IS THE KEY FIX ---
+                // Reset to the first page whenever the user types a new search query.
+                setCurrentPage(1);
+              }}
               className="border rounded-md pl-8 pr-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

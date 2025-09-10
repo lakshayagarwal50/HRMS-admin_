@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../authSlice";
@@ -99,3 +97,5 @@ const Login = () => {
 };
 
 export default Login;
+
+
