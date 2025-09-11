@@ -1,51 +1,180 @@
-import React, { useState } from 'react';
+// import React, { useState } from 'react';
+// import { useDispatch } from 'react-redux';
+// import SidePanelForm from '../common/SidePanelForm'; 
+
+
+// import { addWorkingPattern, type NewWorkingPattern } from '../../store/slice/workingPatternsSlice'; 
+// import type { AppDispatch } from '../../store/store'; 
+// import { toast } from 'react-toastify';
+
+
+// interface CreateWorkingPatternProps {
+//   isOpen: boolean;
+//   onClose: () => void;
+// }
+
+
+// const FormInput: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; required?: boolean }> = 
+// ({ label, value, onChange, required }) => (
+//   <div>
+//     <label className="block text-sm font-medium text-gray-700 mb-1">{label} {required && <span className="text-red-500">*</span>}</label>
+//     <input type="text" value={value} onChange={onChange} required={required} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" />
+//   </div>
+// );
+
+// const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// const WeekRow: React.FC<{ weekName: string; checkedDays: boolean[]; onToggle: (dayIndex: number) => void }> = 
+// ({ weekName, checkedDays, onToggle }) => (
+//   <div className="grid grid-cols-8 items-center gap-2">
+//     <span className="text-sm font-medium text-gray-700">{weekName}</span>
+//     {days.map((day, index) => (
+//       <div key={day} className="flex items-center">
+//         <input
+//           type="checkbox"
+//           id={`${weekName}-${day}`}
+//           checked={checkedDays[index]}
+//           onChange={() => onToggle(index)}
+//           className="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+//         />
+//         <label htmlFor={`${weekName}-${day}`} className="ml-2 text-sm text-gray-600">{day}</label>
+//       </div>
+//     ))}
+//   </div>
+// );
+
+// // --- MAIN COMPONENT ---
+// const CreateWorkingPattern: React.FC<CreateWorkingPatternProps> = ({ isOpen, onClose }) => {
+//   const dispatch = useDispatch<AppDispatch>();
+//   const [name, setName] = useState('');
+//   const [code, setCode] = useState('');
+//   const [week1, setWeek1] = useState([false, true, true, true, true, true, false]);
+//   const [week2, setWeek2] = useState([false, true, true, true, true, true, false]);
+//   const [week3, setWeek3] = useState([false, true, true, true, true, true, false]);
+//   const [week4, setWeek4] = useState([false, true, true, true, true, true, false]);
+
+//   const handleToggle = (week: number, dayIndex: number) => {
+//     const setters = [setWeek1, setWeek2, setWeek3, setWeek4];
+//     const weeks = [week1, week2, week3, week4];
+//     const newWeek = [...weeks[week-1]];
+//     newWeek[dayIndex] = !newWeek[dayIndex];
+//     setters[week-1](newWeek);
+//   };
+
+//   const handleFormSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     if (!name.trim()) {
+//       alert('Pattern Name is required.');
+//       return;
+//     }
+    
+//     const newPattern: NewWorkingPattern = { name, code, week1, week2, week3, week4 };
+    
+  
+//     dispatch(addWorkingPattern(newPattern));
+//      try {
+//         await dispatch(addWorkingPattern(newPattern)).unwrap();
+//         toast.success('Designation updated successfully!');
+//         onClose();
+//     } catch (error: any) {
+//         toast.error(error || 'Failed to update designation.');
+//     }
+   
+//   };
+
+//   return (
+//     <SidePanelForm isOpen={isOpen} onClose={onClose} title="Add New Working Pattern" onSubmit={handleFormSubmit} submitText="Submit">
+//       <div className="space-y-6">
+//         <div className="grid grid-cols-2 gap-4">
+//           <FormInput label="Name" value={name}  onChange={(e) => setName(e.target.value)} required />
+//           <FormInput label="Code" value={code} onChange={(e) => setCode(e.target.value)} />
+//         </div>
+//         <div className="p-4 border rounded-md space-y-4">
+//             <div className="grid grid-cols-8 gap-2 text-sm font-medium text-gray-500">
+//                 <span>Week Name</span>
+//                 {days.map(day => <span key={day} className="text-center">{day}</span>)}
+//             </div>
+//             <WeekRow weekName="Week 1" checkedDays={week1} onToggle={(dayIndex) => handleToggle(1, dayIndex)} />
+//             <WeekRow weekName="Week 2" checkedDays={week2} onToggle={(dayIndex) => handleToggle(2, dayIndex)} />
+//             <WeekRow weekName="Week 3" checkedDays={week3} onToggle={(dayIndex) => handleToggle(3, dayIndex)} />
+//             <WeekRow weekName="Week 4" checkedDays={week4} onToggle={(dayIndex) => handleToggle(4, dayIndex)} />
+//         </div>
+//       </div>
+//     </SidePanelForm>
+//   );
+// };
+
+// export default CreateWorkingPattern;
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { z } from 'zod';
+import toast from 'react-hot-toast';
 import SidePanelForm from '../common/SidePanelForm'; 
-
-
 import { addWorkingPattern, type NewWorkingPattern } from '../../store/slice/workingPatternsSlice'; 
 import type { AppDispatch } from '../../store/store'; 
-import { toast } from 'react-toastify';
 
+// Zod schema for validation
+const workingPatternSchema = z.object({
+    name: z.string()
+        .min(1, 'Name is required.')
+        .regex(/^[A-Za-z\s]+$/, 'Name can only contain letters and spaces.'),
+    code: z.string()
+        .regex(/^[A-Z0-9]*$/, 'Code can only contain capital letters and numbers.')
+        .optional(),
+});
 
-interface CreateWorkingPatternProps {
-  isOpen: boolean;
-  onClose: () => void;
+// --- UI Sub-Components ---
+
+interface FormInputProps {
+    label: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    required?: boolean;
+    disabled?: boolean;
+    error?: string;
 }
 
-
-const FormInput: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; required?: boolean }> = 
-({ label, value, onChange, required }) => (
+const FormInput: React.FC<FormInputProps> = ({ label, value, onChange, required, disabled, error }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-1">{label} {required && <span className="text-red-500">*</span>}</label>
-    <input type="text" value={value} onChange={onChange} required={required} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" />
+    <input 
+        type="text" 
+        value={value} 
+        onChange={onChange} 
+        required={required}
+        disabled={disabled} 
+        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100" 
+    />
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
   </div>
 );
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const WeekRow: React.FC<{ weekName: string; checkedDays: boolean[]; onToggle: (dayIndex: number) => void }> = 
-({ weekName, checkedDays, onToggle }) => (
+const WeekRow: React.FC<{ weekName: string; checkedDays: boolean[]; onToggle: (dayIndex: number) => void; disabled: boolean; }> = 
+({ weekName, checkedDays, onToggle, disabled }) => (
   <div className="grid grid-cols-8 items-center gap-2">
     <span className="text-sm font-medium text-gray-700">{weekName}</span>
     {days.map((day, index) => (
-      <div key={day} className="flex items-center">
+      <div key={day} className="flex items-center justify-center">
         <input
           type="checkbox"
           id={`${weekName}-${day}`}
           checked={checkedDays[index]}
           onChange={() => onToggle(index)}
-          className="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+          disabled={disabled}
+          className="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 disabled:opacity-50"
         />
-        <label htmlFor={`${weekName}-${day}`} className="ml-2 text-sm text-gray-600">{day}</label>
       </div>
     ))}
   </div>
 );
 
 // --- MAIN COMPONENT ---
-const CreateWorkingPattern: React.FC<CreateWorkingPatternProps> = ({ isOpen, onClose }) => {
+const CreateWorkingPattern: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
+  
+  // Form State
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [week1, setWeek1] = useState([false, true, true, true, true, true, false]);
@@ -53,51 +182,104 @@ const CreateWorkingPattern: React.FC<CreateWorkingPatternProps> = ({ isOpen, onC
   const [week3, setWeek3] = useState([false, true, true, true, true, true, false]);
   const [week4, setWeek4] = useState([false, true, true, true, true, true, false]);
 
+  // State for errors and submission status
+  const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset form when panel is closed
+  useEffect(() => {
+      if (!isOpen) {
+          setName('');
+          setCode('');
+          setWeek1([false, true, true, true, true, true, false]);
+          setWeek2([false, true, true, true, true, true, false]);
+          setWeek3([false, true, true, true, true, true, false]);
+          setWeek4([false, true, true, true, true, true, false]);
+          setErrors({});
+          setIsSubmitting(false);
+      }
+  }, [isOpen]);
+
   const handleToggle = (week: number, dayIndex: number) => {
     const setters = [setWeek1, setWeek2, setWeek3, setWeek4];
     const weeks = [week1, week2, week3, week4];
-    const newWeek = [...weeks[week-1]];
+    const newWeek = [...weeks[week - 1]];
     newWeek[dayIndex] = !newWeek[dayIndex];
-    setters[week-1](newWeek);
+    setters[week - 1](newWeek);
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      alert('Pattern Name is required.');
-      return;
+    setErrors({});
+
+    const validationResult = workingPatternSchema.safeParse({ name, code });
+
+    if (!validationResult.success) {
+        setErrors(validationResult.error.flatten().fieldErrors);
+        toast.error("Please fix the errors in the form.");
+        return;
     }
+
+    setIsSubmitting(true);
     
-    const newPattern: NewWorkingPattern = { name, code, week1, week2, week3, week4 };
+    const newPattern: NewWorkingPattern = { 
+        name: validationResult.data.name, 
+        code: validationResult.data.code, 
+        week1, week2, week3, week4 
+    };
     
-  
-    dispatch(addWorkingPattern(newPattern));
-     try {
-        await dispatch(addWorkingPattern(newPattern)).unwrap();
-        toast.success('Designation updated successfully!');
+    const promise = dispatch(addWorkingPattern(newPattern)).unwrap();
+
+    try {
+        await toast.promise(promise, {
+            loading: 'Creating pattern...',
+            success: (result) => result.message || 'Pattern created successfully!',
+            error: (err) => err.message || 'Failed to create pattern.',
+        });
         onClose();
-    } catch (error: any) {
-        toast.error(error || 'Failed to update designation.');
+    } catch (error) {
+        // Error is handled by toast.promise
+    } finally {
+        setIsSubmitting(false);
     }
-   
   };
 
   return (
-    <SidePanelForm isOpen={isOpen} onClose={onClose} title="Add New Working Pattern" onSubmit={handleFormSubmit} submitText="Submit">
+    <SidePanelForm 
+        isOpen={isOpen} 
+        onClose={onClose} 
+        title="Add New Working Pattern" 
+        onSubmit={handleFormSubmit} 
+        submitText={isSubmitting ? "Submitting..." : "Submit"}
+        isSubmitting={isSubmitting}
+    >
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          <FormInput label="Name" value={name}  onChange={(e) => setName(e.target.value)} required />
-          <FormInput label="Code" value={code} onChange={(e) => setCode(e.target.value)} />
+          <FormInput 
+            label="Name" 
+            value={name}  
+            onChange={(e) => setName(e.target.value)} 
+            required 
+            disabled={isSubmitting}
+            error={errors.name?.[0]}
+          />
+          <FormInput 
+            label="Code" 
+            value={code} 
+            onChange={(e) => setCode(e.target.value)} 
+            disabled={isSubmitting}
+            error={errors.code?.[0]}
+          />
         </div>
-        <div className="p-4 border rounded-md space-y-4">
-            <div className="grid grid-cols-8 gap-2 text-sm font-medium text-gray-500">
-                <span>Week Name</span>
+        <div className="p-4 border rounded-md space-y-3 bg-gray-50">
+            <div className="grid grid-cols-8 gap-2 text-xs font-semibold text-gray-500 border-b pb-2">
+                <span className="col-span-1">Week</span>
                 {days.map(day => <span key={day} className="text-center">{day}</span>)}
             </div>
-            <WeekRow weekName="Week 1" checkedDays={week1} onToggle={(dayIndex) => handleToggle(1, dayIndex)} />
-            <WeekRow weekName="Week 2" checkedDays={week2} onToggle={(dayIndex) => handleToggle(2, dayIndex)} />
-            <WeekRow weekName="Week 3" checkedDays={week3} onToggle={(dayIndex) => handleToggle(3, dayIndex)} />
-            <WeekRow weekName="Week 4" checkedDays={week4} onToggle={(dayIndex) => handleToggle(4, dayIndex)} />
+            <WeekRow weekName="Week 1" checkedDays={week1} onToggle={(dayIndex) => handleToggle(1, dayIndex)} disabled={isSubmitting} />
+            <WeekRow weekName="Week 2" checkedDays={week2} onToggle={(dayIndex) => handleToggle(2, dayIndex)} disabled={isSubmitting} />
+            <WeekRow weekName="Week 3" checkedDays={week3} onToggle={(dayIndex) => handleToggle(3, dayIndex)} disabled={isSubmitting} />
+            <WeekRow weekName="Week 4" checkedDays={week4} onToggle={(dayIndex) => handleToggle(4, dayIndex)} disabled={isSubmitting} />
         </div>
       </div>
     </SidePanelForm>

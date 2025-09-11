@@ -186,17 +186,17 @@
 
 // export default RolesPage;
 
-
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Plus, MoreHorizontal, Edit, ToggleLeft, ToggleRight, ServerCrash, RefreshCw } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
-import toast, { Toaster } from 'react-hot-toast'; // Import toast
+import toast, { Toaster } from 'react-hot-toast';
 
 import Table, { type Column } from '../../../components/common/Table';
 import type { AppDispatch, RootState } from '../../../store/store';
 import { fetchRoles, toggleRoleStatus, type Role } from '../../../store/slice/roleSlice';
 
+// --- Helper Components for Different States ---
 
 const TableSkeleton: React.FC = () => (
     <div className="w-full bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
@@ -233,7 +233,7 @@ const EmptyState: React.FC = () => (
     </div>
 );
 
-
+// --- Main Page Component ---
 
 const RolesPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -249,12 +249,10 @@ const RolesPage: React.FC = () => {
 
     const handleStatusToggle = useCallback((role: Role) => {
         const newStatus = role.status === "Active" ? "Inactive" : "Active";
-        // Dispatch the async thunk, which returns a promise
         const promise = dispatch(toggleRoleStatus(role));
 
-        // Use toast.promise to show notifications for the lifecycle of the promise
         toast.promise(
-            promise.unwrap(), // .unwrap() is needed for promise to reject on failure
+            promise.unwrap(),
             {
                 loading: 'Updating status...',
                 success: `Role has been set to ${newStatus}.`,
@@ -262,7 +260,6 @@ const RolesPage: React.FC = () => {
             }
         );
 
-        // Close the dropdown menu after the action is dispatched
         promise.finally(() => {
             setActiveDropdown(null);
         });
@@ -305,7 +302,7 @@ const RolesPage: React.FC = () => {
               <MoreHorizontal size={20} />
             </button>
             {activeDropdown === row.id && (
-                <div ref={dropdownRef} className="absolute right-0 mt-1 w-40 bg-white rounded-md shadow-lg z-10">
+                <div ref={dropdownRef} className="absolute right-0 mt-1 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-100">
                   <div className="py-1">
                     <Link
                       to={`/roles/edit/${row.id}`}
@@ -319,9 +316,9 @@ const RolesPage: React.FC = () => {
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       {row.status === "Active" ? (
-                        <ToggleLeft size={16} className="mr-3" />
+                        <ToggleLeft size={16} className="mr-3 text-red-500" />
                       ) : (
-                        <ToggleRight size={16} className="mr-3" />
+                        <ToggleRight size={16} className="mr-3 text-green-500" />
                       )}
                       {row.status === "Active" ? "Set Inactive" : "Set Active"}
                     </button>
@@ -364,24 +361,23 @@ const RolesPage: React.FC = () => {
     };
 
     return (
-        <div className="w-full bg-gray-50 p-4 sm:p-6">
-            {/* Add Toaster component here for notifications */}
-          
-            {/* Change the position prop here */}
+        <div className="w-full bg-gray-50 p-4 sm:p-6 min-h-screen">
             <Toaster
-                position="top-center" // Corrected: Changed from "top-right"
+                position="top-center"
                 toastOptions={{
                     duration: 4000,
                     success: {
                         style: {
                             background: '#F0FDF4', // green-50
-                            color: '#166534', // green-800
+                            color: '#166534',     // green-800
+                            border: '1px solid #A7F3D0', // green-200
                         },
                     },
                     error: {
                         style: {
                             background: '#FEF2F2', // red-50
-                            color: '#991B1B', // red-800
+                            color: '#991B1B',     // red-800
+                            border: '1px solid #FECACA', // red-200
                         },
                     },
                 }}
