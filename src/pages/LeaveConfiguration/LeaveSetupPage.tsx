@@ -364,7 +364,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { z } from 'zod';
 
-// --- Redux and Component Imports ---
+// Redux and Component Imports
 import {
   fetchLeaveSetups,
   addLeaveSetup,
@@ -372,6 +372,7 @@ import {
   deleteLeaveSetup,
   type LeaveSetup,
   type NewLeaveSetup,
+  type UpdateLeaveSetupPayload,
 } from '../../store/slice/leaveSetupSlice'; 
 import type { RootState, AppDispatch } from '../../store/store';
 import Table, { type Column } from '../../components/common/Table'; 
@@ -379,7 +380,6 @@ import AlertModal from '../../components/Modal/AlertModal';
 import SidePanelForm from '../../components/common/SidePanelForm';
 
 // --- ZOD VALIDATION SCHEMA ---
-// This schema now includes a max value for the number of leaves.
 const leaveSetupSchema = z.object({
   name: z.string()
     .min(1, { message: "Leave Type name is required." })
@@ -387,8 +387,7 @@ const leaveSetupSchema = z.object({
   type: z.enum(['Every Month', 'Every Year']),
   noOfLeaves: z.coerce.number()
     .min(0, { message: "Cannot be negative." })
-    // --- THIS IS THE UPDATED PART ---
-    .max(365, { message: "Cannot exceed 365 days." }),
+    .max(35, { message: "Cannot exceed 35 days." }), // Corrected message
   isCarryForward: z.boolean(),
   enableLeaveEncashment: z.boolean(),
 });
@@ -433,8 +432,7 @@ const EmptyState: React.FC<{ onAddNew: () => void }> = ({ onAddNew }) => (
     </div>
 );
 
-// --- FORM COMPONENTS (now inside the main page) ---
-
+// --- FORM COMPONENTS ---
 const ToggleSwitch: React.FC<{
   label: string; enabled: boolean;
   onChange: (enabled: boolean) => void;
@@ -465,12 +463,16 @@ const CreateLeaveSetup: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({
             setErrors(null);
         }
     }, [isOpen, initialFormState]);
+    
+    useEffect(() => {
+        if(formData.name === '' && formData.noOfLeaves === '') { setErrors(null); return; }
+        const result = leaveSetupSchema.safeParse(formData);
+        setErrors(result.success ? null : result.error.format());
+    }, [formData]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
-        const isCheckbox = type === 'checkbox';
-        const { checked } = e.target as HTMLInputElement;
-        setFormData(prev => ({ ...prev, [name]: isCheckbox ? checked : value }));
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -499,7 +501,7 @@ const CreateLeaveSetup: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({
     return (
         <SidePanelForm isOpen={isOpen} onClose={onClose} title="Configure New Leave" onSubmit={handleSubmit} submitText="Submit" isSubmitting={status === 'loading'}>
             <div className="space-y-6">
-                <div>
+                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Leave Type *</label>
                     <input type="text" placeholder='eg: Sick Leave' name="name" value={formData.name} onChange={handleInputChange} required className={`w-full p-2 border rounded-md ${errors?.name ? 'border-red-500' : 'border-gray-300'}`}/>
                     {errors?.name?._errors[0] && <p className="mt-1 text-xs text-red-600">{errors.name._errors[0]}</p>}
@@ -541,18 +543,20 @@ const UpdateLeaveSetup: React.FC<{ isOpen: boolean; onClose: () => void; leaveDa
             });
         }
     }, [leaveData]);
+    
+     useEffect(() => {
+        const result = leaveSetupSchema.safeParse(formData);
+        setErrors(result.success ? null : result.error.format());
+    }, [formData]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
-        const isCheckbox = type === 'checkbox';
-        const { checked } = e.target as HTMLInputElement;
-        setFormData(prev => ({ ...prev, [name]: isCheckbox ? checked : value }));
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!leaveData) return;
-
         const validationResult = leaveSetupSchema.safeParse(formData);
         if (!validationResult.success) {
             setErrors(validationResult.error.format());
@@ -560,14 +564,24 @@ const UpdateLeaveSetup: React.FC<{ isOpen: boolean; onClose: () => void; leaveDa
             return;
         }
 
-        const updatedLeave: LeaveSetup = {
-            ...leaveData,
-            ...validationResult.data,
-            isCarryForward: validationResult.data.isCarryForward ? 'YES' : 'NO',
-        };
+        const changedFields: Partial<NewLeaveSetup> = {};
+        if (formData.name !== leaveData.name) changedFields.name = formData.name;
+        if (formData.type !== leaveData.type) changedFields.type = formData.type;
+        if (Number(formData.noOfLeaves) !== leaveData.noOfLeaves) changedFields.noOfLeaves = Number(formData.noOfLeaves);
+        const carryForwardChanged = (formData.isCarryForward ? 'YES' : 'NO') !== leaveData.isCarryForward;
+        if (carryForwardChanged) changedFields.isCarryForward = formData.isCarryForward ? 'YES' : 'NO';
+        if (formData.enableLeaveEncashment !== leaveData.enableLeaveEncashment) changedFields.enableLeaveEncashment = formData.enableLeaveEncashment;
+        
+        if (Object.keys(changedFields).length === 0) {
+            toast.info("No changes were made.");
+            onClose();
+            return;
+        }
+
+        const payload: UpdateLeaveSetupPayload = { id: leaveData.id, ...changedFields };
 
         try {
-            await dispatch(updateLeaveSetup(updatedLeave)).unwrap();
+            await dispatch(updateLeaveSetup(payload)).unwrap();
             toast.success('Leave setup updated successfully!');
             onClose();
         } catch (error: any) {
@@ -722,7 +736,7 @@ const LeaveSetupPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Leave Setup</h1>
           <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mt-1 flex items-center">
-            <span className="hover:text-gray-700">Leave Configuration</span>
+            <Link to="/dashboard" className="hover:text-gray-700">Leave Configuration</Link>
             <ChevronRight size={16} className="mx-1" />
             <span className="font-medium text-gray-800">Leave Setup</span>
           </nav>
@@ -765,4 +779,3 @@ const LeaveSetupPage: React.FC = () => {
 };
 
 export default LeaveSetupPage;
-
