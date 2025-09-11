@@ -131,15 +131,11 @@
 
 // export default holidayCalendarSlice.reducer;
 
-
-import { createSlice, createAsyncThunk, isPending, isRejected, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, isPending, isRejected } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
-// --- CONSTANTS ---
 const API_BASE_URL = '/holidayCalendar/';
-
-// --- TYPE DEFINITIONS ---
 
 export interface HolidayCalendarEntry {
   id: string;
@@ -153,10 +149,9 @@ export interface HolidayCalendarEntry {
 
 export type NewHolidayCalendarEntry = Omit<HolidayCalendarEntry, 'id' | 'createdBy' | 'createdAt'>;
 
-// ✨ NEW: Type for the update payload, requiring an ID and allowing partial data for other fields.
+// ✅ Correct type: only changed data
 export type UpdateHolidayCalendarPayload = { id: string } & Partial<NewHolidayCalendarEntry>;
 
-// ✨ NEW: Type for the success response from the API, including a message for toasts.
 interface ApiSuccessResponse<T> {
   data: T;
   message: string;
@@ -174,97 +169,96 @@ const initialState: HolidayCalendarState = {
   error: null,
 };
 
-
 // --- ASYNC THUNKS ---
-
 export const fetchHolidayCalendar = createAsyncThunk('holidayCalendar/fetch', async (_, { rejectWithValue }) => {
   try {
-    // Assuming the GET endpoint returns the array directly.
-    const response = await axiosInstance.get<HolidayCalendarEntry[]>(`${API_BASE_URL}get`);
-    return response.data;
+    const response = await axiosInstance.get<{ data: HolidayCalendarEntry[] }>(`${API_BASE_URL}get`);
+    return response.data.data || response.data;
   } catch (error) {
     if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to fetch holiday calendar');
     return rejectWithValue('An unknown error occurred.');
   }
 });
 
-
-// ✨ UPDATED: The thunk now dispatches fetch on success and returns the full API response.
-export const addHolidayCalendarEntry = createAsyncThunk('holidayCalendar/add', async (newEntry: NewHolidayCalendarEntry, { dispatch, rejectWithValue }) => {
+export const addHolidayCalendarEntry = createAsyncThunk(
+  'holidayCalendar/add',
+  async (newEntry: NewHolidayCalendarEntry, { dispatch, rejectWithValue }) => {
     try {
-        const response = await axiosInstance.post<ApiSuccessResponse<HolidayCalendarEntry>>(`${API_BASE_URL}create`, newEntry);
-        // After a successful creation, dispatch the fetch action to get the latest list.
-        dispatch(fetchHolidayCalendar());
-        return response.data; // This now includes { data: HolidayCalendarEntry, message: string }
+      const response = await axiosInstance.post<ApiSuccessResponse<HolidayCalendarEntry>>(`${API_BASE_URL}create`, newEntry);
+      dispatch(fetchHolidayCalendar());
+      return response.data;
     } catch (error) {
-        if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to create holiday');
-        return rejectWithValue('An unknown error occurred.');
+      if (isAxiosError(error)) return rejectWithValue(error.response?.data);
+      return rejectWithValue({ message: 'An unknown error occurred.' });
     }
-});
+  }
+);
 
-
-// ✨ UPDATED: Accepts a partial payload, dispatches fetch, and returns the API response.
-export const updateHolidayCalendarEntry = createAsyncThunk('holidayCalendar/update', async (entry: UpdateHolidayCalendarPayload, { dispatch, rejectWithValue }) => {
-    const { id, ...updateData } = entry;
+// ✅ PATCH/PUT with only changed fields
+export const updateHolidayCalendarEntry = createAsyncThunk(
+  'holidayCalendar/update',
+  async (payload: UpdateHolidayCalendarPayload, { dispatch, rejectWithValue }) => {
+    const { id, ...updateData } = payload;
     try {
-        const response = await axiosInstance.put<ApiSuccessResponse<HolidayCalendarEntry>>(`${API_BASE_URL}update/${id}`, updateData);
-        // After a successful update, dispatch the fetch action to get the latest list.
-        dispatch(fetchHolidayCalendar());
-        // We return the updated data from the server and the success message.
-        return response.data;
+      const response = await axiosInstance.put<ApiSuccessResponse<HolidayCalendarEntry>>(`${API_BASE_URL}update/${id}`, updateData);
+      dispatch(fetchHolidayCalendar());
+      return response.data;
     } catch (error) {
-        if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update holiday');
-        return rejectWithValue('An unknown error occurred.');
+      if (isAxiosError(error)) return rejectWithValue(error.response?.data);
+      return rejectWithValue({ message: 'Failed to update holiday.' });
     }
-});
+  }
+);
 
-
-// ✨ UPDATED: Returns an object with the ID and a success message.
-export const deleteHolidayCalendarEntry = createAsyncThunk('holidayCalendar/delete', async (id: string, { rejectWithValue }) => {
+export const deleteHolidayCalendarEntry = createAsyncThunk(
+  'holidayCalendar/delete',
+  async (id: string, { dispatch, rejectWithValue }) => {
     try {
-        const response = await axiosInstance.delete<{ message: string }>(`${API_BASE_URL}delete/${id}`);
-        return { id, message: response.data.message };
+      const response = await axiosInstance.delete<ApiSuccessResponse<null>>(`${API_BASE_URL}delete/${id}`);
+      dispatch(fetchHolidayCalendar());
+      return { ...response.data, id };
     } catch (error) {
-        if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to delete holiday');
-        return rejectWithValue('An unknown error occurred.');
+      if (isAxiosError(error)) return rejectWithValue(error.response?.data);
+      return rejectWithValue({ message: 'An unknown error occurred.' });
     }
-});
+  }
+);
 
-
-// --- SLICE DEFINITION ---
+// --- SLICE ---
 const holidayCalendarSlice = createSlice({
   name: 'holidayCalendar',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchHolidayCalendar.fulfilled, (state, action: PayloadAction<HolidayCalendarEntry[]>) => {
+      .addCase(fetchHolidayCalendar.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.items = action.payload;
-        state.error = null; // Clear previous errors
+        state.error = null;
       })
-      .addCase(addHolidayCalendarEntry.fulfilled, (state, action: PayloadAction<ApiSuccessResponse<HolidayCalendarEntry>>) => {
-        // Optimistically add the new item. The subsequent fetch will ensure consistency.
-        state.items.push(action.payload.data);
+      .addCase(addHolidayCalendarEntry.fulfilled, (state) => {
+        state.status = 'succeeded';
       })
-      .addCase(updateHolidayCalendarEntry.fulfilled, (state, action: PayloadAction<ApiSuccessResponse<HolidayCalendarEntry>>) => {
-          // Optimistically update the item. The subsequent fetch will ensure consistency.
-          const index = state.items.findIndex(item => item.id === action.payload.data.id);
-          if (index !== -1) {
-              state.items[index] = action.payload.data;
-          }
+      .addCase(updateHolidayCalendarEntry.fulfilled, (state) => {
+        state.status = 'succeeded';
       })
-      .addCase(deleteHolidayCalendarEntry.fulfilled, (state, action: PayloadAction<{ id: string; message: string }>) => {
-          state.items = state.items.filter(item => item.id !== action.payload.id);
+      .addCase(deleteHolidayCalendarEntry.fulfilled, (state) => {
+        state.status = 'succeeded';
       })
-      .addMatcher(isPending(fetchHolidayCalendar, addHolidayCalendarEntry, updateHolidayCalendarEntry, deleteHolidayCalendarEntry), (state) => {
+      .addMatcher(
+        isPending(fetchHolidayCalendar, addHolidayCalendarEntry, updateHolidayCalendarEntry, deleteHolidayCalendarEntry),
+        (state) => {
           state.status = 'loading';
           state.error = null;
-      })
-      .addMatcher(isRejected(fetchHolidayCalendar, addHolidayCalendarEntry, updateHolidayCalendarEntry, deleteHolidayCalendarEntry), (state, action) => {
+        }
+      )
+      .addMatcher(
+        isRejected(fetchHolidayCalendar, addHolidayCalendarEntry, updateHolidayCalendarEntry, deleteHolidayCalendarEntry),
+        (state, action) => {
           state.status = 'failed';
-          state.error = action.payload as string;
-      });
+          state.error = (action.payload as { message?: string })?.message || 'An error occurred.';
+        }
+      );
   },
 });
 
