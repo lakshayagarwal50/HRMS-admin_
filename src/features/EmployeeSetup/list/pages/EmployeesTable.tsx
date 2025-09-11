@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import Table, { type Column } from "../../../../components/common/Table";
 import Modal from "../../../../components/common/NotificationModal";
-import { Filter } from "lucide-react";
+import { Filter, Search } from "lucide-react";
+import useDebounce from "../../../../hooks/useDebounce";
 import {
   fetchEmployees,
   fetchAllEmployees,
@@ -56,27 +57,79 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
     </div>
   );
 };
+// Place this component after the TableSkeleton component
+
+const Pagination: React.FC<{
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
+  if (totalPages <= 1) return null;
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-700">
+      <span>
+        Showing {startItem} to {endItem} of {totalItems} items
+      </span>
+      <div className="flex items-center space-x-1">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-1 border rounded ${
+              currentPage === page
+                ? "bg-[#741CDD] text-white"
+                : "bg-white hover:bg-gray-100"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
 
 //main body
 const EmployeesTable: React.FC = () => {
   //hooks
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  // const [searchParams, setSearchParams] = useSearchParams();
-  // Read the 'page' parameter from the URL, defaulting to 1
-  // const currentPageFromUrl = parseInt(searchParams.get("page") || "1", 10);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const currentLimit = parseInt(searchParams.get("limit") || "10", 10);
+  const currentSearch = searchParams.get("search") || "";
 
   const {
-    // employees: employeesFromStore,
-    // loading,
-    allEmployees: employeesFromStore, // ✨ CHANGED: Use allEmployees
-    allEmployeesLoading: loading,
+    employees, // Use the paginated employees list
+    loading, // Use the primary loading state for paginated data
     error,
     filters: reduxFilters,
-    limit,
     total,
     inviteStatus,
-  } = useSelector((state: RootState) => state.employees); //read dta from store
+    inviteError,
+  } = useSelector((state: RootState) => state.employees);
+
+  const [searchQuery, setSearchQuery] = useState(currentSearch);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalType, setModalType] = useState<
@@ -91,27 +144,39 @@ const EmployeesTable: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
 
-  // const totalPages = Math.ceil(total / limit);
-
-  // useEffect(() => {
-  //   dispatch(fetchEmployees({ page: currentPageFromUrl, limit }));
-  // }, [dispatch, currentPageFromUrl, limit]);
-
   useEffect(() => {
-    // Fetch all employees only if the list is empty
-    if (employeesFromStore.length === 0) {
-      dispatch(fetchAllEmployees());
+    dispatch(
+      fetchEmployees({
+        page: currentPage,
+        limit: currentLimit,
+        search: currentSearch,
+      })
+    );
+  }, [dispatch, currentPage, currentLimit, currentSearch]);
+  // This effect updates the URL when the user stops typing
+  useEffect(() => {
+    if (debouncedSearchQuery !== currentSearch) {
+      setSearchParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.set("page", "1");
+          newParams.set("search", debouncedSearchQuery);
+          return newParams;
+        },
+        { replace: true }
+      );
     }
-  }, [dispatch, employeesFromStore.length]);
+  }, [debouncedSearchQuery, currentSearch, setSearchParams]);
 
   useEffect(() => {
     if (error) {
-      toast.error(`Error fetching employees: ${error}`, {
+      toast.error(` ${error}`, {
         className: "bg-red-50 text-red-800",
       });
     }
   }, [error]);
 
+  // This is the corrected version
   useEffect(() => {
     if (inviteStatus === "succeeded") {
       toast.success("Invitation email sent successfully!", {
@@ -119,18 +184,17 @@ const EmployeesTable: React.FC = () => {
       });
       dispatch(resetInviteStatus());
     } else if (inviteStatus === "failed") {
-      toast.error("Failed to send invitation email.", {
-        className: "bg-red-50 text-red-800",
-      });
+      // The toast.error is removed. We only reset the status.
       dispatch(resetInviteStatus());
     }
   }, [inviteStatus, dispatch]);
+  // HIGHLIGHT: Corrected frontend filtering logic
+  const filteredEmployees = useMemo(() => {
+    // Start with the raw, paginated data from the backend
+    if (!Array.isArray(employees)) return [];
 
-  const employeesData = useMemo(() => {
-    //format raw data
-    if (!Array.isArray(employeesFromStore)) return [];
-
-    return employeesFromStore.map((apiEmp: any) => ({
+    // First, map the data to the format your table columns expect
+    const employeesData = employees.map((apiEmp: any) => ({
       id: apiEmp.id,
       code: apiEmp.employeeCode,
       name: apiEmp.employeeName,
@@ -146,9 +210,8 @@ const EmployeesTable: React.FC = () => {
       gender: apiEmp.gender,
       status: apiEmp.status,
     }));
-  }, [employeesFromStore]);
 
-  const filteredEmployees = useMemo(() => {
+    // Then, apply the frontend filters to this mapped data
     return employeesData.filter((emp) => {
       const empDate = new Date(
         emp.date.replace(/(\d{2}) (\w{3}) (\d{4})/, "$2 $1, $3")
@@ -164,25 +227,20 @@ const EmployeesTable: React.FC = () => {
         (!startDate || empDate >= startDate) &&
         (!endDate || empDate <= endDate);
 
-      // If the department array is empty, it's a match. Otherwise, check if the employee's department is in the array.
       const matchDepartment =
         reduxFilters.department.length === 0 ||
         reduxFilters.department.includes(emp.department);
 
-      // If the designation array is empty, it's a match. Otherwise, check if the employee's designation is in the array.
       const matchDesignation =
         reduxFilters.designation.length === 0 ||
         reduxFilters.designation.includes(emp.designation);
 
       const matchLocation =
-        !reduxFilters.location ||
-        emp.location
-          .toLowerCase()
-          .includes(reduxFilters.location.toLowerCase());
-
+        reduxFilters.location.length === 0 ||
+        reduxFilters.location.includes(emp.location);
       return matchDate && matchDepartment && matchDesignation && matchLocation;
     });
-  }, [employeesData, reduxFilters]);
+  }, [employees, reduxFilters]);
 
   // const handleNextPage = () => {
   //   setSearchParams({ page: `${currentPageFromUrl + 1}` });
@@ -262,12 +320,17 @@ const EmployeesTable: React.FC = () => {
           await dispatch(deleteEmployee(employeeForModal.id)).unwrap();
           toast.success(
             `Employee ${employeeForModal.name} deleted successfully.`,
-            {
-              id: toastId,
-              className: "bg-green-50 text-green-800",
-            }
+            { id: toastId }
+          );
+          dispatch(
+            fetchEmployees({
+              page: currentPage,
+              limit: currentLimit,
+              search: currentSearch,
+            })
           );
           break;
+
         case "Make Inactive":
           await dispatch(
             updateEmployeeStatus({
@@ -277,9 +340,16 @@ const EmployeesTable: React.FC = () => {
           ).unwrap();
           toast.success(`${employeeForModal.name} is now inactive.`, {
             id: toastId,
-            className: "bg-blue-50 text-blue-800",
           });
+          dispatch(
+            fetchEmployees({
+              page: currentPage,
+              limit: currentLimit,
+              search: currentSearch,
+            })
+          );
           break;
+
         case "Make Active":
           await dispatch(
             updateEmployeeStatus({
@@ -289,21 +359,37 @@ const EmployeesTable: React.FC = () => {
           ).unwrap();
           toast.success(`${employeeForModal.name} is now active.`, {
             id: toastId,
-            className: "bg-blue-50 text-blue-800",
           });
+          dispatch(
+            fetchEmployees({
+              page: currentPage,
+              limit: currentLimit,
+              search: currentSearch,
+            })
+          );
           break;
+
         case "Invite":
         case "Re-invite":
           await dispatch(sendInviteEmail(employeeForModal.code)).unwrap();
           toast.dismiss(toastId);
+          dispatch(
+            fetchEmployees({
+              page: currentPage,
+              limit: currentLimit,
+              search: currentSearch,
+            })
+          );
           break;
+
         default:
           toast.dismiss(toastId);
           break;
       }
     } catch (err: any) {
+      // HIGHLIGHT: This now correctly displays the backend error message
       toast.error(
-        err.message || `Failed to perform action: ${actionToConfirm}`,
+        String(err) || `Failed to perform action: ${actionToConfirm}`,
         {
           id: toastId,
           className: "bg-red-50 text-red-800",
@@ -333,6 +419,27 @@ const EmployeesTable: React.FC = () => {
       });
       navigate(`/employees/list/SalaryComponent?${params.toString()}`);
       setIsPayslipModalOpen(false);
+    }
+  };
+
+  const totalPages = Math.ceil(total / currentLimit) || 1;
+
+  const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set("limit", e.target.value);
+      newParams.set("page", "1");
+      return newParams;
+    });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set("page", String(newPage));
+        return newParams;
+      });
     }
   };
 
@@ -369,9 +476,12 @@ const EmployeesTable: React.FC = () => {
     },
   ];
 
+  // HIGHLIGHT: Corrected renderTableContent function
+  // HIGHLIGHT: Corrected renderTableContent function
   const renderTableContent = () => {
-    if (loading && employeesFromStore.length === 0) {
-      return <TableSkeleton rows={limit} />;
+    // Use the primary 'loading' state and the backend 'employees' list for the skeleton check
+    if (loading && employees.length === 0) {
+      return <TableSkeleton rows={currentLimit} />;
     }
 
     if (error)
@@ -380,56 +490,103 @@ const EmployeesTable: React.FC = () => {
           Could not load employee data. Please try again later.
         </div>
       );
+
+    // The "not found" message should be based on the final filtered list
     if (filteredEmployees.length === 0)
       return <div className="text-center p-10">No employees found.</div>;
+
     return (
-      <Table
-        data={filteredEmployees}
-        columns={columns}
-        className="w-[75vw] text-sm"
-        showPagination={true} // ✨ ADDED: Enable client-side pagination
-        showSearch={true}
-      />
+      <>
+        <Table
+          key={currentLimit}
+          defaultItemsPerPage={currentLimit}
+          data={filteredEmployees} // Pass the frontend-filtered data to the table
+          columns={columns}
+          className="[&_.table-controls]:hidden w-[75vw] text-sm"
+          showPagination={false}
+          showSearch={false}
+        />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={total} // Pagination is based on the backend total
+          itemsPerPage={currentLimit}
+          onPageChange={handlePageChange}
+        />
+      </>
     );
   };
   //main JSX
   return (
     <div className="px-4 py-6 w-full">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Employees</h1>
-        <div className="text-sm font-medium">
-          {/* <Link to="/dashboard" className="text-gray-500 hover:text-[#741CDD]">
+        <h1 className="text-2xl font-bold text-gray-800">Employees List</h1>
+        {/* <div className="text-sm font-medium"> */}
+        {/* <Link to="/dashboard" className="text-gray-500 hover:text-[#741CDD]">
             Dashboard
           </Link> */}
-          {/* <span className="text-gray-500 mx-2">/</span> */}
+        {/* <span className="text-gray-500 mx-2">/</span> */}
 
-          <Link
+        {/* <Link
             to="/employees/list"
             className="text-gray-500 hover:text-[#741CDD]"
           >
             Employee Setup
-          </Link>
-          <span className="text-gray-500 mx-2">/</span>
+          </Link> */}
+        {/* <span className="text-gray-500 mx-2">/</span>
           <span className="text-gray-700">List</span>
-        </div>
+        </div> */}
       </div>
 
       <div className="bg-white shadow-lg rounded-lg p-4 md:p-6">
         <div className="flex justify-between items-center flex-wrap mb-4">
-          <button
-            onClick={() => navigate("/employees/create")}
-            className="bg-[#741CDD] hover:bg-[#5b14a9] text-white px-4 py-2 text-sm rounded transition duration-200 cursor-pointer"
-          >
-            + NEW EMPLOYEE
-          </button>
-          <button
-            onClick={() => setIsFilterOpen(true)}
-            // className="p-2 bg-[#741CDD] rounded text-white hover:bg-[#5f3dbb] transition duration-200 cursor-pointer"
-            // aria-label="Open filters"
-            className="bg-[#741CDD] rounded hover:bg-[#5b14a9] text-white px-4 py-2 text-sm rounded transition duration-200 cursor-pointer"
-          >
-            <Filter size={20} />
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/employees/create")}
+              className="bg-[#741CDD] hover:bg-[#5b14a9] text-white px-4 py-2 text-sm rounded transition duration-200"
+            >
+              + NEW EMPLOYEE
+            </button>
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="limit-select"
+                className="text-sm font-medium text-gray-700"
+              >
+                Show
+              </label>
+              <select
+                id="limit-select"
+                value={currentLimit}
+                onChange={handleLimitChange}
+                className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span className="text-sm font-medium text-gray-700">entries</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search size={16} className="text-gray-400" />
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by name or code..."
+                className="border border-gray-300 rounded-md pl-9 pr-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
+              />
+            </div>
+            <button
+              onClick={() => setIsFilterOpen(true)}
+              className="bg-[#741CDD] rounded hover:bg-[#5b14a9] text-white p-2 text-sm transition duration-200"
+            >
+              <Filter size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">{renderTableContent()}</div>

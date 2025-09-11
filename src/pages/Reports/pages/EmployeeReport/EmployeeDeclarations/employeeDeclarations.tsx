@@ -191,13 +191,13 @@ const employeeDeclarations: React.FC = () => {
           Employees Declarations Report
         </h1>
         <div className="flex flex-col items-end space-y-3">
-          <p className="text-sm text-gray-500">
+          {/* <p className="text-sm text-gray-500">
             <Link to="/reports/all">Reports</Link>
             {" / "}
             <Link to="/reports/all">All Reports</Link>
             {" / "}
             Employees Declarations Report
-          </p>
+          </p> */}
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setView("editTemplate")}

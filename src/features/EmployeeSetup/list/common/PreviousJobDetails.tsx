@@ -50,7 +50,7 @@ const previousJobFormFields: FormField[] = [
       if (value && value.length < 10) {
         return "Please enter a complete address (at least 10 characters).";
       }
-      return null; // No error if validation passes
+      return null;
     },
   },
   {
@@ -58,6 +58,17 @@ const previousJobFormFields: FormField[] = [
     label: "Last Date",
     type: "date",
     required: true,
+    validation: (value: string) => {
+      if (!value) return "Last date is required.";
+      const selectedDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate > today) {
+        return "Last date cannot be in the future.";
+      }
+      return null;
+    },
   },
   {
     name: "ctc",
@@ -66,17 +77,12 @@ const previousJobFormFields: FormField[] = [
     required: true,
     allowedChars: "numeric",
     validation: (value) => {
-      if (value) {
-        const amount = parseFloat(value);
-        if (isNaN(amount)) {
-          return "Please enter a valid number.";
-        }
-        // This check ensures the value is not zero or negative.
-        if (amount <= 0) {
-          return "CTC must be a positive number greater than 0.";
-        }
+      if (!value) return "CTC is required.";
+      const amount = parseFloat(value);
+      if (isNaN(amount) || amount <= 0) {
+        return "CTC must be a positive number.";
       }
-      return null; // No error
+      return null;
     },
   },
   {
@@ -85,18 +91,17 @@ const previousJobFormFields: FormField[] = [
     type: "number",
     placeholder: "Please Select",
     allowedChars: "numeric",
+    required: true,
     validation: (value) => {
-      if (value) {
-        const amount = parseFloat(value);
-        if (isNaN(amount)) {
-          return "Please enter a valid number.";
-        }
-        // This check ensures the value is not zero or negative.
-        if (amount <= 0) {
-          return "CTC must be a positive number greater than 0.";
-        }
+      if (!value) return "Gross Amount is required.";
+      const amount = parseFloat(value);
+      if (isNaN(amount) || amount <= 0) {
+        return "Gross Amount must be a positive number.";
       }
-      return null; // No error
+      if (amount > 5000000) {
+        return "Amount cannot exceed 5,000,000.";
+      }
+      return null;
     },
   },
   {
@@ -104,18 +109,17 @@ const previousJobFormFields: FormField[] = [
     label: "Taxable Amount",
     type: "number",
     allowedChars: "numeric",
+    required: true,
     validation: (value) => {
-      if (value) {
-        const amount = parseFloat(value);
-        if (isNaN(amount)) {
-          return "Please enter a valid number.";
-        }
-        // This check ensures the value is not zero or negative.
-        if (amount <= 0) {
-          return "CTC must be a positive number greater than 0.";
-        }
+      if (!value) return "Taxable Amount is required.";
+      const amount = parseFloat(value);
+      if (isNaN(amount) || amount < 0) {
+        return "Taxable Amount cannot be negative.";
       }
-      return null; // No error
+      if (amount > 5000000) {
+        return "Amount cannot exceed 5,000,000.";
+      }
+      return null;
     },
   },
   {
@@ -123,18 +127,17 @@ const previousJobFormFields: FormField[] = [
     label: "Tax Paid",
     type: "number",
     allowedChars: "numeric",
+    required: true,
     validation: (value) => {
-      if (value) {
-        const amount = parseFloat(value);
-        if (isNaN(amount)) {
-          return "Please enter a valid number.";
-        }
-        // This check ensures the value is not zero or negative.
-        if (amount <= 0) {
-          return "CTC must be a positive number greater than 0.";
-        }
+      if (!value) return "Tax Paid is required.";
+      const amount = parseFloat(value);
+      if (isNaN(amount) || amount < 0) {
+        return "Tax Paid cannot be negative.";
       }
-      return null; // No error
+      if (amount > 5000000) {
+        return "Amount cannot exceed 5,000,000.";
+      }
+      return null;
     },
   },
   {
@@ -142,18 +145,17 @@ const previousJobFormFields: FormField[] = [
     label: "Employee Provident Fund",
     type: "number",
     allowedChars: "numeric",
+    required: true,
     validation: (value) => {
-      if (value) {
-        const amount = parseFloat(value);
-        if (isNaN(amount)) {
-          return "Please enter a valid number.";
-        }
-        // This check ensures the value is not zero or negative.
-        if (amount <= 0) {
-          return "CTC must be a positive number greater than 0.";
-        }
+      if (!value) return "Employee PF is required.";
+      const amount = parseFloat(value);
+      if (isNaN(amount) || amount < 0) {
+        return "Employee PF cannot be negative.";
       }
-      return null; // No error
+      if (amount > 5000000) {
+        return "Amount cannot exceed 5,000,000.";
+      }
+      return null;
     },
   },
   {
@@ -161,18 +163,17 @@ const previousJobFormFields: FormField[] = [
     label: "Employer Provident Fund",
     type: "number",
     allowedChars: "numeric",
+    required: true,
     validation: (value) => {
-      if (value) {
-        const amount = parseFloat(value);
-        if (isNaN(amount)) {
-          return "Please enter a valid number.";
-        }
-        // This check ensures the value is not zero or negative.
-        if (amount <= 0) {
-          return "CTC must be a positive number greater than 0.";
-        }
+      if (!value) return "Employer PF is required.";
+      const amount = parseFloat(value);
+      if (isNaN(amount) || amount < 0) {
+        return "Employer PF cannot be negative.";
       }
-      return null; // No error
+      if (amount > 5000000) {
+        return "Amount cannot exceed 5,000,000.";
+      }
+      return null;
     },
   },
   {
@@ -180,18 +181,17 @@ const previousJobFormFields: FormField[] = [
     label: "Professional Tax",
     type: "number",
     allowedChars: "numeric",
+    required: true,
     validation: (value) => {
-      if (value) {
-        const amount = parseFloat(value);
-        if (isNaN(amount)) {
-          return "Please enter a valid number.";
-        }
-        // This check ensures the value is not zero or negative.
-        if (amount <= 0) {
-          return "CTC must be a positive number greater than 0.";
-        }
+      if (!value) return "Professional Tax is required.";
+      const amount = parseFloat(value);
+      if (isNaN(amount) || amount < 0) {
+        return "Professional Tax cannot be negative.";
       }
-      return null; // No error
+      if (amount > 5000000) {
+        return "Amount cannot exceed 5,000,000.";
+      }
+      return null;
     },
   },
 ];
@@ -200,13 +200,13 @@ const initialJobState: Partial<PreviousJob> = {
   name: "",
   employerAddress: "",
   lastDate: "",
-  ctc: 0,
-  grossAmt: 0,
-  taxableAmt: 0,
-  taxPaid: 0,
-  employeePF: 0,
-  employerPF: 0,
-  professionalTax: 0,
+  ctc: "",
+  grossAmt: "",
+  taxableAmt: "",
+  taxPaid: "",
+  employeePF: "",
+  employerPF: "",
+  professionalTax: "",
 };
 
 // --- Child Components ---

@@ -87,6 +87,7 @@ const DisplayLoanDetail: React.FC = () => {
   const [errors, setErrors] = useState({
     approvedAmount: "",
     staffNote: "",
+    installmentDate: "",
   });
 
   // Function with your specific validation rules
@@ -105,6 +106,17 @@ const DisplayLoanDetail: React.FC = () => {
           return "Notes must be at least 10 characters.";
         if (value.trim().length > 30)
           return "Notes cannot exceed 30 characters.";
+        return "";
+      case "installmentDate":
+        // This is an optional field, so we only validate if there is a value
+        if (value) {
+          const selectedDate = new Date(value);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Compare against the start of today
+          if (selectedDate < today) {
+            return "Installment date cannot be in the past.";
+          }
+        }
         return "";
       default:
         return "";
@@ -126,11 +138,17 @@ const DisplayLoanDetail: React.FC = () => {
     // Check all fields on submit
     const approvedAmountError = validateField("approvedAmount", approvedAmount);
     const staffNoteError = validateField("staffNote", staffNote);
+    const installmentDateError = validateField(
+      "installmentDate",
+      installmentDate
+    ); // <-- Add this line
 
-    if (approvedAmountError || staffNoteError) {
+    if (approvedAmountError || staffNoteError || installmentDateError) {
+      // <-- Add the check here
       setErrors({
         approvedAmount: approvedAmountError,
         staffNote: staffNoteError,
+        installmentDate: installmentDateError, // <-- Add this line
       });
       toast.error("Please fix the errors before submitting.");
       return;
@@ -230,6 +248,12 @@ const DisplayLoanDetail: React.FC = () => {
               type="date"
               value={installmentDate}
               onChange={(e) => setInstallmentDate(e.target.value)}
+              onBlur={(e) =>
+                handleBlur({
+                  target: { name: "installmentDate", value: e.target.value },
+                } as any)
+              }
+              error={errors.installmentDate}
             />
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">

@@ -542,10 +542,10 @@ const AllReports: React.FC = () => {
         <>
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800">All Reports</h1>
-            <p className="text-sm text-gray-500">
+            {/* <p className="text-sm text-gray-500">
               <Link to="/reports/all">Reports</Link> /{" "}
               <Link to="/reports/all">Standard Report</Link> / All Reports
-            </p>
+            </p> */}
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
@@ -578,7 +578,7 @@ const AllReports: React.FC = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search reports..."
+                  placeholder="Search on Names and S.No."
                   className="border border-gray-300 rounded-md pl-9 pr-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
                 />
               </div>
