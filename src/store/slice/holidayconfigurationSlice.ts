@@ -143,24 +143,13 @@ import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
 
 // --- CONSTANTS ---
-const API_BASE_URL = '/holidayConfiguraion/';
+const API_BASE_URL = '/holidayConfiguration/';
 
 // --- TYPE DEFINITIONS ---
 
-// This interface matches the exact structure of the data from your API
-interface HolidayConfigurationFromAPI {
-  id: string;
-  name: string; // API uses 'name'
-  code: string;
-  description: string;
-  createdBy: string;
-  createdAt: string;
-}
-
-// This is the shape of the data that your UI components will use
 export interface HolidayConfiguration {
   id: string;
-  name: string; // UI uses 'name'
+  name: string;
   code: string;
   description: string;
   createdBy: string;
@@ -168,6 +157,9 @@ export interface HolidayConfiguration {
 }
 
 export type NewHolidayConfiguration = Omit<HolidayConfiguration, 'id' | 'createdBy' | 'createdAt'>;
+
+export type UpdateHolidayConfigurationPayload = { id: string } & Partial<NewHolidayConfiguration>;
+
 
 export interface HolidayConfigsState {
   items: HolidayConfiguration[];
@@ -181,64 +173,45 @@ const initialState: HolidayConfigsState = {
   error: null,
 };
 
-// --- DATA TRANSFORMATION ---
-/**
- * Maps the API data structure (using 'name') to the UI data structure (using 'name').
- * This is the key fix that makes your component work with the new API response.
- */
-const transformApiToUi = (apiData: HolidayConfigurationFromAPI[]): HolidayConfiguration[] => {
-    return apiData.map(item => ({
-        ...item,
-        name: item.name, // Map the name field
-    }));
-};
 
 // --- ASYNC THUNKS ---
 
 export const fetchHolidayConfigurations = createAsyncThunk('holidayConfigs/fetch', async (_, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.get(`${API_BASE_URL}get`);
-    // Apply the transformation to the fetched data
-    return transformApiToUi(response.data as HolidayConfigurationFromAPI[]);
+    return response.data as HolidayConfiguration[];
   } catch (error) {
     if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to fetch configurations');
     return rejectWithValue('An unknown error occurred.');
   }
 });
 
-export const addHolidayConfiguration = createAsyncThunk('holidayConfigs/add', async (newConfig: NewHolidayConfiguration, { rejectWithValue }) => {
-    // Map UI data shape ('name') back to API body shape ('name')
+// ✨ MODIFIED: The thunk now accepts `thunkAPI` to get access to `dispatch`.
+export const addHolidayConfiguration = createAsyncThunk('holidayConfigs/add', async (newConfig: NewHolidayConfiguration, { dispatch, rejectWithValue }) => {
     const apiRequestBody = {
         name: newConfig.name,
         code: newConfig.code,
         description: newConfig.description,
     };
-
     try {
         const response = await axiosInstance.post(`${API_BASE_URL}create`, apiRequestBody);
-        return { 
-            ...newConfig, 
-            id: response.data.id,
-            createdBy: 'current-user-id', 
-            createdAt: new Date().toISOString(), 
-        } as HolidayConfiguration;
+        // ✨ ADDED: After a successful creation, dispatch the fetch action to get the latest list.
+        dispatch(fetchHolidayConfigurations());
+        return response.data as HolidayConfiguration;
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to add configuration');
         return rejectWithValue('An unknown error occurred.');
     }
 });
 
-export const updateHolidayConfiguration = createAsyncThunk('holidayConfigs/update', async (config: HolidayConfiguration, { rejectWithValue }) => {
-    // Map UI data shape ('name') back to API body shape ('name')
-    const apiRequestBody = {
-        name: config.name,
-        code: config.code,
-        description: config.description,
-    };
-
+// ✨ MODIFIED: The thunk now accepts `thunkAPI` to get access to `dispatch`.
+export const updateHolidayConfiguration = createAsyncThunk('holidayConfigs/update', async (config: UpdateHolidayConfigurationPayload, { dispatch, rejectWithValue }) => {
+    const { id, ...updateData } = config;
     try {
-        await axiosInstance.put(`${API_BASE_URL}update/${config.id}`, apiRequestBody);
-        return config;
+        await axiosInstance.put(`${API_BASE_URL}update/${id}`, updateData);
+        // ✨ ADDED: After a successful update, dispatch the fetch action to get the latest list.
+        dispatch(fetchHolidayConfigurations());
+        return config; 
     } catch (error) {
         if (isAxiosError(error)) return rejectWithValue(error.response?.data?.message || 'Failed to update configuration');
         return rejectWithValue('An unknown error occurred.');
@@ -266,20 +239,21 @@ const holidayConfigurationSlice = createSlice({
       .addCase(fetchHolidayConfigurations.fulfilled, (state, action: PayloadAction<HolidayConfiguration[]>) => {
         state.status = 'succeeded';
         state.items = action.payload;
+        state.error = null; // Clear previous errors on successful fetch
       })
       .addCase(addHolidayConfiguration.fulfilled, (state, action: PayloadAction<HolidayConfiguration>) => {
-        state.status = 'succeeded';
+        // This provides a fast, optimistic update to the UI.
+        // The subsequent fetch will ensure data consistency with the server.
         state.items.push(action.payload);
       })
-      .addCase(updateHolidayConfiguration.fulfilled, (state, action: PayloadAction<HolidayConfiguration>) => {
-          state.status = 'succeeded';
+      .addCase(updateHolidayConfiguration.fulfilled, (state, action: PayloadAction<UpdateHolidayConfigurationPayload>) => {
+          // This provides a fast, optimistic update to the UI.
           const index = state.items.findIndex(item => item.id === action.payload.id);
           if (index !== -1) {
-              state.items[index] = action.payload;
+              state.items[index] = { ...state.items[index], ...action.payload };
           }
       })
       .addCase(deleteHolidayConfiguration.fulfilled, (state, action: PayloadAction<string>) => {
-          state.status = 'succeeded';
           state.items = state.items.filter(item => item.id !== action.payload);
       })
       .addMatcher(isPending(fetchHolidayConfigurations, addHolidayConfiguration, updateHolidayConfiguration, deleteHolidayConfiguration), (state) => {
@@ -294,4 +268,3 @@ const holidayConfigurationSlice = createSlice({
 });
 
 export default holidayConfigurationSlice.reducer;
-
