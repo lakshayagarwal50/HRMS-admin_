@@ -258,7 +258,7 @@ const CreateEmployeeForm: React.FC = () => {
   const getLocationOptions = () => locations.map((loc) => loc.city);
   const getPayslipComponentOptions = () => salaryStructures.map((salary) => salary.groupName);
   const getWorkingPatternOptions = () => workingPatterns.map((pattern) => pattern.name);
-  const getHolidayGroupOptions = () => holidayConfigurations.map((config) => config.groupName);
+  const getHolidayGroupOptions = () => holidayConfigurations.map((config) => config.name);
 
   // --- RENDER (UNCHANGED) ---
   return (
