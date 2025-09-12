@@ -95,8 +95,6 @@ const SequenceNumberPage: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Sequence Number</h1>
             <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
-              <Link to="/dashboard" className="hover:text-gray-700">Dashboard</Link>
-              <ChevronRight size={16} className="mx-1" />
               <Link to="/getting-started" className="hover:text-gray-700">Getting Started</Link>
               <ChevronRight size={16} className="mx-1" />
               <span className="font-medium text-gray-800">Sequence Number</span>

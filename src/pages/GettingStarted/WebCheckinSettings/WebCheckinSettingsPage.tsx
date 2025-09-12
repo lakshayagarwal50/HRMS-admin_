@@ -360,8 +360,6 @@ const WebCheckinSettingsPage: React.FC = () => {
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl font-bold text-gray-900">Web Checkin Settings</h1>
           <nav aria-label="Breadcrumb" className="mt-1 flex items-center text-sm text-gray-500">
-            <Link to="/dashboard" className="hover:text-gray-700">Dashboard</Link>
-            <ChevronRight className="w-4 h-4 mx-1" />
             <Link to="/getting-started" className="hover:text-gray-700">Getting Started</Link>
             <ChevronRight className="w-4 h-4 mx-1" />
             <span className="font-medium text-gray-800">Web Checkin Settings</span>
