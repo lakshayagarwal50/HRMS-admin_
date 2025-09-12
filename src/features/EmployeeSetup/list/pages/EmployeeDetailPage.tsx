@@ -35,7 +35,7 @@ import ProfessionalInfo from "../common/ProfessionalInfo";
 import BankDetailsSection from "../common/BankDetailsSection";
 import LoanAdvances from "../common/LoanAdvances";
 import PfEsiComponent from "../common/pfEsiComponent";
-import Declarations from "../common/declarations";
+// import Declarations from "../common/declarations";
 import Attendance from "../common/Attendance";
 
 import GenericForm, {
@@ -115,59 +115,6 @@ const MainContentSkeleton: React.FC = () => (
   </div>
 );
 
-// const generalInfoFields: FormField[] = [
-//   {
-//     name: "title",
-//     label: "Title",
-//     type: "select",
-//     required: true,
-//     options: [
-//       { value: "MR", label: "MR" },
-//       { value: "MRS", label: "MRS" },
-//     ],
-//   },
-//   { name: "firstName", label: "First Name", type: "text", required: true },
-//   { name: "lastName", label: "Last Name", type: "text", required: true },
-//   { name: "empCode", label: "Employee ID", type: "text", required: true },
-//   {
-//     name: "status",
-//     label: "Status",
-//     type: "select",
-//     required: true,
-//     options: [
-//       { value: "Active", label: "Active" },
-//       { value: "Inactive", label: "Inactive" },
-//     ],
-//   },
-//   {
-//     name: "gender",
-//     label: "Gender",
-//     type: "select",
-//     required: true,
-//     options: [
-//       { value: "Male", label: "Male" },
-//       { value: "Female", label: "Female" },
-//     ],
-//   },
-//   { name: "phoneNum", label: "Phone Number", type: "text", required: true },
-//   {
-//     name: "maritalStatus",
-//     label: "Marital Status",
-//     type: "select",
-//     required: true,
-//     options: [
-//       { value: "Single", label: "Single" },
-//       { value: "Married", label: "Married" },
-//     ],
-//   },
-//   {
-//     name: "primaryEmail",
-//     label: "Email Primary",
-//     type: "email",
-//     required: true,
-//     spanFull: true,
-//   },
-// ];
 
 const generalInfoFields: FormField[] = [
   {
@@ -286,58 +233,6 @@ const generalInfoFields: FormField[] = [
   },
 ];
 
-// const professionalInfoFields: FormField[] = [
-//   {
-//     name: "location",
-//     label: "Location",
-//     type: "select",
-//     options: [
-//       { value: "Noida", label: "Noida" },
-//       { value: "Gurgaon", label: "Gurgaon" },
-//     ],
-//   },
-//   {
-//     name: "department",
-//     label: "Department",
-//     type: "select",
-//     options: [
-//       { value: "HR", label: "HR" },
-//       { value: "Design", label: "Design" },
-//     ],
-//   },
-//   { name: "designation", label: "Designation", type: "text" },
-//   {
-//     name: "payslipComponent",
-//     label: "Payslip Component",
-//     type: "select",
-//     options: [
-//       { value: "Default", label: "Default" },
-//       { value: "Intern", label: "Intern" },
-//     ],
-//   },
-//   {
-//     name: "taxRegime",
-//     label: "Tax Regime",
-//     type: "select",
-//     options: [
-//       { value: "Old", label: "Old" },
-//       { value: "New", label: "New" },
-//     ],
-//   },
-//   {
-//     name: "holidayGroup",
-//     label: "Holiday Group",
-//     type: "select",
-//     options: [{ value: "National Holidays", label: "National Holidays" }],
-//   },
-//   { name: "role", label: "Role", type: "text" },
-//   { name: "reportingManager", label: "Reporting Manager", type: "text" },
-//   { name: "workWeek", label: "Work Pattern", type: "text" },
-//   { name: "ctcAnnual", label: "Yearly CTC", type: "number" },
-//   { name: "rentalCity", label: "Rental City", type: "text" },
-//   { name: "joiningDate", label: "Joining Date", type: "date" },
-//   { name: "leavingDate", label: "Leaving Date", type: "date" },
-// ];
 
 const bankDetailsFields: FormField[] = [
   {
@@ -348,15 +243,13 @@ const bankDetailsFields: FormField[] = [
     spanFull: true,
     allowedChars: "alpha-space",
     validation: (value) => {
-      // If the field has a value, check its format.
-      // The 'required' check is handled by the form itself.
       if (value) {
         const regex = /^[a-zA-Z\s]+$/;
         if (!regex.test(value)) {
           return "Bank name can only contain letters and spaces.";
         }
       }
-      return null; // If empty or valid, there is no error.
+      return null; 
     },
   },
   {
@@ -450,22 +343,76 @@ const loanInfoFields: FormField[] = [
 ];
 
 export const approveLoanFields: FormField[] = [
-  { name: "loanAmount", label: "Loan Amount", type: "number", required: true },
+  {
+    name: "loanAmount",
+    label: "Loan Amount",
+    type: "number",
+    required: true,
+    validation: (value: string) => {
+      if (!value) return "Loan amount is required.";
+      const amount = Number(value);
+      if (isNaN(amount)) return "Please enter a valid number.";
+      if (amount < 0) return "Amount cannot be negative.";
+      if (amount > 2000000) return "Amount cannot exceed ₹200,000.";
+      return null; // No error
+    },
+  },
   {
     name: "installments",
     label: "Installments",
     type: "number",
     required: true,
+    validation: (value: string) => {
+      if (!value) return "Number of installments is required.";
+      const installments = Number(value);
+      if (!Number.isInteger(installments))
+        return "Installments must be a whole number.";
+      if (installments < 0) return "Installments cannot be negative.";
+      if (installments > 60) return "Installments cannot exceed 60.";
+      return null; // No error
+    },
   },
   {
     name: "paymentReleaseMonth",
     label: "Payment Release Month",
     type: "date",
     required: true,
-  },
-  { name: "staffNote", label: "Staff Note", type: "textarea", spanFull: true },
-];
+    validation: (value: string) => {
+      if (!value) return "Payment release date is required.";
+      const selectedDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
 
+      // HIGHLIGHT: This line prevents selecting a date before today
+      if (selectedDate < today) {
+        return "Date cannot be in the past.";
+      }
+
+      const maxDate = new Date();
+      maxDate.setFullYear(maxDate.getFullYear() + 2);
+
+      if (selectedDate > maxDate) {
+        return "Date cannot be more than 2 years in the future.";
+      }
+      return null; // No error
+    },
+  },
+  {
+    name: "staffNote",
+    label: "Staff Note",
+    type: "textarea",
+    spanFull: true,
+    required: true, // Mark as required for the form
+    validation: (value: string) => {
+      const len = value.trim().length;
+      if (len < 10)
+        return `Note must be at least 10 characters. (Current: ${len})`;
+      if (len > 30)
+        return `Note cannot exceed 30 characters. (Current: ${len})`;
+      return null; // No error
+    },
+  },
+];
 export const declineLoanFields: FormField[] = [
   {
     name: "cancelReason",
@@ -473,6 +420,28 @@ export const declineLoanFields: FormField[] = [
     type: "textarea",
     required: true,
     spanFull: true,
+    // HIGHLIGHT: Validation logic added
+    validation: (value: string) => {
+      // Check if the field is empty
+      if (!value || value.trim() === "") {
+        return "A reason is required.";
+      }
+
+      const len = value.trim().length;
+
+      // Check for minimum length
+      if (len < 3) {
+        return `Reason must be at least 3 characters long. (Current: ${len})`;
+      }
+
+      // Check for maximum length
+      if (len > 10) {
+        return `Reason cannot exceed 10 characters. (Current: ${len})`;
+      }
+
+      // Return null if validation passes
+      return null;
+    },
   },
 ];
 
@@ -527,6 +496,9 @@ const editLoanFields: FormField[] = [
       // Check if the value is a valid number and is less than 0
       if (!isNaN(numberValue) && numberValue < 0) {
         return "Amount cannot be negative.";
+      }
+      if (numberValue > 2000000) {
+        return "Amount cannot be more than 2000000.";
       }
 
       // Return null or an empty string if there is no error
@@ -827,13 +799,13 @@ export default function EmployeeDetailPage() {
     setIsAddModalOpen(true);
   };
 
-  const getSectionTitle = () => {
-    const item = menuItems.find(
-      (m: string) =>
-        m.toLowerCase().replace(/, | & | /g, "_") === currentSection
-    );
-    return item || "General Info";
-  };
+  // const getSectionTitle = () => {
+  //   const item = menuItems.find(
+  //     (m: string) =>
+  //       m.toLowerCase().replace(/, | & | /g, "_") === currentSection
+  //   );
+  //   return item || "General Info";
+  // };
   const handleEdit = (section: string, itemToEdit?: any) => {
     if (
       section === "professional" &&
@@ -1039,6 +1011,8 @@ export default function EmployeeDetailPage() {
   const handleConfirmationSubmit = async (data: Record<string, any>) => {
     if (!confirmingLoan || !employeeCode || !confirmationAction) return;
 
+    
+
     const toastId = toast.loading("Processing loan status...");
 
     try {
@@ -1161,9 +1135,13 @@ export default function EmployeeDetailPage() {
         );
       case "declaration":
         return (
-          <Declarations
+          // <Declarations
+          //   title="Declaration"
+          //   onEdit={() => handleEdit("declaration", null)}
+          // />
+          <PlaceholderComponent
             title="Declaration"
-            onEdit={() => handleEdit("declaration", null)}
+            onEdit={() => handleEdit("payslips", null)}
           />
         );
       case "salary_distribution":
@@ -1471,14 +1449,14 @@ export default function EmployeeDetailPage() {
           <p className="text-sm text-gray-500 mt-1">
             {/* <Link to="/dashboard" className="hover:text-[#741CDD]">
               Dashboard
-            </Link> */}
-            {/* <span className="mx-2">/</span> */}
-            <Link to="/employees/list" className="hover:text-[#741CDD]">
-              Employee Setup
             </Link>
             <span className="mx-2">/</span>
             <Link to="/employees/list" className="hover:text-[#741CDD]">
-              List
+              Employee Setup
+            </Link>
+            <span className="mx-2">/</span> */}
+            <Link to="/employees/list" className="hover:text-[#741CDD]">
+              Employee List
             </Link>
             <span className="mx-2">/</span>
             {/* <Link to={`/employees/list`} className="hover:text-[#741CDD]">
@@ -1489,14 +1467,14 @@ export default function EmployeeDetailPage() {
               onClick={() => {
                 // put your logic here (e.g., open detail section, set state)
               }}
-              className="hover:text-[#741CDD]"
+              className="hover:text-[#741CDD] "
             >
               Detail
             </button>
-            <span className="mx-2">/</span>
+            {/* <span className="mx-2">/</span>
             <span className="text-[#741CDD] font-medium">
               {getSectionTitle()}
-            </span>
+            </span> */}
           </p>
         </header>
         <div className="flex flex-col md:flex-row items-start gap-6">

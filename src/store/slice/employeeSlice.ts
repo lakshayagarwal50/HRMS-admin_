@@ -128,15 +128,32 @@ export const initialState: EmployeeState = {
 
 //  ASYNC THUNKS 
 
+// --- UPDATED ARGUMENTS INTERFACE (filters removed) ---
+export interface FetchEmployeesArgs {
+  page: number;
+  limit: number;
+  search?: string;
+}
+
+// Corrected thunk
 export const fetchEmployees = createAsyncThunk<
   { employees: Employee[], total: number, page: number, limit: number },
-  { page: number, limit: number },
+  FetchEmployeesArgs,
   { rejectValue: string }
 >(
   'employees/fetchEmployees',
-  async ({ page, limit }, { rejectWithValue }) => {
+  async ({ page, limit, search }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/employees/getAll?page=${page}&limit=${limit}`);
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+
+      if (search) {
+        params.append('search', search);
+      }
+      
+      const response = await axiosInstance.get(`/employees/getAll`, { params });
       return response.data;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
@@ -218,7 +235,7 @@ export const deleteEmployee = createAsyncThunk<
     try {
       await axiosInstance.delete(`/employees/delete/${id}`);
       // ✨ On success, dispatch the action to refetch all employees
-      dispatch(fetchAllEmployees());
+      // dispatch(fetchAllEmployees());
       return id;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
@@ -239,7 +256,7 @@ export const updateEmployeeStatus = createAsyncThunk<
     try {
       const response = await axiosInstance.patch(`/employees/status/${id}`, { status });
       // ✨ On success, dispatch the action to refetch all employees
-      dispatch(fetchAllEmployees());
+      // dispatch(fetchAllEmployees());
       return response.data as Employee;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
@@ -290,12 +307,12 @@ export const sendInviteEmail = createAsyncThunk<
         `/employees/sendEmail/${employeeCode}`
       );
        // ✨ On success, dispatch the action to refetch all employees
-       dispatch(fetchAllEmployees());
+      //  dispatch(fetchAllEmployees());
       return response.data;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
         return rejectWithValue(
-          error.response.data?.message || 'Failed to send invitation.'
+          error.response.data?.error || 'Failed to send invitation.'
         );
       }
       return rejectWithValue('An unknown error occurred while sending the invitation.');
@@ -399,7 +416,7 @@ const employeeSlice = createSlice({
       })
       .addCase(sendInviteEmail.rejected, (state, action) => {
         state.inviteStatus = 'failed';
-        state.error = action.payload as string;
+        state.inviteError = action.payload as string;
       }
     );
   },

@@ -628,9 +628,9 @@ const ScheduledReports: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-800">
               Scheduled Reports
             </h1>
-            <p className="text-sm text-gray-500">
+            {/* <p className="text-sm text-gray-500">
               <Link to="/reports/all">All Reports</Link> / Scheduled Reports
-            </p>
+            </p> */}
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">

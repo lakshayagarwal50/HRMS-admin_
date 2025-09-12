@@ -1437,12 +1437,12 @@ const EmployeeSnapshot: React.FC = () => {
           Employees Snapshot Report
         </h1>
         <div className="flex flex-col items-end space-y-3">
-          <p className="text-sm text-gray-500">
+          {/* <p className="text-sm text-gray-500">
             <Link to="/reports/all">Reports</Link>
             {" / "}
             <Link to="/reports/all">All Reports</Link>
             {" / "}Employee Snapshot
-          </p>
+          </p> */}
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setView("editTemplate")}
@@ -1508,39 +1508,41 @@ const EmployeeSnapshot: React.FC = () => {
         </div>
       </div>
       <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="limit-select"
-              className="text-sm font-medium text-gray-700"
-            >
-              Show
-            </label>
-            <select
-              id="limit-select"
-              value={currentLimit}
-              onChange={handleLimitChange}
-              className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
-            >
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-            </select>
-            <span className="text-sm font-medium text-gray-700">entries</span>
+        {reportExists && (
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="limit-select"
+                className="text-sm font-medium text-gray-700"
+              >
+                Show
+              </label>
+              <select
+                id="limit-select"
+                value={currentLimit}
+                onChange={handleLimitChange}
+                className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span className="text-sm font-medium text-gray-700">entries</span>
+            </div>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search size={16} className="text-gray-400" />
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search on Name and emp_id"
+                className="border border-gray-300 rounded-md pl-9 pr-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
+              />
+            </div>
           </div>
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search size={16} className="text-gray-400" />
-            </span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className="border border-gray-300 rounded-md pl-9 pr-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
-            />
-          </div>
-        </div>
+        )}
         {renderContent()}
       </div>
       <EmployeeSnapshotFilters

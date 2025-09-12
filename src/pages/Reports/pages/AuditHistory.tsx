@@ -184,21 +184,23 @@ const AuditHistory: React.FC = () => {
     }
 
     return (
-      <div className="overflow-x-auto">
-        <Table
-          data={logs}
-          columns={columns}
-          showSearch={false}
-          showPagination={false}
-          className="min-w-full"
-        />
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          itemsPerPage={itemsPerPage}
-          onPageChange={handlePageChange}
-        />
+      <div className="[&>div>div>div:first-child]:hidden">
+        <div className="overflow-x-auto">
+          <Table
+            data={logs}
+            columns={columns}
+            showSearch={false}
+            showPagination={false}
+            className="min-w-full"
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
     );
   };
@@ -207,18 +209,18 @@ const AuditHistory: React.FC = () => {
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Audit History</h1>
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           <p className="text-sm text-gray-500">
             <Link to="/dashboard">Dashboard</Link> /{" "}
             <Link to="/reports/all">Reports</Link> / Audit History
           </p>
-          {/* <button
+          <button
             onClick={() => setIsFilterOpen(true)}
             className="bg-[#741CDD] text-white p-2 rounded-md hover:opacity-90 transition-opacity"
           >
             <Filter size={20} />
-          </button> */}
-        </div>
+          </button>
+        </div> */}
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm">{renderContent()}</div>
