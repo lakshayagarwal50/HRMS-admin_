@@ -115,7 +115,6 @@ const MainContentSkeleton: React.FC = () => (
   </div>
 );
 
-
 const generalInfoFields: FormField[] = [
   {
     name: "title",
@@ -212,7 +211,7 @@ const generalInfoFields: FormField[] = [
       { value: "Single", label: "Single" },
       { value: "Married", label: "Married" },
     ],
-    disabled: false, // Disabled
+    disabled: false,
   },
   {
     name: "primaryEmail",
@@ -220,10 +219,9 @@ const generalInfoFields: FormField[] = [
     type: "email",
     required: true,
     spanFull: true,
-    disabled: false, // Disabled
+    disabled: false,
     validation: (value) => {
       if (!value) return "Email is required.";
-      // Standard regex for basic email format validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(value)) {
         return "Please enter a valid email address.";
@@ -232,7 +230,6 @@ const generalInfoFields: FormField[] = [
     },
   },
 ];
-
 
 const bankDetailsFields: FormField[] = [
   {
@@ -249,7 +246,7 @@ const bankDetailsFields: FormField[] = [
           return "Bank name can only contain letters and spaces.";
         }
       }
-      return null; 
+      return null;
     },
   },
   {
@@ -265,6 +262,7 @@ const bankDetailsFields: FormField[] = [
     type: "text",
     required: true,
     spanFull: true,
+    allowedChars: "alpha-space",
   },
   {
     name: "accountType",
@@ -302,7 +300,6 @@ const bankDetailsFields: FormField[] = [
     allowedChars: "alphanumeric",
     validation: (value) => {
       if (!value) return "IFSC code is required.";
-      // Validates format like SBIN0123456
       const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
       if (!ifscRegex.test(value.toUpperCase())) {
         return "Please enter a valid 11-character IFSC code.";
@@ -354,7 +351,7 @@ export const approveLoanFields: FormField[] = [
       if (isNaN(amount)) return "Please enter a valid number.";
       if (amount < 0) return "Amount cannot be negative.";
       if (amount > 2000000) return "Amount cannot exceed ₹200,000.";
-      return null; // No error
+      return null;
     },
   },
   {
@@ -369,7 +366,7 @@ export const approveLoanFields: FormField[] = [
         return "Installments must be a whole number.";
       if (installments < 0) return "Installments cannot be negative.";
       if (installments > 60) return "Installments cannot exceed 60.";
-      return null; // No error
+      return null;
     },
   },
   {
@@ -381,9 +378,8 @@ export const approveLoanFields: FormField[] = [
       if (!value) return "Payment release date is required.";
       const selectedDate = new Date(value);
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+      today.setHours(0, 0, 0, 0);
 
-      // HIGHLIGHT: This line prevents selecting a date before today
       if (selectedDate < today) {
         return "Date cannot be in the past.";
       }
@@ -394,7 +390,7 @@ export const approveLoanFields: FormField[] = [
       if (selectedDate > maxDate) {
         return "Date cannot be more than 2 years in the future.";
       }
-      return null; // No error
+      return null;
     },
   },
   {
@@ -402,14 +398,14 @@ export const approveLoanFields: FormField[] = [
     label: "Staff Note",
     type: "textarea",
     spanFull: true,
-    required: true, // Mark as required for the form
+    required: true,
     validation: (value: string) => {
       const len = value.trim().length;
       if (len < 10)
         return `Note must be at least 10 characters. (Current: ${len})`;
       if (len > 30)
         return `Note cannot exceed 30 characters. (Current: ${len})`;
-      return null; // No error
+      return null;
     },
   },
 ];
@@ -420,26 +416,17 @@ export const declineLoanFields: FormField[] = [
     type: "textarea",
     required: true,
     spanFull: true,
-    // HIGHLIGHT: Validation logic added
     validation: (value: string) => {
-      // Check if the field is empty
       if (!value || value.trim() === "") {
         return "A reason is required.";
       }
-
       const len = value.trim().length;
-
-      // Check for minimum length
       if (len < 3) {
         return `Reason must be at least 3 characters long. (Current: ${len})`;
       }
-
-      // Check for maximum length
       if (len > 10) {
         return `Reason cannot exceed 10 characters. (Current: ${len})`;
       }
-
-      // Return null if validation passes
       return null;
     },
   },
@@ -490,18 +477,13 @@ const editLoanFields: FormField[] = [
     spanFull: true,
     allowedChars: "numeric",
     validation: (value) => {
-      // Convert the string value to a floating-point number
       const numberValue = parseFloat(value);
-
-      // Check if the value is a valid number and is less than 0
       if (!isNaN(numberValue) && numberValue < 0) {
         return "Amount cannot be negative.";
       }
       if (numberValue > 2000000) {
         return "Amount cannot be more than 2000000.";
       }
-
-      // Return null or an empty string if there is no error
       return null;
     },
   },
@@ -513,21 +495,14 @@ const editLoanFields: FormField[] = [
     placeholder: "Updated based on limit",
     allowedChars: "alpha-space",
     validation: (value) => {
-      // Ensure the value exists before checking its length
       if (!value) {
-        // This can be handled by a separate 'required' check,
-        // but it's good practice to be safe.
         return "Note is required.";
       }
 
       const len = value.length;
-
-      // Check if the length is outside the allowed range [10, 30]
       if (len < 10 || len > 30) {
         return `Must be 10-30 characters long. (Current: ${len})`;
       }
-
-      // Return null or an empty string if validation passes
       return null;
     },
   },
@@ -549,15 +524,13 @@ const pfEsiFields: FormField[] = [
     type: "text",
     allowedChars: "alphanumeric",
     validation: (value) => {
-      // This validation runs if the field has a value.
       if (value) {
-        // Regex for 2 letters followed by 9 numbers.
         const regex = /^[A-Z]{2}\d{9}$/;
         if (!regex.test(value.toUpperCase())) {
           return "Enter a valid 11-character PF number (e.g., PF123456789).";
         }
       }
-      return null; // No error if the field is empty or valid.
+      return null;
     },
   },
   {
@@ -566,15 +539,13 @@ const pfEsiFields: FormField[] = [
     type: "text",
     allowedChars: "numeric",
     validation: (value) => {
-      // This validation runs if the field has a value.
       if (value) {
-        // Regex for exactly 12 digits.
         const regex = /^\d{12}$/;
         if (!regex.test(value)) {
           return "Please enter a valid 12-digit UAN.";
         }
       }
-      return null; // No error if the field is empty or valid.
+      return null;
     },
   },
   {
@@ -601,9 +572,7 @@ const pfEsiFields: FormField[] = [
     type: "text",
     allowedChars: "alphanumeric",
     validation: (value) => {
-      // This validation runs if the field has a value.
       if (value) {
-        // Regex for 3 letters followed by 6 numbers.
         const regex = /^[A-Z]{3}\d{6}$/;
         if (!regex.test(value.toUpperCase())) {
           return "Enter a valid 9-character ESI number (e.g., ESI123456).";
@@ -644,7 +613,6 @@ export default function EmployeeDetailPage() {
     (state: RootState) => state.departments
   );
 
-  // Add this selector for salary structures
   const { data: salaryStructures } = useSelector(
     (state: RootState) => state.salaryStructures
   );
@@ -657,7 +625,6 @@ export default function EmployeeDetailPage() {
 
   const { employeeCode } = useParams<{ employeeCode: string }>();
   const location = useLocation();
-  //get mainEmployeeId and payslipComponent from location state
   const mainEmployeeId = (location.state as { mainEmployeeId?: string })
     ?.mainEmployeeId;
   const payslipComponent = (location.state as { payslipComponent?: string })
@@ -684,12 +651,11 @@ export default function EmployeeDetailPage() {
         name: "location",
         label: "Location",
         type: "select",
-        // Map the fetched locations to the required { value, label } format
         options:
           locations.map((loc: Location) => ({
             value: loc.city,
             label: loc.city,
-          })) || [], // Use an empty array as a fallback
+          })) || [],
       },
       {
         name: "department",
@@ -771,7 +737,7 @@ export default function EmployeeDetailPage() {
       { name: "joiningDate", label: "Joining Date", type: "date" },
       { name: "leavingDate", label: "Leaving Date", type: "date" },
     ],
-    [locations] // This dependency ensures the array is only rebuilt when locations data changes
+    [locations]
   );
 
   useEffect(() => {
@@ -798,14 +764,6 @@ export default function EmployeeDetailPage() {
   const handleAddLoan = () => {
     setIsAddModalOpen(true);
   };
-
-  // const getSectionTitle = () => {
-  //   const item = menuItems.find(
-  //     (m: string) =>
-  //       m.toLowerCase().replace(/, | & | /g, "_") === currentSection
-  //   );
-  //   return item || "General Info";
-  // };
   const handleEdit = (section: string, itemToEdit?: any) => {
     if (
       section === "professional" &&
@@ -1011,8 +969,6 @@ export default function EmployeeDetailPage() {
   const handleConfirmationSubmit = async (data: Record<string, any>) => {
     if (!confirmingLoan || !employeeCode || !confirmationAction) return;
 
-    
-
     const toastId = toast.loading("Processing loan status...");
 
     try {
@@ -1135,10 +1091,6 @@ export default function EmployeeDetailPage() {
         );
       case "declaration":
         return (
-          // <Declarations
-          //   title="Declaration"
-          //   onEdit={() => handleEdit("declaration", null)}
-          // />
           <PlaceholderComponent
             title="Declaration"
             onEdit={() => handleEdit("payslips", null)}
@@ -1447,34 +1399,17 @@ export default function EmployeeDetailPage() {
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">{employeeName}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {/* <Link to="/dashboard" className="hover:text-[#741CDD]">
-              Dashboard
-            </Link>
-            <span className="mx-2">/</span>
-            <Link to="/employees/list" className="hover:text-[#741CDD]">
-              Employee Setup
-            </Link>
-            <span className="mx-2">/</span> */}
             <Link to="/employees/list" className="hover:text-[#741CDD]">
               Employee List
             </Link>
             <span className="mx-2">/</span>
-            {/* <Link to={`/employees/list`} className="hover:text-[#741CDD]">
-              Detail
-            </Link> */}
             <button
               type="button"
-              onClick={() => {
-                // put your logic here (e.g., open detail section, set state)
-              }}
+              onClick={() => {}}
               className="hover:text-[#741CDD] "
             >
               Detail
             </button>
-            {/* <span className="mx-2">/</span>
-            <span className="text-[#741CDD] font-medium">
-              {getSectionTitle()}
-            </span> */}
           </p>
         </header>
         <div className="flex flex-col md:flex-row items-start gap-6">

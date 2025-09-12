@@ -1,10 +1,8 @@
 //imports
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-// import { Filter } from "lucide-react";
 import toast from "react-hot-toast";
 import Table, { type Column } from "../../../components/common/Table";
-
 // Redux imports
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -209,18 +207,6 @@ const AuditHistory: React.FC = () => {
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Audit History</h1>
-        {/* <div className="flex items-center gap-4">
-          <p className="text-sm text-gray-500">
-            <Link to="/dashboard">Dashboard</Link> /{" "}
-            <Link to="/reports/all">Reports</Link> / Audit History
-          </p>
-          <button
-            onClick={() => setIsFilterOpen(true)}
-            className="bg-[#741CDD] text-white p-2 rounded-md hover:opacity-90 transition-opacity"
-          >
-            <Filter size={20} />
-          </button>
-        </div> */}
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm">{renderContent()}</div>

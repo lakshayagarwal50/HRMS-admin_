@@ -20,9 +20,9 @@ const reportTypeOptions = [
 
 //main body
 const CreateReport: React.FC = () => {
-  const navigate = useNavigate(); //link component
-  const dispatch = useDispatch<AppDispatch>(); //This hook gives you the dispatch function, which is your "waiter" for sending actions to the Redux store
-  const { status, error } = useSelector((state: RootState) => state.reports); //read data from the Redux store.
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { status, error } = useSelector((state: RootState) => state.reports);
 
   const [formData, setFormData] = useState({
     reportType: "",
@@ -35,11 +35,7 @@ const CreateReport: React.FC = () => {
     >
   ) => {
     const { name, value } = e.target;
-
-    // Regex to test for letters and spaces only
     const regex = /^[A-Za-z\s]*$/;
-
-    // Only update the state if the new value matches the regex
     if (regex.test(value)) {
       setFormData((prevData) => ({
         ...prevData,
@@ -78,7 +74,7 @@ const CreateReport: React.FC = () => {
       navigate("/reports/all");
     } catch (err: any) {
       console.error("Failed to create the report:", err);
-      toast.error(err.message || "Failed to create the report.", {
+      toast.error(err || "Failed to create the report.", {
         id: toastId,
         className: "bg-red-50 text-red-800",
       });
@@ -99,15 +95,6 @@ const CreateReport: React.FC = () => {
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Create Report</h1>
-        <p className="text-sm text-gray-500">
-          <Link to="/reports/all">Reports</Link>
-          {" / "}
-          <Link to="/reports/all">Standard Report</Link>
-          {" / "}
-          <Link to="/reports/all">All Reports</Link>
-          {" / "}
-          Create Report
-        </p>
       </div>
 
       <div className="bg-white p-8 rounded-lg shadow-sm">

@@ -53,7 +53,7 @@ const FormInput: React.FC<{
       onBlur={onBlur}
       disabled={disabled}
       className={`w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${
-        // Add disabled:cursor-not-allowed here
+        
         error
           ? "border-red-500 focus:ring-red-500"
           : "border-gray-300 focus:ring-[#741CDD]"
@@ -83,14 +83,13 @@ const DisplayLoanDetail: React.FC = () => {
   const [staffNote, setStaffNote] = useState(loan?.staffNote || "");
   const [installmentDate, setInstallmentDate] = useState("");
 
-  // State to hold validation errors
+  
   const [errors, setErrors] = useState({
     approvedAmount: "",
     staffNote: "",
     installmentDate: "",
   });
 
-  // Function with your specific validation rules
   const validateField = (name: string, value: string): string => {
     switch (name) {
       case "approvedAmount":
@@ -108,11 +107,10 @@ const DisplayLoanDetail: React.FC = () => {
           return "Notes cannot exceed 30 characters.";
         return "";
       case "installmentDate":
-        // This is an optional field, so we only validate if there is a value
         if (value) {
           const selectedDate = new Date(value);
           const today = new Date();
-          today.setHours(0, 0, 0, 0); // Compare against the start of today
+          today.setHours(0, 0, 0, 0); 
           if (selectedDate < today) {
             return "Installment date cannot be in the past.";
           }

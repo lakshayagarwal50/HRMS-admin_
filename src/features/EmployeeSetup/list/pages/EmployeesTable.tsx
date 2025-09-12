@@ -57,7 +57,6 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
     </div>
   );
 };
-// Place this component after the TableSkeleton component
 
 const Pagination: React.FC<{
   currentPage: number;
@@ -110,7 +109,6 @@ const Pagination: React.FC<{
 
 //main body
 const EmployeesTable: React.FC = () => {
-  //hooks
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -119,8 +117,8 @@ const EmployeesTable: React.FC = () => {
   const currentSearch = searchParams.get("search") || "";
 
   const {
-    employees, // Use the paginated employees list
-    loading, // Use the primary loading state for paginated data
+    employees,
+    loading, 
     error,
     filters: reduxFilters,
     total,
@@ -153,7 +151,6 @@ const EmployeesTable: React.FC = () => {
       })
     );
   }, [dispatch, currentPage, currentLimit, currentSearch]);
-  // This effect updates the URL when the user stops typing
   useEffect(() => {
     if (debouncedSearchQuery !== currentSearch) {
       setSearchParams(
@@ -176,7 +173,6 @@ const EmployeesTable: React.FC = () => {
     }
   }, [error]);
 
-  // This is the corrected version
   useEffect(() => {
     if (inviteStatus === "succeeded") {
       toast.success("Invitation email sent successfully!", {
@@ -184,16 +180,12 @@ const EmployeesTable: React.FC = () => {
       });
       dispatch(resetInviteStatus());
     } else if (inviteStatus === "failed") {
-      // The toast.error is removed. We only reset the status.
       dispatch(resetInviteStatus());
     }
   }, [inviteStatus, dispatch]);
-  // HIGHLIGHT: Corrected frontend filtering logic
   const filteredEmployees = useMemo(() => {
-    // Start with the raw, paginated data from the backend
     if (!Array.isArray(employees)) return [];
 
-    // First, map the data to the format your table columns expect
     const employeesData = employees.map((apiEmp: any) => ({
       id: apiEmp.id,
       code: apiEmp.employeeCode,
@@ -203,6 +195,7 @@ const EmployeesTable: React.FC = () => {
         month: "short",
         year: "numeric",
       }),
+      joiningDateObj: new Date(apiEmp.joiningDate),
       designation: apiEmp.designation,
       department: apiEmp.department,
       location: apiEmp.location,
@@ -211,17 +204,23 @@ const EmployeesTable: React.FC = () => {
       status: apiEmp.status,
     }));
 
-    // Then, apply the frontend filters to this mapped data
     return employeesData.filter((emp) => {
-      const empDate = new Date(
-        emp.date.replace(/(\d{2}) (\w{3}) (\d{4})/, "$2 $1, $3")
-      );
+      const empDate = emp.joiningDateObj;
+      empDate.setHours(0, 0, 0, 0);
+
       const startDate = reduxFilters.startDate
         ? new Date(reduxFilters.startDate)
         : null;
       const endDate = reduxFilters.endDate
         ? new Date(reduxFilters.endDate)
         : null;
+
+      if (startDate) {
+        startDate.setHours(0, 0, 0, 0);
+      }
+      if (endDate) {
+        endDate.setHours(23, 59, 59, 999);
+      }
 
       const matchDate =
         (!startDate || empDate >= startDate) &&
@@ -242,15 +241,6 @@ const EmployeesTable: React.FC = () => {
     });
   }, [employees, reduxFilters]);
 
-  // const handleNextPage = () => {
-  //   setSearchParams({ page: `${currentPageFromUrl + 1}` });
-  // };
-
-  // const handlePrevPage = () => {
-  //   setSearchParams({ page: `${currentPageFromUrl - 1}` });
-  // };
-
-  //dropdownactions==5actions
   const handleAction = (actionName: string, employee: Employee) => {
     setEmployeeForModal(employee);
     setActionToConfirm(actionName);
@@ -387,7 +377,6 @@ const EmployeesTable: React.FC = () => {
           break;
       }
     } catch (err: any) {
-      // HIGHLIGHT: This now correctly displays the backend error message
       toast.error(
         String(err) || `Failed to perform action: ${actionToConfirm}`,
         {
@@ -476,10 +465,7 @@ const EmployeesTable: React.FC = () => {
     },
   ];
 
-  // HIGHLIGHT: Corrected renderTableContent function
-  // HIGHLIGHT: Corrected renderTableContent function
   const renderTableContent = () => {
-    // Use the primary 'loading' state and the backend 'employees' list for the skeleton check
     if (loading && employees.length === 0) {
       return <TableSkeleton rows={currentLimit} />;
     }
@@ -491,7 +477,6 @@ const EmployeesTable: React.FC = () => {
         </div>
       );
 
-    // The "not found" message should be based on the final filtered list
     if (filteredEmployees.length === 0)
       return <div className="text-center p-10">No employees found.</div>;
 
@@ -500,7 +485,7 @@ const EmployeesTable: React.FC = () => {
         <Table
           key={currentLimit}
           defaultItemsPerPage={currentLimit}
-          data={filteredEmployees} // Pass the frontend-filtered data to the table
+          data={filteredEmployees} 
           columns={columns}
           className="[&_.table-controls]:hidden w-[75vw] text-sm"
           showPagination={false}
@@ -509,7 +494,7 @@ const EmployeesTable: React.FC = () => {
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          totalItems={total} // Pagination is based on the backend total
+          totalItems={total} 
           itemsPerPage={currentLimit}
           onPageChange={handlePageChange}
         />
@@ -521,21 +506,6 @@ const EmployeesTable: React.FC = () => {
     <div className="px-4 py-6 w-full">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Employees List</h1>
-        {/* <div className="text-sm font-medium"> */}
-        {/* <Link to="/dashboard" className="text-gray-500 hover:text-[#741CDD]">
-            Dashboard
-          </Link> */}
-        {/* <span className="text-gray-500 mx-2">/</span> */}
-
-        {/* <Link
-            to="/employees/list"
-            className="text-gray-500 hover:text-[#741CDD]"
-          >
-            Employee Setup
-          </Link> */}
-        {/* <span className="text-gray-500 mx-2">/</span>
-          <span className="text-gray-700">List</span>
-        </div> */}
       </div>
 
       <div className="bg-white shadow-lg rounded-lg p-4 md:p-6">
@@ -590,34 +560,6 @@ const EmployeesTable: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">{renderTableContent()}</div>
-
-        {/* <div className="flex justify-center items-center mt-4 space-x-2">
-          <button
-            onClick={handlePrevPage}
-            disabled={currentPageFromUrl <= 1 || loading}
-            className={`px-4 py-2 text-sm rounded transition duration-200 ${
-              currentPageFromUrl <= 1 || loading
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-[#741CDD] hover:bg-[#5b14a9] text-white"
-            }`}
-          >
-            Previous
-          </button>
-          <span className="text-sm text-gray-700">
-            Page {currentPageFromUrl} of {totalPages}
-          </span>
-          <button
-            onClick={handleNextPage}
-            disabled={currentPageFromUrl >= totalPages || loading}
-            className={`px-4 py-2 text-sm rounded transition duration-200 ${
-              currentPageFromUrl >= totalPages || loading
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-[#741CDD] hover:bg-[#5b14a9] text-white"
-            }`}
-          >
-            Next
-          </button>
-        </div> */}
       </div>
 
       <FilterSidebar

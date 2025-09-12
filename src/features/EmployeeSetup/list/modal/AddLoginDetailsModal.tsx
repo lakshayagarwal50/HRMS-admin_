@@ -1,7 +1,6 @@
-
 import React, { useState } from "react";
-import toast from "react-hot-toast"; 
-import type { CreateLoginDetailsPayload } from "../../../../store/slice/loginDetailsSlice"; 
+import toast from "react-hot-toast";
+import type { CreateLoginDetailsPayload } from "../../../../store/slice/loginDetailsSlice";
 
 interface AddLoginDetailsModalProps {
   isOpen: boolean;
@@ -27,8 +26,20 @@ const AddLoginDetailsModal: React.FC<AddLoginDetailsModalProps> = ({
 
   const validate = () => {
     const newErrors: { username?: string; password?: string } = {};
-    if (!username.trim()) newErrors.username = "Username is required.";
-    if (!password.trim()) newErrors.password = "Password is required.";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // First, check if the username is empty
+    if (!username.trim()) {
+      newErrors.username = "Username is required.";
+      // Then, check if it's a valid email format
+    } else if (!emailRegex.test(username)) {
+      newErrors.username = "Please enter a valid email address.";
+    }
+
+    if (!password.trim()) {
+      newErrors.password = "Password is required.";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -83,7 +94,6 @@ const AddLoginDetailsModal: React.FC<AddLoginDetailsModalProps> = ({
           </header>
 
           <div className="flex-grow space-y-8 overflow-y-auto p-8">
-            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Username <span className="text-red-500">*</span>
@@ -98,7 +108,7 @@ const AddLoginDetailsModal: React.FC<AddLoginDetailsModalProps> = ({
                 <p className="text-xs text-red-500 mt-1">{errors.username}</p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password <span className="text-red-500">*</span>
@@ -113,7 +123,7 @@ const AddLoginDetailsModal: React.FC<AddLoginDetailsModalProps> = ({
                 <p className="text-xs text-red-500 mt-1">{errors.password}</p>
               )}
             </div>
-            
+
             <div className="flex items-center justify-between pt-4">
               <span className="text-sm font-medium text-gray-700">
                 Login Enabled
