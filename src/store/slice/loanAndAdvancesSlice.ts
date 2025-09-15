@@ -13,6 +13,7 @@ export interface LoanAPIResponse {
   amountApp: string;
   installment: string;
   balanced: string;
+  requestDate: string;
 }
 
 export interface Loan {
@@ -54,7 +55,7 @@ const transformApiLoan = (apiLoan: LoanAPIResponse): Loan => ({
   approvedAmount: `₹ ${Number(apiLoan.amountApp).toLocaleString('en-IN')}`,
   installments: apiLoan.installment,
   balance: `₹ ${Number(apiLoan.balanced).toLocaleString('en-IN')}`,
-  requestDate: '25 Feb 2022', // This seems to be hardcoded
+  requestDate: apiLoan.requestDate, // This seems to be hardcoded
   note: '',
   approvedBy: '',
   staffNote: ''

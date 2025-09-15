@@ -692,12 +692,24 @@ const DisplayLoans: React.FC = () => {
     {
       key: "employeeName",
       header: "Employee",
-      render: (row: Loan) => (
-        <div>
-          <div className="font-semibold">{row.employeeName}</div>
-          <div className="text-xs text-gray-500">on {row.requestDate}</div>
-        </div>
-      ),
+      render: (row: Loan) => {
+        // Format the date for better readability
+        const formattedDate = new Date(row.requestDate).toLocaleDateString(
+          "en-GB",
+          {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }
+        );
+
+        return (
+          <div>
+            <div className="font-semibold">{row.employeeName}</div>
+            <div className="text-xs text-gray-500">on {formattedDate}</div>
+          </div>
+        );
+      },
     },
     { key: "requestedAmount", header: "Requested Amt" },
     {
