@@ -47,9 +47,6 @@ const GettingStartedPge: React.FC = () => {
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2 ">
-              <li>
-                <span className="text-sm text-gray-900 font-medium">Getting Started</span>
-              </li>
             </ol>
           </nav>
         </div>
