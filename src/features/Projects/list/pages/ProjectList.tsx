@@ -216,13 +216,13 @@ const ProjectList: React.FC = () => {
     <div className="px-4 py-6 w-full">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Projects</h1>
-        <div className="text-sm font-medium">
+        {/* <div className="text-sm font-medium">
           <Link to="/dashboard" className="text-gray-500 hover:text-[#741CDD]">
             Dashboard
           </Link>
           <span className="text-gray-500 mx-2">/</span>
           <span className="text-gray-700">Projects</span>
-        </div>
+        </div> */}
       </div>
 
       <div className="bg-white shadow-lg rounded-lg p-4 md:p-6">
