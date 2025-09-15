@@ -87,10 +87,15 @@ const UpdateAttendanceModal: React.FC<UpdateAttendanceModalProps> = ({
     } catch (err: any) {
       console.error("Failed to update attendance:", err);
 
-      const errorMessage = err.response?.data?.message || "An error occurred.";
+      // New line
+      const errorMessage =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "An error occurred.";
       toast.error(errorMessage, {
         className: "bg-red-50 text-red-800",
       });
+      onClose();
     } finally {
       setIsSubmitting(false);
     }

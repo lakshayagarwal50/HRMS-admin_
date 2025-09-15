@@ -10,7 +10,6 @@ import GenericForm, {
 } from "../../../../components/common/GenericForm";
 
 const isNotNegative = (value: string, fieldName: string) => {
-  // This validation runs only if a value is entered
   if (value) {
     const amount = parseFloat(value);
     if (isNaN(amount)) {
@@ -20,7 +19,7 @@ const isNotNegative = (value: string, fieldName: string) => {
       return `${fieldName} cannot be negative.`;
     }
   }
-  return null; // No error
+  return null;
 };
 
 const previousJobFormFields: FormField[] = [
@@ -209,8 +208,6 @@ const initialJobState: Partial<PreviousJob> = {
   professionalTax: "",
 };
 
-// --- Child Components ---
-
 const ActionCell: React.FC<{
   row: PreviousJob;
   onEdit: (job: PreviousJob) => void;
@@ -259,8 +256,6 @@ const ActionCell: React.FC<{
     </div>
   );
 };
-
-// --- Main Component ---
 
 interface PreviousJobDetailsProps {
   data: EmployeeDetail;
