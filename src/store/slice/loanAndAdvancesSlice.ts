@@ -13,6 +13,7 @@ export interface LoanAPIResponse {
   amountApp: string;
   installment: string;
   balanced: string;
+  requestDate: string;
 }
 
 export interface Loan {
@@ -54,17 +55,17 @@ const transformApiLoan = (apiLoan: LoanAPIResponse): Loan => ({
   approvedAmount: `₹ ${Number(apiLoan.amountApp).toLocaleString('en-IN')}`,
   installments: apiLoan.installment,
   balance: `₹ ${Number(apiLoan.balanced).toLocaleString('en-IN')}`,
-  requestDate: '25 Feb 2022',
+  requestDate: apiLoan.requestDate, // This seems to be hardcoded
   note: '',
   approvedBy: '',
   staffNote: ''
 });
 
 
-
 interface FetchLoansArgs {
     page?: number;
     limit?: number;
+    search?: string; 
     startDate?: string;
     endDate?: string;
     statuses?: string[];
@@ -74,28 +75,32 @@ export const fetchLoans = createAsyncThunk(
   'loans/fetchLoans',
   async (args: FetchLoansArgs = {}, { rejectWithValue }) => {
     try {
-      const { page = 1, limit = 10, startDate, endDate, statuses } = args;
-      
+      const { page = 1, limit = 10, search, startDate, endDate, statuses } = args;
       
       const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-      if (startDate) params.append('startDate', startDate);
-      if (endDate) params.append('endDate', endDate);
+      
+      if (search) {
+        params.append('search', search);
+      }
+      if (startDate) {
+        params.append('startDate', startDate);
+      }
+      if (endDate) {
+        params.append('endDate', endDate);
+      }
       if (statuses && statuses.length > 0) {
         params.append('status', statuses.map(s => s.toLowerCase()).join(','));
       }
-
       
       const response = await axiosInstance.get(`/loan/getAll?${params.toString()}`);
       
-      
       const data = response.data.loans; 
-const totalCount = response.data.total;
+      const totalCount = response.data.total;
 
       return {
-        
         loans: data.map(transformApiLoan),
-  totalItems: totalCount,
-  totalPages: Math.ceil(totalCount / limit),
+        totalItems: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
       };
     } catch (error) {
       return rejectWithValue(isAxiosError(error) ? error.response?.data?.message : 'An unknown error occurred');

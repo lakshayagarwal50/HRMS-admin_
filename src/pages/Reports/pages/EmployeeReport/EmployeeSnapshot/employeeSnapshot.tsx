@@ -1,23 +1,23 @@
-//imports
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Search, Trash2 } from "lucide-react";
 import Table, { type Column } from "../../../../../components/common/Table";
 import EmployeeSnapshotFilters from "./component/EmployeeSnapshotFilters";
 import EmployeeReportTemplate from "./component/EmployeeReportTemplate";
+import useDebounce from "../../../../../hooks/useDebounce";
 
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
 import {
   fetchEmployeeSnapshot,
   downloadEmployeeSnapshot,
   deleteEmployeeSnapshot,
-  scheduleEmployeeSnapshot, 
-  resetScheduleStatus, 
+  scheduleEmployeeSnapshot,
+  resetScheduleStatus,
   type EmployeeData,
   type ScheduleData,
 } from "../../../../../store/slice/employeeSnapshotSlice";
 import { toast } from "react-toastify";
 import AlertModal from "../../../../../components/Modal/AlertModal";
-import { Trash2 } from "lucide-react";
 
 const columns: Column<EmployeeData>[] = [
   { key: "name", header: "Name" },
@@ -65,13 +65,12 @@ const columns: Column<EmployeeData>[] = [
     render: (row) => `₹ ${row.netPaid?.toLocaleString("en-IN") ?? "N/A"}`,
   },
   { key: "leaveType", header: "Last Leave Type" },
-  { key: "leavesAdjusted", header: "Leaves Adjusted" },
-  { key: "leaveBalance", header: "Leave Balance" },
+  // { key: "leavesAdjusted", header: "Leaves Adjusted" },
+  // { key: "leaveBalance", header: "Leave Balance" },
   { key: "workingPattern", header: "Working Pattern" },
   { key: "phone", header: "Phone Number" },
 ];
 
-//skeleton loader
 const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   return (
     <div className="overflow-x-auto">
@@ -104,7 +103,6 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   );
 };
 
-//pagination logic
 const Pagination: React.FC<{
   currentPage: number;
   totalPages: number;
@@ -154,7 +152,6 @@ const Pagination: React.FC<{
   );
 };
 
-// NEW: Helpers for the inline schedule form
 const frequencyOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
 const hourOptions = Array.from({ length: 24 }, (_, i) => `${i}`);
 const minuteOptions = Array.from({ length: 60 }, (_, i) => `${i}`);
@@ -163,11 +160,12 @@ const formatDateForAPI = (dateString: string) => {
   if (!dateString) return "";
   const date = new Date(dateString);
   return date.toLocaleDateString("en-GB", {
-    day: "2-digit", month: "short", year: "numeric",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 };
 
-//main body
 const EmployeeSnapshot: React.FC = () => {
   const [view, setView] = useState<"table" | "editTemplate" | "schedule">(
     "table"
@@ -177,7 +175,6 @@ const EmployeeSnapshot: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // NEW: State for the inline schedule form
   const [scheduleFormData, setScheduleFormData] = useState<
     Omit<ScheduleData, "startDate"> & { startDate: string }
   >({
@@ -193,6 +190,12 @@ const EmployeeSnapshot: React.FC = () => {
   });
 
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const currentLimit = parseInt(searchParams.get("limit") || "10", 10);
+  const currentSearch = searchParams.get("search") || "";
+
+  const [searchQuery, setSearchQuery] = useState(currentSearch);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const {
@@ -200,7 +203,6 @@ const EmployeeSnapshot: React.FC = () => {
     status,
     error,
     total,
-    limit,
     isDownloading,
     reportId,
     reportExists,
@@ -211,11 +213,29 @@ const EmployeeSnapshot: React.FC = () => {
     dispatch(
       fetchEmployeeSnapshot({
         page: currentPage,
-        limit,
+        limit: currentLimit,
+        search: currentSearch,
         filters: activeFilters,
       })
     );
-  }, [dispatch, currentPage, limit, JSON.stringify(activeFilters)]);
+  }, [
+    dispatch,
+    currentPage,
+    currentLimit,
+    currentSearch,
+    JSON.stringify(activeFilters),
+  ]);
+
+  useEffect(() => {
+    if (debouncedSearchQuery !== currentSearch) {
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set("page", "1");
+        newParams.set("search", debouncedSearchQuery);
+        return newParams;
+      });
+    }
+  }, [debouncedSearchQuery, currentSearch, setSearchParams]);
 
   useEffect(() => {
     if (status === "failed" && error) {
@@ -225,15 +245,32 @@ const EmployeeSnapshot: React.FC = () => {
 
   const handleApplyFilters = (filters: any) => {
     setActiveFilters(filters);
-    setSearchParams({ page: "1" });
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set("page", "1");
+      return newParams;
+    });
     setIsFilterOpen(false);
   };
 
-  const totalPages = Math.ceil(total / limit) || 1;
+  const totalPages = Math.ceil(total / currentLimit) || 1;
+
+  const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set("limit", e.target.value);
+      newParams.set("page", "1");
+      return newParams;
+    });
+  };
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= totalPages) {
-      setSearchParams({ page: String(newPage) });
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set("page", String(newPage));
+        return newParams;
+      });
     }
   };
 
@@ -242,7 +279,8 @@ const EmployeeSnapshot: React.FC = () => {
     dispatch(
       fetchEmployeeSnapshot({
         page: currentPage,
-        limit,
+        limit: currentLimit,
+        search: currentSearch,
         filters: activeFilters,
       })
     );
@@ -262,18 +300,20 @@ const EmployeeSnapshot: React.FC = () => {
     setIsDeleteModalOpen(true);
   };
 
-  // NEW: Handler to confirm and dispatch the delete action
   const confirmDelete = async () => {
     if (!reportId) return;
-
     try {
       await dispatch(deleteEmployeeSnapshot(reportId)).unwrap();
-      // NEW: On success, go to page 1 and re-fetch the data
-      setSearchParams({ page: "1" });
+      setSearchParams({
+        page: "1",
+        limit: String(currentLimit),
+        search: currentSearch,
+      });
       dispatch(
         fetchEmployeeSnapshot({
           page: 1,
-          limit,
+          limit: currentLimit,
+          search: currentSearch,
           filters: activeFilters,
         })
       );
@@ -292,7 +332,6 @@ const EmployeeSnapshot: React.FC = () => {
     setView("schedule");
   };
 
-  // NEW: Handler for schedule form input changes
   const handleScheduleFormChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -302,7 +341,6 @@ const EmployeeSnapshot: React.FC = () => {
     setScheduleFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // NEW: Handler for schedule form submission
   const handleScheduleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reportId) {
@@ -326,7 +364,6 @@ const EmployeeSnapshot: React.FC = () => {
       toast.error("Please fill out all required fields.");
       return;
     }
-
     const payload: ScheduleData = {
       ...scheduleFormData,
       startDate: formatDateForAPI(scheduleFormData.startDate),
@@ -358,16 +395,12 @@ const EmployeeSnapshot: React.FC = () => {
   if (view === "editTemplate") {
     return <EmployeeReportTemplate onBack={handleBackFromTemplate} />;
   }
-  // NEW: Inline rendering for the Schedule Report Form
   if (view === "schedule") {
     const isSubmitting = scheduleStatus === "loading";
     return (
       <div className="p-8 bg-gray-50 min-h-screen">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Schedule Report</h1>
-          <p className="text-sm text-gray-500">
-            <Link to="/reports/all">Reports</Link> / Schedule Report
-          </p>
         </div>
         <div className="bg-white p-8 rounded-lg shadow-sm">
           <div className="inline-block bg-purple-100 text-purple-800 text-sm font-medium px-4 py-1 rounded-full mb-8">
@@ -594,7 +627,6 @@ const EmployeeSnapshot: React.FC = () => {
   }
 
   const renderContent = () => {
-    // NEW: Add this block at the top to handle the "not found" case
     if (status === "failed" && !reportExists) {
       return (
         <div className="text-center p-10 space-y-4">
@@ -608,42 +640,40 @@ const EmployeeSnapshot: React.FC = () => {
         </div>
       );
     }
-
     if (status === "loading") {
-      return <TableSkeleton rows={limit} />;
+      return <TableSkeleton rows={currentLimit} />;
     }
-
-    // This now handles all OTHER kinds of failures
     if (status === "failed") {
       return (
         <div className="text-center p-10 text-red-500">Error: {error}</div>
       );
     }
-
     if (employees.length === 0 && status === "succeeded") {
       return <div className="text-center p-10">No employee data found.</div>;
     }
-
     return (
       <>
         <div className="overflow-x-auto">
           <Table
+            key={currentLimit}
+            defaultItemsPerPage={currentLimit}
             data={employees}
             columns={columns}
             showPagination={false}
-            className="w-[1350px]"
+            className="[&_.table-controls]:hidden w-[1350px]"
           />
         </div>
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           totalItems={total}
-          itemsPerPage={limit}
+          itemsPerPage={currentLimit}
           onPageChange={handlePageChange}
         />
       </>
     );
   };
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-start mb-6">
@@ -651,20 +681,12 @@ const EmployeeSnapshot: React.FC = () => {
           Employees Snapshot Report
         </h1>
         <div className="flex flex-col items-end space-y-3">
-          <p className="text-sm text-gray-500">
-            <Link to="/reports/all">Reports</Link>
-            {" / "}
-            <Link to="/reports/all">All Reports</Link>
-            {" / "}
-            Employee Snapshot
-          </p>
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setView("editTemplate")}
               disabled={
                 status === "loading" || status === "failed" || !reportId
               }
-              // FIX: Added disabled styles
               className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               EDIT TEMPLATE
@@ -698,13 +720,12 @@ const EmployeeSnapshot: React.FC = () => {
               disabled={
                 status === "loading" || status === "failed" || !reportId
               }
-              // FIX: Added disabled styles
               className="bg-purple-100 text-[#741CDD] font-semibold py-2 px-4 rounded-full hover:bg-purple-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               FILTER
             </button>
             <button
-              onClick={handleScheduleClick} // Use the new handler
+              onClick={handleScheduleClick}
               disabled={
                 status === "loading" || status === "failed" || !reportId
               }
@@ -724,7 +745,44 @@ const EmployeeSnapshot: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="bg-white p-6 rounded-lg shadow-sm">{renderContent()}</div>
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        {reportExists && (
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="limit-select"
+                className="text-sm font-medium text-gray-700"
+              >
+                Show
+              </label>
+              <select
+                id="limit-select"
+                value={currentLimit}
+                onChange={handleLimitChange}
+                className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span className="text-sm font-medium text-gray-700">entries</span>
+            </div>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search size={16} className="text-gray-400" />
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search on Name and emp_id"
+                className="border border-gray-300 rounded-md pl-9 pr-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
+              />
+            </div>
+          </div>
+        )}
+        {renderContent()}
+      </div>
       <EmployeeSnapshotFilters
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}

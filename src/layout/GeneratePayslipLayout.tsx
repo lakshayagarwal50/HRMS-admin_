@@ -14,9 +14,9 @@ const GeneratePayslipLayout: React.FC = () => {
                 <div className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-900">Generate Payslips for {month}-{year}</h1>
                     <nav aria-label="Breadcrumb" className="flex items-center text-sm text-gray-500">
-                        <Link to="/dashboard" className="hover:text-gray-700">Dashboard</Link>
+                        <Link to="/payroll/crystal" className="hover:text-gray-700">Crystal Run</Link>
                         <ChevronRight size={16} className="mx-2" />
-                        <Link to="/payroll/crystal-run" className="hover:text-gray-700">Crystal Run</Link>
+                        <Link to="" className="hover:text-gray-700">Generate Payslips </Link>
                     </nav>
                 </div>
             </header>

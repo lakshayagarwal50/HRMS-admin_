@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
 
 import type { AppDispatch, RootState } from "../../../../store/store";
 import { fetchEmployeeDetails } from "../../../../store/slice/employeeSlice";
@@ -21,6 +21,22 @@ import type {
   LoanDetails,
 } from "../../../../store/slice/employeeSlice";
 import {
+  generalInfoFields,
+  bankDetailsFields,
+  loanInfoFields,
+  approveLoanFields,
+  declineLoanFields,
+  addLoanRequestFields,
+  editLoanFields,
+  pfEsiFields,
+  // ... import all other field configurations
+} from "../layout/formFields";
+import {
+  EmployeeDetailHeaderSkeleton,
+  ProfileSidebarSkeleton,
+  MainContentSkeleton,
+} from "../components/EmployeeDetailSkeletons";
+import {
   addLoanRequest,
   editLoan,
   approveLoan,
@@ -35,7 +51,7 @@ import ProfessionalInfo from "../common/ProfessionalInfo";
 import BankDetailsSection from "../common/BankDetailsSection";
 import LoanAdvances from "../common/LoanAdvances";
 import PfEsiComponent from "../common/pfEsiComponent";
-import Declarations from "../common/declarations";
+// import Declarations from "../common/declarations";
 import Attendance from "../common/Attendance";
 
 import GenericForm, {
@@ -55,366 +71,54 @@ import {
   type PreviousJob,
 } from "../../../../store/slice/previousJobSlice";
 
-const EmployeeDetailHeaderSkeleton: React.FC = () => (
-  <header className="mb-6 animate-pulse">
-    <div className="h-8 bg-gray-200 rounded-md w-1/3 mb-2"></div>
-    <div className="h-5 bg-gray-200 rounded-md w-1/2"></div>
-  </header>
-);
+import {
+  fetchLocations,
+  type Location,
+} from "../../../../store/slice/locationSlice"; // Add this
 
+import {
+  fetchDepartments,
+  type Department,
+} from "../../../../store/slice/departmentSlice";
 
-const ProfileSidebarSkeleton: React.FC = () => {
-  const SKELETON_ITEM_COUNT = 12; 
-  return (
-    <div className="w-full md:w-[260px] font-sans shrink-0 animate-pulse">
-      <ul className="list-none m-0 p-0 overflow-hidden rounded-lg border-2 border-gray-200">
-        {Array.from({ length: SKELETON_ITEM_COUNT }).map((_, index) => (
-          <li
-            key={index}
-            className="py-4 pr-6 pl-6 border-b border-gray-200 last:border-b-0"
-          >
-            <div className="h-5 bg-gray-200 rounded"></div>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
+import {
+  fetchSalaryStructures,
+  type SalaryStructure,
+} from "../../../../store/slice/salaryStructureSlice";
 
-const MainContentSkeleton: React.FC = () => (
-  <div className="flex-grow w-full bg-white p-6 rounded-lg border border-gray-200 animate-pulse">
-    <div className="space-y-4">
-      <div className="h-8 w-1/4 bg-gray-200 rounded-md"></div>
-      <div className="h-5 w-full bg-gray-200 rounded-md"></div>
-      <div className="h-5 w-5/6 bg-gray-200 rounded-md"></div>
-      <div className="h-5 w-3/4 bg-gray-200 rounded-md mt-6"></div>
-    </div>
-  </div>
-);
+import {
+  fetchEmployeeDesignations,
+  resetEmployeeDesignations,
+  type Designation,
+} from "../../../../store/slice/employeeDesignationSlice";
 
-const generalInfoFields: FormField[] = [
-  {
-    name: "title",
-    label: "Title",
-    type: "select",
-    required: true,
-    options: [
-      { value: "MR", label: "MR" },
-      { value: "MRS", label: "MRS" },
-    ],
-  },
-  { name: "firstName", label: "First Name", type: "text", required: true },
-  { name: "lastName", label: "Last Name", type: "text", required: true },
-  { name: "empCode", label: "Employee ID", type: "text", required: true },
-  {
-    name: "status",
-    label: "Status",
-    type: "select",
-    required: true,
-    options: [
-      { value: "Active", label: "Active" },
-      { value: "Inactive", label: "Inactive" },
-    ],
-  },
-  {
-    name: "gender",
-    label: "Gender",
-    type: "select",
-    required: true,
-    options: [
-      { value: "Male", label: "Male" },
-      { value: "Female", label: "Female" },
-    ],
-  },
-  { name: "phoneNum", label: "Phone Number", type: "text", required: true },
-  {
-    name: "maritalStatus",
-    label: "Marital Status",
-    type: "select",
-    required: true,
-    options: [
-      { value: "Single", label: "Single" },
-      { value: "Married", label: "Married" },
-    ],
-  },
-  {
-    name: "primaryEmail",
-    label: "Email Primary",
-    type: "email",
-    required: true,
-    spanFull: true,
-  },
-];
-
-const professionalInfoFields: FormField[] = [
-  {
-    name: "location",
-    label: "Location",
-    type: "select",
-    options: [
-      { value: "Noida", label: "Noida" },
-      { value: "Gurgaon", label: "Gurgaon" },
-    ],
-  },
-  {
-    name: "department",
-    label: "Department",
-    type: "select",
-    options: [
-      { value: "HR", label: "HR" },
-      { value: "Design", label: "Design" },
-    ],
-  },
-  { name: "designation", label: "Designation", type: "text" },
-  {
-    name: "payslipComponent",
-    label: "Payslip Component",
-    type: "select",
-    options: [
-      { value: "Default", label: "Default" },
-      { value: "Intern", label: "Intern" },
-    ],
-  },
-  {
-    name: "taxRegime",
-    label: "Tax Regime",
-    type: "select",
-    options: [
-      { value: "Old", label: "Old" },
-      { value: "New", label: "New" },
-    ],
-  },
-  {
-    name: "holidayGroup",
-    label: "Holiday Group",
-    type: "select",
-    options: [{ value: "National Holidays", label: "National Holidays" }],
-  },
-  { name: "role", label: "Role", type: "text" },
-  { name: "reportingManager", label: "Reporting Manager", type: "text" },
-  { name: "workWeek", label: "Work Pattern", type: "text" },
-  { name: "ctcAnnual", label: "Yearly CTC", type: "number" },
-  { name: "rentalCity", label: "Rental City", type: "text" },
-  { name: "joiningDate", label: "Joining Date", type: "date" },
-  { name: "leavingDate", label: "Leaving Date", type: "date" },
-];
-
-const bankDetailsFields: FormField[] = [
-  {
-    name: "bankName",
-    label: "Bank Name",
-    type: "text",
-    required: true,
-    spanFull: true,
-  },
-  {
-    name: "branchName",
-    label: "Branch Name",
-    type: "text",
-    required: true,
-    spanFull: true,
-  },
-  {
-    name: "accountName",
-    label: "Account Name",
-    type: "text",
-    required: true,
-    spanFull: true,
-  },
-  {
-    name: "accountType",
-    label: "Account Type",
-    type: "select",
-    required: true,
-    options: [
-      { value: "Saving", label: "Saving" },
-      { value: "Current", label: "Current" },
-    ],
-    spanFull: true,
-  },
-  {
-    name: "accountNum",
-    label: "Account No",
-    type: "text",
-    required: true,
-    spanFull: true,
-  },
-  {
-    name: "ifscCode",
-    label: "IFSC Code",
-    type: "text",
-    required: true,
-    spanFull: true,
-  },
-];
-
-const loanInfoFields: FormField[] = [
-  {
-    name: "loanAmount",
-    label: "Loan Amount",
-    type: "number",
-    required: true,
-    placeholder: "e.g., 154250.00",
-  },
-  {
-    name: "installments",
-    label: "Installments",
-    type: "number",
-    required: true,
-    placeholder: "e.g., 12",
-  },
-  {
-    name: "firstInstallmentDate",
-    label: "1st Installment Date",
-    type: "date",
-    required: true,
-  },
-  {
-    name: "staffNotes",
-    label: "Staff Notes",
-    type: "textarea",
-    spanFull: true,
-    placeholder: "Sample Text",
-  },
-];
-
-export const approveLoanFields: FormField[] = [
-  { name: "loanAmount", label: "Loan Amount", type: "number", required: true },
-  {
-    name: "installments",
-    label: "Installments",
-    type: "number",
-    required: true,
-  },
-  {
-    name: "paymentReleaseMonth",
-    label: "Payment Release Month",
-    type: "date",
-    required: true,
-  },
-  { name: "staffNote", label: "Staff Note", type: "textarea", spanFull: true },
-];
-
-export const declineLoanFields: FormField[] = [
-  {
-    name: "cancelReason",
-    label: "Cancel Reason",
-    type: "textarea",
-    required: true,
-    spanFull: true,
-  },
-];
-
-const addLoanRequestFields: FormField[] = [
-  {
-    name: "empName",
-    label: "Employee Name",
-    type: "text",
-    required: true,
-    placeholder: "Employee Name",
-    spanFull: true,
-  },
-  {
-    name: "amountReq",
-    label: "Requested Amount",
-    type: "number",
-    required: true,
-    placeholder: "e.g., 500000",
-    spanFull: true,
-  },
-  {
-    name: "note",
-    label: "Note",
-    type: "textarea",
-    required: true,
-    spanFull: true,
-    placeholder: "Need for home",
-  },
-  {
-    name: "staffNote",
-    label: "Staff Note",
-    type: "textarea",
-    required: true,
-    spanFull: true,
-    placeholder: "Urgent requirement",
-  },
-];
-
-const editLoanFields: FormField[] = [
-  {
-    name: "amountApp",
-    label: "Approved Amount",
-    type: "number",
-    required: true,
-    placeholder: "e.g., 400000",
-    spanFull: true,
-  },
-  {
-    name: "staffNote",
-    label: "Staff Note",
-    type: "textarea",
-    spanFull: true,
-    placeholder: "Updated based on limit",
-  },
-];
-
-const pfEsiFields: FormField[] = [
-  {
-    name: "employeePfEnable",
-    label: "Employee PF Enabled",
-    type: "select",
-    options: [
-      { value: true, label: "Yes" },
-      { value: false, label: "No" },
-    ],
-  },
-  { name: "pfNum", label: "Employee PF Number", type: "text" },
-  { name: "uanNum", label: "Employee UAN Number", type: "text" },
-  {
-    name: "employeerPfEnable",
-    label: "Employer PF Enabled",
-    type: "select",
-    options: [
-      { value: true, label: "Yes" },
-      { value: false, label: "No" },
-    ],
-  },
-  {
-    name: "esiEnable",
-    label: "ESI Enabled",
-    type: "select",
-    options: [
-      { value: true, label: "Yes" },
-      { value: false, label: "No" },
-    ],
-  },
-  { name: "esiNum", label: "ESI Number", type: "text" },
-  {
-    name: "professionalTax",
-    label: "Professional Tax Enabled",
-    type: "select",
-    options: [
-      { value: true, label: "Yes" },
-      { value: false, label: "No" },
-    ],
-  },
-  {
-    name: "labourWelfare",
-    label: "Labour Welfare Fund Enabled",
-    type: "select",
-    options: [
-      { value: true, label: "Yes" },
-      { value: false, label: "No" },
-    ],
-  },
-];
+import { fetchRoles, type Role } from "../../../../store/slice/roleSlice";
+import { useMemo } from "react"; // Add this
 
 export default function EmployeeDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+
+  const { items: locations, status: locationStatus } = useSelector(
+    (state: RootState) => state.locations
+  );
+
+  const { items: departments, status: departmentStatus } = useSelector(
+    (state: RootState) => state.departments
+  );
+
+  const { data: salaryStructures } = useSelector(
+    (state: RootState) => state.salaryStructures
+  );
+
+  const { items: roles } = useSelector((state: RootState) => state.roles);
+
+  const { items: designations } = useSelector(
+    (state: RootState) => state.employeeDesignations
+  );
+
   const { employeeCode } = useParams<{ employeeCode: string }>();
   const location = useLocation();
-  //get mainEmployeeId and payslipComponent from location state
   const mainEmployeeId = (location.state as { mainEmployeeId?: string })
     ?.mainEmployeeId;
   const payslipComponent = (location.state as { payslipComponent?: string })
@@ -435,6 +139,108 @@ export default function EmployeeDetailPage() {
     "approve" | "decline" | null
   >(null);
 
+  const professionalInfoFields: FormField[] = useMemo(
+    () => [
+      {
+        name: "location",
+        label: "Location",
+        type: "select",
+        options:
+          locations.map((loc: Location) => ({
+            value: loc.city,
+            label: loc.city,
+          })) || [],
+      },
+      {
+        name: "department",
+        label: "Department",
+        type: "select",
+        options:
+          departments.map((dept: Department) => ({
+            value: dept.name,
+            label: dept.name,
+          })) || [],
+      },
+      {
+        name: "designation",
+        label: "Designation",
+        type: "select",
+        options:
+          designations.map((des: Designation) => ({
+            value: des.designationName,
+            label: des.designationName,
+          })) || [],
+      },
+      {
+        name: "payslipComponent",
+        label: "Payslip Component",
+        type: "select",
+
+        options:
+          salaryStructures.map((structure: SalaryStructure) => ({
+            value: structure.groupName,
+            label: structure.groupName,
+          })) || [],
+      },
+      {
+        name: "taxRegime",
+        label: "Tax Regime",
+        type: "select",
+        options: [
+          { value: "Old", label: "Old" },
+          { value: "New", label: "New" },
+        ],
+      },
+      {
+        name: "holidayGroup",
+        label: "Holiday Group",
+        type: "select",
+        options: [{ value: "National Holidays", label: "National Holidays" }],
+      },
+      {
+        name: "role",
+        label: "Role",
+        type: "select",
+        options:
+          roles.map((role: Role) => ({
+            value: role.name,
+            label: role.name,
+          })) || [],
+      },
+      {
+        name: "reportingManager",
+        label: "Reporting Manager",
+        type: "select",
+        options: [
+          { value: "Kushal Singh (1001)", label: "Kushal Singh (1001)" },
+          { value: "Rohit Sharma (1002)", label: "Rohit Sharma (1002)" },
+          { value: "Jane Doe (1003)", label: "Jane Doe (1003)" },
+        ],
+      },
+      {
+        name: "workWeek",
+        label: "Work Pattern",
+        type: "select",
+        options: [
+          { value: "Alternate", label: "Alternate" },
+          { value: "5 days Week", label: "5 days Week" },
+        ],
+      },
+      { name: "ctcAnnual", label: "Yearly CTC", type: "number" },
+      { name: "rentalCity", label: "Rental City", type: "text" },
+      { name: "joiningDate", label: "Joining Date", type: "date" },
+      { name: "leavingDate", label: "Leaving Date", type: "date" },
+    ],
+    [locations]
+  );
+
+  useEffect(() => {
+    dispatch(fetchLocations());
+    dispatch(fetchDepartments());
+    dispatch(fetchSalaryStructures());
+    dispatch(fetchRoles());
+  }, [dispatch]);
+
   useEffect(() => {
     if (employeeCode) {
       dispatch(fetchEmployeeDetails(employeeCode));
@@ -452,15 +258,15 @@ export default function EmployeeDetailPage() {
   const handleAddLoan = () => {
     setIsAddModalOpen(true);
   };
-
-  const getSectionTitle = () => {
-    const item = menuItems.find(
-      (m: string) =>
-        m.toLowerCase().replace(/, | & | /g, "_") === currentSection
-    );
-    return item || "General Info";
-  };
   const handleEdit = (section: string, itemToEdit?: any) => {
+    if (
+      section === "professional" &&
+      currentEmployee?.professional.department
+    ) {
+      dispatch(
+        fetchEmployeeDesignations(currentEmployee.professional.department)
+      );
+    }
     setEditingSection(section);
     if (section === "loan_and_advances" && itemToEdit) {
       setEditingLoan(itemToEdit as LoanDetails);
@@ -779,9 +585,9 @@ export default function EmployeeDetailPage() {
         );
       case "declaration":
         return (
-          <Declarations
+          <PlaceholderComponent
             title="Declaration"
-            onEdit={() => handleEdit("declaration", null)}
+            onEdit={() => handleEdit("payslips", null)}
           />
         );
       case "salary_distribution":
@@ -856,6 +662,7 @@ export default function EmployeeDetailPage() {
     const handleCancel = () => {
       setEditingSection(null);
       setEditingLoan(null);
+      dispatch(resetEmployeeDesignations());
     };
 
     switch (editingSection) {
@@ -1086,25 +893,17 @@ export default function EmployeeDetailPage() {
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">{employeeName}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            <Link to="/dashboard" className="hover:text-[#741CDD]">
-              Dashboard
-            </Link>
-            <span className="mx-2">/</span>
-            <Link to="/dashboard" className="hover:text-[#741CDD]">
-              Employee Setup
-            </Link>
-            <span className="mx-2">/</span>
             <Link to="/employees/list" className="hover:text-[#741CDD]">
-              List
+              Employee List
             </Link>
             <span className="mx-2">/</span>
-            <Link to={`/employees/list`} className="hover:text-[#741CDD]">
+            <button
+              type="button"
+              onClick={() => {}}
+              className="hover:text-[#741CDD] "
+            >
               Detail
-            </Link>
-            <span className="mx-2">/</span>
-            <span className="text-[#741CDD] font-medium">
-              {getSectionTitle()}
-            </span>
+            </button>
           </p>
         </header>
         <div className="flex flex-col md:flex-row items-start gap-6">

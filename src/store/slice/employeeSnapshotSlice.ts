@@ -131,7 +131,7 @@ export const fetchEmployeeSnapshot = createAsyncThunk<
       };
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
-        return rejectWithValue(error.response.data?.message || 'Failed to fetch report.');
+        return rejectWithValue(error.response.data?.error || 'Failed to fetch report.');
       }
       return rejectWithValue('An unknown error occurred while fetching the report.');
     }

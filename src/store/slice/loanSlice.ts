@@ -84,7 +84,7 @@ export const approveLoan = createAsyncThunk<
       dispatch(fetchEmployeeDetails(employeeId));
     } catch (error: unknown) {
       if (isAxiosError(error)) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to approve loan');
+        return rejectWithValue(error.response?.data?.error || 'Failed to approve loan');
       }
       return rejectWithValue('An unknown error occurred');
     }

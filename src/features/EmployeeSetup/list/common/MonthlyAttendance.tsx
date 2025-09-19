@@ -150,10 +150,8 @@ const MonthlyAttendance: React.FC<MonthlyAttendanceProps> = ({
           {`${month}-${year} Attendance for Employee ${employee.employeeCode} | ${employee.name}`}
         </h1>
         <p className="text-sm text-gray-500 mt-1">
-          <Link to="/dashboard" className="hover:text-[#741CDD]">
-            Dashboard
-          </Link>
-          <span className="mx-2">/</span>
+         
+          {/* <span className="mx-2">/</span> */}
           <Link to="/dashboard" className="hover:text-[#741CDD]">
             Employee Setup
           </Link>

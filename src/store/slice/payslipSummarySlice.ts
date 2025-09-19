@@ -1,11 +1,10 @@
 
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { isAxiosError, AxiosError } from "axios";
 import { axiosInstance } from "../../services";
 import { toast } from "react-toastify";
 
-// --- INTERFACES ---
+// interfaces
 
 interface PayslipSummary {
     name: string;
@@ -56,8 +55,6 @@ interface PayslipSummaryState {
   scheduleStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
 }
 
-// --- INITIAL STATE ---
-
 const initialState: PayslipSummaryState = {
   reportData: [],
   status: 'idle',
@@ -74,15 +71,16 @@ const initialState: PayslipSummaryState = {
   scheduleStatus: 'idle',
 };
 
-// --- ASYNC THUNKS ---
-
 export const fetchPayslipSummary = createAsyncThunk(
   "payslipSummary/fetchData",
-  async ({ page, limit, filter }: { page: number; limit: number; filter: Record<string, any> }, { rejectWithValue }) => {
+  async ({ page, limit, search, filters }: { page: number; limit: number; search?: string; filters: Record<string, any> }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/report/getAll/payslip/payslipSummary`, {
-        params: { page, limit, ...filter },
-      });
+      const params: Record<string, any> = { page, limit, ...filters };
+      if (search) {
+        params.search = search;
+      }
+      
+      const response = await axiosInstance.get(`/report/getAll/payslip/payslipSummary`, { params });
       const data = response.data;
       if (data.message && data.message.toLowerCase().includes("not found")) {
         return rejectWithValue(data.message);
@@ -90,7 +88,7 @@ export const fetchPayslipSummary = createAsyncThunk(
       return response.data;
     } catch (error) {
       if (isAxiosError(error) && error.response) {
-        return rejectWithValue(error.response.data?.message || "Failed to fetch report.");
+        return rejectWithValue(error.response.data?.error || "Failed to fetch report.");
       }
       return rejectWithValue("An unknown error occurred.");
     }
@@ -155,40 +153,34 @@ export const updatePayslipTemplate = createAsyncThunk(
 
 export const downloadPayslipSummary = createAsyncThunk(
   "payslipSummary/download",
-  async ({ format, filter }: { format: 'csv' | 'xlsx', filter?: Record<string, any> }, { rejectWithValue }) => {
-    try {
-      const params = new URLSearchParams({ format });
-      if (filter && Object.keys(filter).length > 0) {
-        params.append("filter", JSON.stringify(filter));
-      }
-      const response = await axiosInstance.get(`/report/export/payslipSummary?${params.toString()}`, {
-        responseType: "blob",
+async ({ format, filters }: { format: 'csv' | 'xlsx', filters?: Record<string, any> }, { rejectWithValue }) => {
+  try {
+    const params = new URLSearchParams({ format });
+    if (filters && Object.keys(filters).length > 0) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, String(value));
       });
-      
-      const contentDisposition = response.headers['content-disposition'];
-      let fileName = `payslip_summary_report_${new Date().toISOString()}.${format}`;
-      
-      if (contentDisposition) {
-        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
-        if (fileNameMatch && fileNameMatch.length > 1) {
-            fileName = fileNameMatch[1];
-        }
-      }
-      
-      return { fileData: response.data as Blob, fileName };
-    } catch (err) {
-      const error = err as AxiosError;
-      if (error.response?.data instanceof Blob && error.response.data.type.includes('json')) {
-        const errorText = await error.response.data.text();
-        const errorJson = JSON.parse(errorText);
-        return rejectWithValue(errorJson.message || 'Failed to download file.');
-      }
-      return rejectWithValue("An unknown error occurred during download.");
     }
+    const response = await axiosInstance.get(
+      `/report/export/payslipSummary?${params.toString()}`,
+      { responseType: "blob" }
+    );
+    
+    const fileName = `payslip_summary_report_${new Date().toISOString()}.${format}`;
+    return { fileData: response.data as Blob, fileName };
+
+  } catch (err) {
+    const error = err as AxiosError;
+    if (error.response?.data instanceof Blob && error.response.data.type.includes('json')) {
+      const errorText = await error.response.data.text();
+      const errorJson = JSON.parse(errorText);
+      return rejectWithValue(errorJson.message || 'Failed to download file.');
+    }
+    return rejectWithValue("An unknown error occurred during download.");
   }
+}
 );
 
-// --- SLICE DEFINITION ---
 
 const payslipSummarySlice = createSlice({
   name: "payslipSummary",

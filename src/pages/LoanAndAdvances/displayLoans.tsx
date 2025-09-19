@@ -8,13 +8,14 @@ import {
   X,
   ChevronUp,
   ChevronDown,
+  Search,
+  Loader2,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import Table, { type Column } from "../../components/common/Table";
-import LoanConfirmationModal from "../../features/EmployeeSetup/list/modal/LoanConfirmationModal";
-import { type FormField } from "../../components/common/GenericForm";
+import useDebounce from "../../hooks/useDebounce";
 
 import { type RootState, type AppDispatch } from "../../store/store";
 import {
@@ -45,7 +46,6 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
         <div className="h-4 bg-gray-200 rounded w-[10%]"></div>
         <div className="h-4 bg-gray-200 rounded w-[10%]"></div>
       </div>
-
       <div className="space-y-2">
         {Array.from({ length: rows }).map((_, index) => (
           <div
@@ -66,33 +66,6 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   );
 };
 
-const approveLoanFields: FormField[] = [
-  {
-    name: "amountApp",
-    label: "Approved Amount",
-    type: "number",
-    required: true,
-  },
-  {
-    name: "installment",
-    label: "Installments",
-    type: "number",
-    required: true,
-  },
-  { name: "date", label: "Payment Release Date", type: "date", required: true },
-  { name: "staffNote", label: "Staff Note", type: "textarea", spanFull: true },
-];
-
-const declineLoanFields: FormField[] = [
-  {
-    name: "cancelReason",
-    label: "Reason for Decline",
-    type: "textarea",
-    required: true,
-    spanFull: true,
-  },
-];
-
 const DetailItem: React.FC<{ label: string; value: ReactNode }> = ({
   label,
   value,
@@ -104,6 +77,20 @@ const DetailItem: React.FC<{ label: string; value: ReactNode }> = ({
     </span>
   </div>
 );
+
+const StatusBadge: React.FC<{ status: Status }> = ({ status }) => {
+  const baseClasses =
+    "px-3 py-1 text-xs font-semibold rounded-full inline-block";
+  const statusClasses = {
+    Approved: "bg-green-100 text-green-800",
+    Declined: "bg-red-100 text-red-800",
+    Pending: "bg-yellow-100 text-yellow-800",
+    Paid: "bg-blue-100 text-blue-800",
+  };
+  return (
+    <span className={`${baseClasses} ${statusClasses[status]}`}>{status}</span>
+  );
+};
 
 const LoanDetailView: React.FC<{
   loan: Loan;
@@ -175,20 +162,6 @@ const LoanDetailView: React.FC<{
         )}
       </div>
     </div>
-  );
-};
-
-const StatusBadge: React.FC<{ status: Status }> = ({ status }) => {
-  const baseClasses =
-    "px-3 py-1 text-xs font-semibold rounded-full inline-block";
-  const statusClasses = {
-    Approved: "bg-green-100 text-green-800",
-    Declined: "bg-red-100 text-red-800",
-    Pending: "bg-yellow-100 text-yellow-800",
-    Paid: "bg-blue-100 text-blue-800",
-  };
-  return (
-    <span className={`${baseClasses} ${statusClasses[status]}`}>{status}</span>
   );
 };
 
@@ -283,62 +256,75 @@ const FilterModal: React.FC<{
       icon: "ℹ️",
       className: "bg-blue-50 text-blue-800",
     });
+    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 bg-opacity-30 z-40"
+      className="fixed inset-0 bg-black/50 z-[99] flex justify-end animate-fade-in-right"
       onClick={onClose}
     >
       <div
-        className="absolute top-0 right-0 h-full w-full max-w-sm bg-white shadow-2xl flex flex-col"
+        className="bg-white w-full sm:w-96 h-full shadow-lg relative flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* --- Header --- */}
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-lg font-semibold text-gray-800">Filter</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-200"
+            className="text-gray-600 hover:text-gray-900"
           >
-            <X size={20} />
+            ✖
           </button>
         </div>
+
+        {/* --- Body --- */}
         <div className="p-6 space-y-4 flex-grow overflow-y-auto">
           <div className="border-b pb-4">
             <button
               onClick={() => setIsDateOpen(!isDateOpen)}
               className="w-full flex justify-between items-center"
             >
-              <h3 className="text-sm font-semibold text-gray-700">
+              <h3 className="block font-medium text-sm uppercase text-[#741CDD]">
                 Requested Date
               </h3>
               {isDateOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
             </button>
             {isDateOpen && (
               <div className="mt-4 space-y-3">
+                <label className="block font-medium text-sm uppercase text-[#741CDD]">
+                  Start Date
+                </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#741CDD] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
                 />
+                <label className="block font-medium text-sm uppercase text-[#741CDD]">
+                  End Date
+                </label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#741CDD] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
                 />
               </div>
             )}
           </div>
+
           <div>
             <button
               onClick={() => setIsStatusOpen(!isStatusOpen)}
               className="w-full flex justify-between items-center"
             >
-              <h3 className="text-sm font-semibold text-gray-700">Status</h3>
+              <h3 className="block font-medium text-sm uppercase text-[#741CDD]">
+                Status
+              </h3>
               {isStatusOpen ? (
                 <ChevronUp size={18} />
               ) : (
@@ -374,18 +360,20 @@ const FilterModal: React.FC<{
             )}
           </div>
         </div>
-        <div className="p-6 bg-white border-t flex justify-end space-x-3">
+
+        {/* --- Footer Buttons --- */}
+        <div className="flex justify-center gap-3 mt-6 pt-4 border-t p-6">
           <button
             onClick={handleClear}
-            className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-100"
+            className="border border-gray-300 px-4 py-2 rounded-md text-sm w-full"
           >
             CLEAR
           </button>
           <button
             onClick={handleApply}
-            className="px-6 py-2 bg-[#741CDD] text-white rounded-lg text-sm font-semibold hover:opacity-90"
+            className="bg-[#741CDD] text-white px-6 py-2 rounded-md text-sm w-full"
           >
-            APPLY
+            APPLY FILTERS
           </button>
         </div>
       </div>
@@ -452,41 +440,83 @@ const DisplayLoans: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [currentFilters, setCurrentFilters] = useState<
     Omit<FilterState, "statuses"> & { statuses?: string[] }
   >({});
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [confirmingLoan, setConfirmingLoan] = useState<Loan | null>(null);
-  const [confirmationAction, setConfirmationAction] = useState<
-    "approve" | "decline" | null
-  >(null);
+
+  // State for Approve Modal
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [modalFormData, setModalFormData] = useState({
+    amountApp: "",
+    installment: "",
+    date: "",
+    staffNote: "",
+  });
+  const [modalErrors, setModalErrors] = useState({
+    amountApp: "",
+    installment: "",
+    date: "",
+    staffNote: "",
+  });
+
+  // State for Decline Modal
+  const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  const [declineError, setDeclineError] = useState("");
+
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    } else {
+      setSearchParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.set("page", "1");
+          return newParams;
+        },
+        { replace: true }
+      );
+    }
+  }, [itemsPerPage, debouncedSearchQuery, currentFilters]);
 
   useEffect(() => {
     dispatch(
-      fetchLoans({ page: currentPage, limit: itemsPerPage, ...currentFilters })
+      fetchLoans({
+        page: currentPage,
+        limit: itemsPerPage,
+        search: debouncedSearchQuery,
+        ...currentFilters,
+      })
     );
-  }, [dispatch, currentPage, itemsPerPage, currentFilters]);
-
-  useEffect(() => {
-    if (status === "failed" && error) {
-      toast.error(error, { className: "bg-red-50 text-red-800" });
-    }
-  }, [status, error]);
+  }, [
+    dispatch,
+    currentPage,
+    itemsPerPage,
+    debouncedSearchQuery,
+    currentFilters,
+  ]);
 
   const handleApplyFilters = (filters: FilterState) => {
-    setSearchParams({ page: "1" });
     setCurrentFilters({
       startDate: filters.startDate,
       endDate: filters.endDate,
       statuses: filters.statuses,
     });
   };
-
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set("page", String(newPage));
+      return newParams;
+    });
+  };
   const handleToggleMenu = (id: string) => {
     setActiveMenuId((prevId) => (prevId === id ? null : id));
-  };
-  const handlePageChange = (newPage: number) => {
-    setSearchParams({ page: String(newPage) });
   };
   const handleViewDetails = (loan: Loan) => {
     setSelectedLoan(loan);
@@ -495,60 +525,153 @@ const DisplayLoans: React.FC = () => {
   const handleCloseDetails = () => {
     setSelectedLoan(null);
   };
+
   const handleInitiateApproval = () => {
     if (!selectedLoan) return;
+    setModalFormData({
+      amountApp:
+        selectedLoan.approvedAmount.replace(/[^0-9.]/g, "") ||
+        selectedLoan.requestedAmount.replace(/[^0-9.]/g, ""),
+      installment: selectedLoan.installments || "",
+      date: "",
+      staffNote: selectedLoan.staffNote || "",
+    });
+    setModalErrors({ amountApp: "", installment: "", date: "", staffNote: "" });
     setConfirmingLoan(selectedLoan);
-    setConfirmationAction("approve");
-    handleCloseDetails();
+    setIsApproveModalOpen(true);
   };
+
   const handleInitiateDecline = () => {
     if (!selectedLoan) return;
+    setDeclineReason("");
+    setDeclineError("");
     setConfirmingLoan(selectedLoan);
-    setConfirmationAction("decline");
-    handleCloseDetails();
+    setIsDeclineModalOpen(true);
   };
 
-  const handleConfirmationSubmit = async (data: Record<string, any>) => {
-    if (!confirmingLoan || !confirmationAction) return;
+  const handleCloseApproveModal = () => {
+    setIsApproveModalOpen(false);
+    setConfirmingLoan(null);
+  };
+  const handleCloseDeclineModal = () => {
+    setIsDeclineModalOpen(false);
+    setConfirmingLoan(null);
+  };
 
-    const actionText =
-      confirmationAction === "approve" ? "Approving" : "Declining";
-    const toastId = toast.loading(`${actionText} loan request...`);
+  const validateApproveModalField = (name: string, value: string): string => {
+    switch (name) {
+      case "amountApp":
+        if (!value) return "Approved amount is required.";
+        if (Number(value) < 0) return "Amount cannot be negative.";
+        if (Number(value) > 200000) return "Amount cannot exceed 200,000.";
+        return "";
+      case "installment":
+        if (!value) return "Installments are required.";
+        if (Number(value) < 0) return "Installments cannot be negative.";
+        if (Number(value) > 60) return "Installments cannot exceed 60.";
+        return "";
+      case "staffNote":
+        if (!value.trim()) return "Staff Note is required.";
+        if (value.trim().length < 10)
+          return "Note must be at least 10 characters.";
+        if (value.trim().length > 30)
+          return "Note cannot exceed 30 characters.";
+        return "";
+      case "date":
+        if (!value) return "Payment release date is required.";
+        return "";
+      default:
+        return "";
+    }
+  };
 
+  const handleModalChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setModalFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleModalBlur = (
+    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    const error = validateApproveModalField(name, value);
+    setModalErrors((prev) => ({ ...prev, [name]: error }));
+  };
+
+  const handleApproveModalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!confirmingLoan) return;
+
+    const newErrors = {
+      amountApp: validateApproveModalField(
+        "amountApp",
+        modalFormData.amountApp
+      ),
+      installment: validateApproveModalField(
+        "installment",
+        modalFormData.installment
+      ),
+      date: validateApproveModalField("date", modalFormData.date),
+      staffNote: validateApproveModalField(
+        "staffNote",
+        modalFormData.staffNote
+      ),
+    };
+    setModalErrors(newErrors);
+
+    if (Object.values(newErrors).some((error) => error !== "")) {
+      toast.error("Please fix the errors in the form.");
+      return;
+    }
+
+    const toastId = toast.loading("Approving loan request...");
     try {
-      if (confirmationAction === "approve") {
-        const approvalPayload = {
+      await dispatch(
+        approveLoan({
           loanId: confirmingLoan.id,
-          amountApp: String(data.amountApp),
-          installment: String(data.installment),
-          date: data.date,
-          staffNote: data.staffNote,
-        };
-        await dispatch(approveLoan(approvalPayload)).unwrap();
-        toast.success("Loan approved successfully!", {
-          id: toastId,
-          className: "bg-green-50 text-green-800",
-        });
-      } else if (confirmationAction === "decline") {
-        const declinePayload = {
-          loanId: confirmingLoan.id,
-          cancelReason: data.cancelReason,
-        };
-        await dispatch(cancelLoan(declinePayload)).unwrap();
-        toast.success("Loan declined successfully!", {
-          id: toastId,
-          className: "bg-green-50 text-green-800",
-        });
-      }
+          ...modalFormData,
+        })
+      ).unwrap();
+
+      toast.success("Loan approved successfully!", { id: toastId });
+      handleCloseApproveModal();
+      dispatch(fetchLoans({ page: currentPage, limit: itemsPerPage }));
     } catch (err: any) {
-      console.error(`Failed to ${confirmationAction} loan:`, err);
-      toast.error(err.message || `Failed to ${confirmationAction} loan.`, {
-        id: toastId,
-        className: "bg-red-50 text-red-800",
-      });
-    } finally {
-      setConfirmingLoan(null);
-      setConfirmationAction(null);
+      toast.error(err.message || "Failed to approve loan.", { id: toastId });
+    }
+  };
+
+  const handleDeclineSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!confirmingLoan) return;
+
+    const reason = declineReason.trim();
+    if (!reason) {
+      setDeclineError("A reason for declining is required.");
+      return;
+    }
+    if (reason.length < 10 || reason.length > 200) {
+      setDeclineError("Reason must be between 10 and 200 characters.");
+      return;
+    }
+    setDeclineError("");
+
+    const toastId = toast.loading("Declining loan request...");
+    try {
+      await dispatch(
+        cancelLoan({
+          loanId: confirmingLoan.id,
+          cancelReason: declineReason,
+        })
+      ).unwrap();
+
+      toast.success("Loan declined successfully!", { id: toastId });
+      handleCloseDeclineModal();
+      dispatch(fetchLoans({ page: currentPage, limit: itemsPerPage }));
+    } catch (err: any) {
+      toast.error(err.message || "Failed to decline loan.", { id: toastId });
     }
   };
 
@@ -569,12 +692,24 @@ const DisplayLoans: React.FC = () => {
     {
       key: "employeeName",
       header: "Employee",
-      render: (row: Loan) => (
-        <div>
-          <div className="font-semibold">{row.employeeName}</div>
-          <div className="text-xs text-gray-500">on {row.requestDate}</div>
-        </div>
-      ),
+      render: (row: Loan) => {
+        // Format the date for better readability
+        const formattedDate = new Date(row.requestDate).toLocaleDateString(
+          "en-GB",
+          {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }
+        );
+
+        return (
+          <div>
+            <div className="font-semibold">{row.employeeName}</div>
+            <div className="text-xs text-gray-500">on {formattedDate}</div>
+          </div>
+        );
+      },
     },
     { key: "requestedAmount", header: "Requested Amt" },
     {
@@ -607,40 +742,249 @@ const DisplayLoans: React.FC = () => {
     },
   ];
 
-  const renderConfirmationModal = () => {
-    if (!confirmingLoan || !confirmationAction) return null;
-    const isApproving = confirmationAction === "approve";
-    const numericRequestedAmount = Number(
-      confirmingLoan.requestedAmount.replace(/[^0-9.-]+/g, "")
-    );
-
+  const renderApproveLoanModal = () => {
+    if (!isApproveModalOpen || !confirmingLoan) return null;
+    const isFormValid =
+      Object.values(modalErrors).every((e) => e === "") &&
+      modalFormData.amountApp &&
+      modalFormData.installment &&
+      modalFormData.date &&
+      modalFormData.staffNote;
     return (
-      <LoanConfirmationModal
-        isOpen={true}
-        onClose={() => setConfirmingLoan(null)}
-        loan={{ amountReq: numericRequestedAmount }}
-        onConfirm={handleConfirmationSubmit}
-        onCancel={() => setConfirmingLoan(null)}
-        formFields={isApproving ? approveLoanFields : declineLoanFields}
-        initialState={
-          isApproving
-            ? {
-                amountApp: numericRequestedAmount,
-                installment: confirmingLoan.installments || "",
-                date: "",
-                staffNote: confirmingLoan.staffNote || "",
-              }
-            : { cancelReason: "" }
-        }
-        title={isApproving ? "Approve Loan Request" : "Decline Loan Request"}
-        message={
-          isApproving
-            ? "You can change loan amount and number of installments before approving this request."
-            : "Please provide a reason for declining this loan request."
-        }
-        confirmButtonText={isApproving ? "Approve" : "Decline"}
-        cancelButtonText="Cancel"
-      />
+      <div
+        className="fixed inset-0 z-40 bg-black/50"
+        onClick={handleCloseApproveModal}
+      >
+        <div
+          className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out translate-x-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="bg-white h-full flex flex-col">
+            <form
+              onSubmit={handleApproveModalSubmit}
+              noValidate
+              className="h-full flex flex-col"
+            >
+              <div className="relative flex items-center justify-between p-6 border-b border-gray-200">
+                <h2 className="text-xl font-bold text-slate-800">
+                  Approve Loan Request
+                </h2>
+                <button
+                  type="button"
+                  onClick={handleCloseApproveModal}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="flex-grow overflow-y-auto p-6">
+                <div className="bg-[#E7E9F4] p-4 rounded-md text-gray-800 text-sm">
+                  You can change loan amount and number of installments before
+                  approving this request.
+                </div>
+                <div className="mt-4 border-b border-gray-200 py-4 flex justify-between items-center text-sm font-semibold">
+                  <span>Amount Requested:</span>
+                  <span>{confirmingLoan.requestedAmount}</span>
+                </div>
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Approved Amount <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="amountApp"
+                      value={modalFormData.amountApp}
+                      onChange={handleModalChange}
+                      onBlur={handleModalBlur}
+                      className={`w-full p-2 border rounded-md ${
+                        modalErrors.amountApp
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                    />
+                    {modalErrors.amountApp && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {modalErrors.amountApp}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Installments <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="installment"
+                      value={modalFormData.installment}
+                      onChange={handleModalChange}
+                      onBlur={handleModalBlur}
+                      className={`w-full p-2 border rounded-md ${
+                        modalErrors.installment
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                    />
+                    {modalErrors.installment && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {modalErrors.installment}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Payment Release Date{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={modalFormData.date}
+                      onChange={handleModalChange}
+                      onBlur={handleModalBlur}
+                      className={`w-full p-2 border rounded-md ${
+                        modalErrors.date ? "border-red-500" : "border-gray-300"
+                      }`}
+                    />
+                    {modalErrors.date && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {modalErrors.date}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Staff Note <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="staffNote"
+                      value={modalFormData.staffNote}
+                      onChange={handleModalChange}
+                      onBlur={handleModalBlur}
+                      rows={4}
+                      className={`w-full p-2 border rounded-md ${
+                        modalErrors.staffNote
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                    />
+                    {modalErrors.staffNote && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {modalErrors.staffNote}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-4 p-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={handleCloseApproveModal}
+                  className="py-2.5 px-6 font-semibold bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="py-2.5 px-6 font-semibold text-white bg-[#741CDD] rounded-md hover:bg-[#5f3dbb] transition-colors disabled:bg-purple-300 disabled:cursor-not-allowed flex items-center"
+                  disabled={status === "loading" || !isFormValid}
+                >
+                  {status === "loading" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      Processing...
+                    </>
+                  ) : (
+                    "Approve"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderDeclineLoanModal = () => {
+    if (!isDeclineModalOpen || !confirmingLoan) return null;
+    return (
+      <div
+        className="fixed inset-0 z-50 bg-black/50"
+        onClick={handleCloseDeclineModal}
+      >
+        <div
+          className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out translate-x-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <form
+            onSubmit={handleDeclineSubmit}
+            noValidate
+            className="h-full flex flex-col"
+          >
+            <div className="relative flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-slate-800">
+                Decline Loan Request
+              </h2>
+              <button
+                type="button"
+                onClick={handleCloseDeclineModal}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-grow overflow-y-auto p-6">
+              <div className="bg-[#E7E9F4] p-4 rounded-md text-gray-800 text-sm">
+                Please provide a clear reason for declining this loan request.
+              </div>
+              <div className="space-y-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Reason for Decline <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="declineReason"
+                    value={declineReason}
+                    onChange={(e) => setDeclineReason(e.target.value)}
+                    rows={5}
+                    className={`w-full p-2 border rounded-md ${
+                      declineError ? "border-red-500" : "border-gray-300"
+                    }`}
+                    placeholder="Provide a reason (10-200 characters)..."
+                  />
+                  {declineError && (
+                    <p className="mt-1 text-xs text-red-600">{declineError}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-4 p-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={handleCloseDeclineModal}
+                className="py-2.5 px-6 font-semibold bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="py-2.5 px-6 font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors disabled:bg-red-300 disabled:cursor-not-allowed flex items-center"
+                disabled={status === "loading"}
+              >
+                {status === "loading" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                    Processing...
+                  </>
+                ) : (
+                  "Decline Loan"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     );
   };
 
@@ -648,33 +992,56 @@ const DisplayLoans: React.FC = () => {
     <div className="p-8 bg-gray-50 min-h-screen font-sans">
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Loans & Advances</h1>
-        <p className="text-sm text-gray-500">
-          Dashboard / Employee Loans & Advances
-        </p>
       </header>
       <div ref={tableContainerRef}>
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={() => setIsFilterOpen(true)}
-            className="p-2 rounded-full"
-            style={{ backgroundColor: "#741CDD" }}
-          >
-            <Filter size={20} className="text-white" />
-          </button>
-        </div>
-
-        {status === "loading" && <TableSkeleton rows={itemsPerPage} />}
-        {status === "failed" && (
-          <div className="text-center p-4 text-gray-500">
-            Could not load data. Please try again.
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            <label htmlFor="entries" className="text-sm text-gray-600 mr-2">
+              Show
+            </label>
+            <select
+              id="entries"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-[#741CDD] sm:text-sm"
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+            <span className="text-sm text-gray-600 ml-2">entries</span>
           </div>
-        )}
-
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-5 w-5 text-gray-400" />
+              </span>
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#741CDD] focus:border-transparent"
+              />
+            </div>
+            <button
+              onClick={() => setIsFilterOpen(true)}
+              className="p-2.5 rounded-md"
+              style={{ backgroundColor: "#741CDD" }}
+            >
+              <Filter size={20} className="text-white" />
+            </button>
+          </div>
+        </div>
+        {status === "loading" && <TableSkeleton rows={itemsPerPage} />}
         {status === "succeeded" && (
           <>
             <Table
+              key={itemsPerPage}
+              defaultItemsPerPage={itemsPerPage}
               data={loans}
               columns={columns}
+              className="[&_.table-controls]:hidden"
               showSearch={false}
               showPagination={false}
             />
@@ -701,7 +1068,8 @@ const DisplayLoans: React.FC = () => {
           onDecline={handleInitiateDecline}
         />
       )}
-      {renderConfirmationModal()}
+      {renderApproveLoanModal()}
+      {renderDeclineLoanModal()}
     </div>
   );
 };

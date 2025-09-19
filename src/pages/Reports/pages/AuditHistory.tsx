@@ -1,10 +1,10 @@
 //imports
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-// import { Filter } from "lucide-react";
 import toast from "react-hot-toast";
-import Table, { type Column } from "../../../components/common/Table";
-
+// We no longer import the Table component as we are building it manually
+// import Table, { type Column } from "../../../components/common/Table";
+import type { Column } from "../../../components/common/Table"; // Keep type import if needed
 // Redux imports
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -13,7 +13,7 @@ import {
 } from "../../../store/slice/auditHistorySlice";
 import type { AppDispatch, RootState } from "../../../store/store";
 
-// skeleton component
+// skeleton component (No changes needed)
 const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   return (
     <div className="space-y-4 animate-pulse">
@@ -43,7 +43,7 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   );
 };
 
-// pagination logic
+// pagination logic (No changes needed)
 const Pagination: React.FC<{
   currentPage: number;
   totalPages: number;
@@ -94,7 +94,6 @@ const Pagination: React.FC<{
 
 // main body
 const AuditHistory: React.FC = () => {
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
 
   const { logs, status, error, totalPages, totalItems } = useSelector(
@@ -103,7 +102,7 @@ const AuditHistory: React.FC = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     dispatch(fetchAuditHistory({ page: currentPage, limit: itemsPerPage }));
@@ -115,13 +114,19 @@ const AuditHistory: React.FC = () => {
     }
   }, [status, error]);
 
-  //functions
   const handlePageChange = (newPage: number) => {
     setSearchParams({ page: String(newPage) });
     window.scrollTo(0, 0);
   };
 
-  //date format
+  const handleItemsPerPageChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const newLimit = parseInt(event.target.value, 10);
+    setItemsPerPage(newLimit);
+    setSearchParams({ page: "1" });
+  };
+
   const formatDateTime = (isoString: string) => {
     if (!isoString) return "N/A";
     return new Date(isoString).toLocaleString("en-GB", {
@@ -183,15 +188,42 @@ const AuditHistory: React.FC = () => {
       );
     }
 
+    // --- START: NEW MANUAL TABLE IMPLEMENTATION ---
     return (
       <div className="overflow-x-auto">
-        <Table
-          data={logs}
-          columns={columns}
-          showSearch={false}
-          showPagination={false}
-          className="min-w-full"
-        />
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              {columns.map((column) => (
+                <th
+                  key={column.key}
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {column.header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {logs.map((log) => (
+              <tr key={log.id}>
+                {columns.map((column) => (
+                  <td
+                    key={`${log.id}-${column.key}`}
+                    className={`px-6 py-4 text-sm text-gray-700 ${
+                      column.className || ""
+                    }`}
+                  >
+                    {column.render
+                      ? column.render(log)
+                      : (log as any)[column.key]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -201,23 +233,29 @@ const AuditHistory: React.FC = () => {
         />
       </div>
     );
+    // --- END: NEW MANUAL TABLE IMPLEMENTATION ---
   };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Audit History</h1>
-        <div className="flex items-center gap-4">
-          <p className="text-sm text-gray-500">
-            <Link to="/dashboard">Dashboard</Link> /{" "}
-            <Link to="/reports/all">Reports</Link> / Audit History
-          </p>
-          {/* <button
-            onClick={() => setIsFilterOpen(true)}
-            className="bg-[#741CDD] text-white p-2 rounded-md hover:opacity-90 transition-opacity"
+
+        <div className="flex items-center space-x-2 text-sm">
+          <label htmlFor="entries-select" className="text-gray-600">
+            Show Entries:
+          </label>
+          <select
+            id="entries-select"
+            value={itemsPerPage}
+            onChange={handleItemsPerPageChange}
+            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#741CDD]"
           >
-            <Filter size={20} />
-          </button> */}
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
         </div>
       </div>
 

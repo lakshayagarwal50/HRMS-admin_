@@ -1,7 +1,6 @@
-//imports
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Play, CalendarClock, Trash2, X } from "lucide-react";
+import { CalendarClock, Trash2, X, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import Table, { type Column } from "../../../components/common/Table";
 import ScheduleReport from "./ScheduleReport";
@@ -13,8 +12,8 @@ import {
   deleteReport,
   type Report,
 } from "../../../store/slice/reportSlice";
+import useDebounce from "../../../hooks/useDebounce";
 
-//skeleton
 const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   return (
     <div className="space-y-4 animate-pulse">
@@ -24,7 +23,6 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
         <div className="h-4 bg-gray-200 rounded w-5/12"></div>
         <div className="h-4 bg-gray-200 rounded w-4/12"></div>
       </div>
-
       <div className="space-y-2">
         {Array.from({ length: rows }).map((_, index) => (
           <div
@@ -47,7 +45,6 @@ const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => {
   );
 };
 
-//pagination
 const Pagination: React.FC<{
   currentPage: number;
   totalPages: number;
@@ -96,19 +93,40 @@ const Pagination: React.FC<{
   );
 };
 
-//main component
 const AllReports: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { reports, status, error, totalPages, totalItems } = useSelector(
     (state: RootState) => state.reports
   );
   const [searchParams, setSearchParams] = useSearchParams();
+
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const [itemsPerPage] = useState(10);
+  const currentLimit = parseInt(searchParams.get("limit") || "10", 10);
+  const currentSearch = searchParams.get("search") || "";
+
+  const [searchQuery, setSearchQuery] = useState(currentSearch);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   useEffect(() => {
-    dispatch(fetchAllReports({ page: currentPage, limit: itemsPerPage }));
-  }, [dispatch, currentPage, itemsPerPage]);
+    dispatch(
+      fetchAllReports({
+        page: currentPage,
+        limit: currentLimit,
+        search: currentSearch,
+      })
+    );
+  }, [dispatch, currentPage, currentLimit, currentSearch]);
+
+  // This effect updates the URL when the user stops typing
+  useEffect(() => {
+    if (debouncedSearchQuery !== currentSearch) {
+      setSearchParams({
+        limit: String(currentLimit),
+        page: "1", // Reset to page 1 on a new search
+        search: debouncedSearchQuery,
+      });
+    }
+  }, [debouncedSearchQuery, currentLimit, currentSearch, setSearchParams]);
 
   useEffect(() => {
     if (status === "failed" && error) {
@@ -120,6 +138,20 @@ const AllReports: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
+
+  const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLimit = e.target.value;
+    setSearchParams({ limit: newLimit, page: "1", search: currentSearch });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({
+      page: String(newPage),
+      limit: String(currentLimit),
+      search: currentSearch,
+    });
+    window.scrollTo(0, 0);
+  };
 
   const handleDeleteClick = (report: Report) => {
     setReportToDelete(report);
@@ -134,15 +166,16 @@ const AllReports: React.FC = () => {
       await dispatch(deleteReport(reportToDelete.id)).unwrap();
       toast.success(`Report "${reportToDelete.name}" deleted successfully.`, {
         id: toastId,
-        className: "bg-green-50 text-green-800",
       });
-      dispatch(fetchAllReports({ page: currentPage, limit: itemsPerPage }));
+      dispatch(
+        fetchAllReports({
+          page: currentPage,
+          limit: currentLimit,
+          search: currentSearch,
+        })
+      );
     } catch (err: any) {
-      console.error("Failed to delete report:", err);
-      toast.error(err.message || "Failed to delete report.", {
-        id: toastId,
-        className: "bg-red-50 text-red-800",
-      });
+      toast.error(err.message || "Failed to delete report.", { id: toastId });
     } finally {
       setIsDeleteModalOpen(false);
       setReportToDelete(null);
@@ -156,15 +189,8 @@ const AllReports: React.FC = () => {
 
   const handleFormSubmit = (formData: any) => {
     console.log(formData);
-    toast.success("Report scheduled successfully!", {
-      className: "bg-green-50 text-green-800",
-    });
+    toast.success("Report scheduled successfully!");
     setView("table");
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setSearchParams({ page: String(newPage) });
-    window.scrollTo(0, 0);
   };
 
   const columns: Column<Report>[] = [
@@ -188,7 +214,6 @@ const AllReports: React.FC = () => {
             <Trash2 size={12} className="mr-1" />
             <span>Delete</span>
           </button>
-
           <button
             onClick={() => handleSchedule(row)}
             className="flex items-center justify-center space-x-1 px-2 py-1 text-xs text-white bg-[#741CDD] rounded hover:bg-[#5f17b8]"
@@ -203,7 +228,7 @@ const AllReports: React.FC = () => {
 
   const renderContent = () => {
     if (status === "loading" && reports.length === 0) {
-      return <TableSkeleton rows={itemsPerPage} />;
+      return <TableSkeleton rows={currentLimit} />;
     }
     if (status === "failed") {
       return (
@@ -215,8 +240,11 @@ const AllReports: React.FC = () => {
     return (
       <>
         <Table
+          key={currentLimit}
+          defaultItemsPerPage={currentLimit}
           data={reports}
           columns={columns}
+          className="[&_.table-controls]:hidden"
           showSearch={false}
           showPagination={false}
         />
@@ -224,7 +252,7 @@ const AllReports: React.FC = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           totalItems={totalItems}
-          itemsPerPage={itemsPerPage}
+          itemsPerPage={currentLimit}
           onPageChange={handlePageChange}
         />
       </>
@@ -237,12 +265,44 @@ const AllReports: React.FC = () => {
         <>
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800">All Reports</h1>
-            <p className="text-sm text-gray-500">
-              <Link to="/reports/all">Reports</Link> /{" "}
-              <Link to="/reports/all">Standard Report</Link> / All Reports
-            </p>
+            
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="limit-select"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Show
+                </label>
+                <select
+                  id="limit-select"
+                  value={currentLimit}
+                  onChange={handleLimitChange}
+                  className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                </select>
+                <span className="text-sm font-medium text-gray-700">
+                  entries
+                </span>
+              </div>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search size={16} className="text-gray-400" />
+                </span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search on Names and S.No."
+                  className="border border-gray-300 rounded-md pl-9 pr-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
+                />
+              </div>
+            </div>
             {renderContent()}
           </div>
         </>

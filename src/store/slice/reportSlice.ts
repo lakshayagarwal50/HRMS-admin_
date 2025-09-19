@@ -1,9 +1,7 @@
-//imports
+
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 import { axiosInstance } from '../../services';
-
-//interface and type fields
 export interface Report {
     id: string;
     Snum: string;
@@ -30,12 +28,11 @@ export interface ScheduledReport {
 }
 
 interface FetchScheduledApiResponse {
-  reports: ScheduledReport[]; 
+  reports: ScheduledReport[];
   page: number;
   limit: number;
   total: number;
 }
-
 
 type CreateReportPayload = Omit<Report, 'id' | 'Snum' | 'isDeleted' | 'createdAt'>;
 
@@ -71,13 +68,12 @@ interface ScheduleReportPayload {
 
 interface UpdateScheduledReportPayload {
   scheduleId: string;
-  updatedData: Partial<ScheduleReportData>; 
+  updatedData: Partial<ScheduleReportData>;
 }
 
 interface ReportState {
-  
   reports: Report[];
-  scheduledReports: ScheduledReport[]; 
+  scheduledReports: ScheduledReport[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   scheduleStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
@@ -88,23 +84,17 @@ interface ReportState {
 }
 
 const initialState: ReportState = {
-  
   reports: [],
-  scheduledReports: [], 
+  scheduledReports: [],
   status: 'idle',
   scheduleStatus: 'idle',
   error: null,
   totalPages: 0,
   totalItems: 0,
-  scheduledTotalPages: 0, 
+  scheduledTotalPages: 0,
   scheduledTotalItems: 0,
 };
-
-
-
-//thunks
-
-//create report thunk
+// create report thunk
 export const createReportAPI = createAsyncThunk<
   CreateApiResponse,
   CreateReportPayload,
@@ -117,24 +107,40 @@ export const createReportAPI = createAsyncThunk<
       return response.data as CreateApiResponse;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
-        return rejectWithValue(error.response.data?.message || 'Failed to create report.');
+        const errorMessage = error.response.data?.error || error.response.data?.message || 'Failed to create report.';
+        return rejectWithValue(errorMessage);
       }
       return rejectWithValue('An unknown error occurred. Please try again.');
     }
   }
 );
 
+// Arguments interface for fetchAllReports
+interface FetchReportsArgs {
+  page: number;
+  limit: number;
+  search?: string;
+}
 
-//fetch all reports thunk
+// Updated fetchAllReports thunk
 export const fetchAllReports = createAsyncThunk<
   FetchApiResponse,
-  { page: number; limit: number },
+  FetchReportsArgs,
   { rejectValue: string }
 >(
   'reports/fetchAll',
-  async ({ page, limit }, { rejectWithValue }) => {
+  async ({ page, limit, search }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get<FetchApiResponse>(`/report/getAll?page=${page}&limit=${limit}`);
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+
+      if (search) {
+        params.append('search', search);
+      }
+      
+      const response = await axiosInstance.get<FetchApiResponse>(`/report/getAll?${params.toString()}`);
       return response.data;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
@@ -145,7 +151,7 @@ export const fetchAllReports = createAsyncThunk<
   }
 );
 
-//schedule report thunk
+// schedule report thunk
 export const scheduleReportAPI = createAsyncThunk(
   'reports/scheduleReport',
   async ({ reportId, scheduleData }: ScheduleReportPayload, { rejectWithValue }) => {
@@ -165,15 +171,15 @@ export const scheduleReportAPI = createAsyncThunk(
 );
 
 export const deleteReport = createAsyncThunk<
-  string, 
-  string, 
+  string,
+  string,
   { rejectValue: string }
 >(
   'reports/deleteReport',
   async (reportId, { rejectWithValue }) => {
     try {
       await axiosInstance.delete(`/report/delete/${reportId}`);
-      return reportId; 
+      return reportId;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
         return rejectWithValue(error.response.data?.message || 'Failed to delete report.');
@@ -183,34 +189,45 @@ export const deleteReport = createAsyncThunk<
   }
 );
 
-//scheduled report api
+interface FetchScheduledReportsArgs {
+  page: number;
+  limit: number;
+  search?: string;
+}
 export const fetchScheduledReports = createAsyncThunk<
   FetchScheduledApiResponse,
-  { page: number; limit: number },
+  FetchScheduledReportsArgs, 
   { rejectValue: string }
 >(
   'reports/fetchScheduled',
-  async ({ page, limit }, { rejectWithValue }) => {
+  async ({ page, limit, search }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get<FetchScheduledApiResponse>(`/report/schedule/getAll?page=${page}&limit=${limit}`);
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+
+      if (search) {
+        params.append('search', search);
+      }
+
+      const response = await axiosInstance.get<FetchScheduledApiResponse>(`/report/schedule/getAll?${params.toString()}`);
       return response.data;
     } catch (error: unknown) {
-      
-      if (isAxiosError(error) && error.response) {
-        return rejectWithValue(error.response.data?.message || 'Failed to fetch scheduled reports.');
+      if (isAxiosError(error) && error.response) {     
+        const errorMessage = error.response.data?.error || error.response.data?.message || 'Failed to fetch scheduled reports.';
+        return rejectWithValue(errorMessage);
       }
       return rejectWithValue('An unknown error occurred.');
     }
   }
 );
 
-//edit scheduled report thunk
 export const updateScheduledReport = createAsyncThunk(
   'reports/updateScheduled',
   async ({ scheduleId, updatedData }: UpdateScheduledReportPayload, { rejectWithValue }) => {
     try {
       await axiosInstance.patch(`/report/schedule/${scheduleId}`, updatedData);
-     
       return { scheduleId, updatedData };
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
@@ -221,17 +238,16 @@ export const updateScheduledReport = createAsyncThunk(
   }
 );
 
-//delete scheduled report thunk
 export const deleteScheduledReport = createAsyncThunk<
-  string, 
-  string, 
+  string,
+  string,
   { rejectValue: string }
 >(
   'reports/deleteScheduled',
   async (scheduleId, { rejectWithValue }) => {
     try {
       await axiosInstance.delete(`/report/delete/schedule/${scheduleId}`);
-      return scheduleId; 
+      return scheduleId;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response) {
         return rejectWithValue(error.response.data?.message || 'Failed to delete scheduled report.');
@@ -242,7 +258,7 @@ export const deleteScheduledReport = createAsyncThunk<
 );
 
 
-//slice
+// --- SLICE ---
 const reportSlice = createSlice({
   name: 'reports',
   initialState,
@@ -300,12 +316,11 @@ const reportSlice = createSlice({
       })
       //  Cases for deleting a report
       .addCase(deleteReport.pending, (state) => {
-        state.status = 'loading'; // Reuse the main status for loading feedback
+        state.status = 'loading';
         state.error = null;
       })
       .addCase(deleteReport.fulfilled, (state, action: PayloadAction<string>) => {
         state.status = 'succeeded';
-        
       })
       .addCase(deleteReport.rejected, (state, action) => {
         state.status = 'failed';
@@ -335,7 +350,6 @@ const reportSlice = createSlice({
         const { scheduleId, updatedData } = action.payload;
         const index = state.scheduledReports.findIndex(report => report.id === scheduleId);
         if (index !== -1) {
-          // Update the existing report in the array with the new data
           state.scheduledReports[index] = {
             ...state.scheduledReports[index],
             ...updatedData,
@@ -353,11 +367,10 @@ const reportSlice = createSlice({
       })
       .addCase(deleteScheduledReport.fulfilled, (state, action: PayloadAction<string>) => {
         state.scheduleStatus = 'succeeded';
-        
         state.scheduledReports = state.scheduledReports.filter(
           (report) => report.id !== action.payload
         );
-        state.scheduledTotalItems -= 1; // Decrement the total count
+        state.scheduledTotalItems -= 1;
       })
       .addCase(deleteScheduledReport.rejected, (state, action) => {
         state.scheduleStatus = 'failed';

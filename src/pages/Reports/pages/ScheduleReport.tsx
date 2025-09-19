@@ -7,7 +7,6 @@ import type { AppDispatch, RootState } from "../../../store/store";
 import {
   scheduleReportAPI,
   resetScheduleStatus,
-  
 } from "../../../store/slice/reportSlice";
 import { type ScheduleReportData } from "../../../store/slice/reportSlice";
 
@@ -124,9 +123,7 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Schedule Reports</h1>
-        <p className="text-sm text-gray-500">
-          <Link to="/reports/all">Reports</Link> / Schedule Reports
-        </p>
+        
       </div>
       <div className="bg-white p-8 rounded-lg shadow-sm">
         <div className="inline-block bg-purple-100 text-purple-800 text-sm font-medium px-4 py-1 rounded-full mb-8">
@@ -288,6 +285,7 @@ const ScheduleReport: React.FC<ScheduleReportProps> = ({
                 name="cc"
                 type="email"
                 value={formData.cc}
+                required
                 onChange={handleChange}
                 placeholder="comma,separated,emails"
                 className="w-full p-2 border border-gray-300 rounded-md"

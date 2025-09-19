@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { X } from "lucide-react";
-import { axiosInstance } from "../../../../services"; 
-import toast from "react-hot-toast"; 
+import { axiosInstance } from "../../../../services";
+import toast from "react-hot-toast";
 
 interface UpdateAttendanceForm {
   year: number;
@@ -29,7 +28,8 @@ const UpdateAttendanceModal: React.FC<UpdateAttendanceModalProps> = ({
     status: "P",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
+  const [dateError, setDateError] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -38,10 +38,26 @@ const UpdateAttendanceModal: React.FC<UpdateAttendanceModalProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  
+  const dateFormatRegex =
+    /^(?<month>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(?<day>\d{1,2})$/i;
+
+  const handleChange2 = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Perform validation only for the 'date' field
+    if (name === "date") {
+      if (value && !dateFormatRegex.test(value)) {
+        // UPDATED error message
+        setDateError("Invalid format. Please use 'Nov 4' format.");
+      } else {
+        setDateError(""); // Clear error if format is valid or field is empty
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (!formData.date.trim()) {
-      
       toast.error("Please enter a date.", {
         className: "bg-orange-50 text-orange-800",
       });
@@ -59,7 +75,6 @@ const UpdateAttendanceModal: React.FC<UpdateAttendanceModalProps> = ({
         }
       );
 
-      
       toast.success(
         response.data.message || "Attendance updated successfully!",
         {
@@ -71,11 +86,16 @@ const UpdateAttendanceModal: React.FC<UpdateAttendanceModalProps> = ({
       onClose();
     } catch (err: any) {
       console.error("Failed to update attendance:", err);
-     
-      const errorMessage = err.response?.data?.message || "An error occurred.";
+
+      // New line
+      const errorMessage =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "An error occurred.";
       toast.error(errorMessage, {
         className: "bg-red-50 text-red-800",
       });
+      onClose();
     } finally {
       setIsSubmitting(false);
     }
@@ -149,10 +169,13 @@ const UpdateAttendanceModal: React.FC<UpdateAttendanceModalProps> = ({
                 id="date"
                 name="date"
                 value={formData.date}
-                onChange={handleChange}
+                onChange={handleChange2}
                 placeholder="e.g., Nov 4"
                 className={commonInputClasses}
               />
+              {dateError && (
+                <p className="text-red-500 text-xs mt-1">{dateError}</p>
+              )}
             </div>
 
             <div>
@@ -184,7 +207,6 @@ const UpdateAttendanceModal: React.FC<UpdateAttendanceModalProps> = ({
                 </label>
               </div>
             </div>
-           
           </div>
 
           {/* Footer */}

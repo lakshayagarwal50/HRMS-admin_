@@ -1,4 +1,3 @@
-
 import React from "react";
 import type { LoanDetails } from "../../../../store/slice/loanSlice";
 import { DetailItem } from "../common/DetailItem";
@@ -43,9 +42,7 @@ const LoanDetailModal: React.FC<LoanDetailModalProps> = ({
         </button>
       </div>
 
-      
       <div className="flex-grow overflow-y-auto px-6 py-4">
-        
         <div className="bg-gray-50 p-4 rounded-md">
           <h3 className="text-md font-semibold text-gray-700 mb-2">
             Loan & Advance Details
@@ -56,16 +53,11 @@ const LoanDetailModal: React.FC<LoanDetailModalProps> = ({
           <DetailItem label="Amount Requested" value={loan.amountReq ?? "--"} />
           <DetailItem label="Approved Amount" value={loan.amountApp ?? "--"} />
           <DetailItem label="Balance" value={loan.balance ?? "--"} />
-          <DetailItem
-            label="Payback Term"
-            value={`10 installments from 01/03/2022, 10 remaining`}
-          />
           <DetailItem label="Approved By" value={loan.approvedBy ?? "--"} />
           <DetailItem label="Staff Notes" value={loan.staffNote ?? "--"} />
           <DetailItem label="Notes" value={loan.note ?? "--"} />
         </div>
 
-        
         <div className="mt-6 border-t border-gray-200 pt-4">
           <h3 className="text-md font-semibold text-gray-700 mb-2">
             Activities

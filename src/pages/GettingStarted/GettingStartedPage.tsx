@@ -47,17 +47,6 @@ const GettingStartedPge: React.FC = () => {
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2 ">
-              <li>
-                <a href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700">
-                  Dashboard
-                </a>
-              </li>
-              <li>
-                <span className="text-sm text-gray-500">/</span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-900 font-medium">Getting Started</span>
-              </li>
             </ol>
           </nav>
         </div>

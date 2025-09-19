@@ -1,5 +1,7 @@
 import React from "react";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../../store/store"; // adjust path
 import type { EmployeeDetail } from "../../../../store/slice/employeeSlice";
 import { DetailItem, SectionHeader, EditButton } from "../common/DetailItem";
 
@@ -44,14 +46,14 @@ const WorkWeekSchedule: React.FC<WorkWeekScheduleProps> = ({ workPattern }) => {
         <h3 className="font-semibold text-white">{title}</h3>
       </div>
       <div className="grid grid-cols-5 gap-x-4 p-4 text-sm">
-        <div className="font-bold text-gray-500"></div>{" "}
+        <div className="font-bold text-gray-500"></div>
         <div className="text-center font-bold text-gray-500">Week 1</div>
         <div className="text-center font-bold text-gray-500">Week 2</div>
         <div className="text-center font-bold text-gray-500">Week 3</div>
         <div className="text-center font-bold text-gray-500">Week 4</div>
         {Object.entries(schedule).map(([day, statuses]) => (
           <React.Fragment key={day}>
-            <div className={`mt-4 border-t pt-3 font-medium text-gray-800`}>
+            <div className="mt-4 border-t pt-3 font-medium text-gray-800">
               {day}
             </div>
             {statuses.map((status, i) => (
@@ -76,6 +78,17 @@ const ProfessionalInfo: React.FC<ProfessionalInfoProps> = ({
   onEdit,
 }) => {
   const { professional } = data;
+  const designations = useSelector(
+    (state: RootState) => state.employeeDesignations.items
+  );
+  console.log("Designations from Redux:", designations);
+  const designationObj = designations.find(
+    (d) =>
+      d.id === professional.designation ||
+      d.code === professional.designation ||
+      d.name === professional.designation
+  );
+
   const handleViewBreakup = () => {
     toast("Opening CTC breakup details...", {
       icon: "📄",
@@ -97,7 +110,15 @@ const ProfessionalInfo: React.FC<ProfessionalInfoProps> = ({
           />
           <DetailItem label="Location" value={professional.location} />
           <DetailItem label="Department" value={professional.department} />
-          <DetailItem label="Designation" value={professional.designation} />
+          <DetailItem
+            label="Designation"
+            value={
+              designationObj
+                ? designationObj.designationName
+                : professional.designation
+            }
+          />
+
           <div className="flex items-center justify-between py-1">
             <p className="text-sm text-gray-600">CTC</p>
             <div className="flex items-center space-x-4">
@@ -112,19 +133,20 @@ const ProfessionalInfo: React.FC<ProfessionalInfoProps> = ({
               </button>
             </div>
           </div>
+
           <DetailItem
             label="Payslip Component"
             value={professional.payslipComponent}
           />
-          <DetailItem label="Tax Regime" value={"OM"} />
+          <DetailItem label="Tax Regime" value="OM" />
           <DetailItem label="Holiday Group" value={professional.holidayGroup} />
-          <DetailItem label="Role" value={"Manager"} />
+          <DetailItem label="Role" value="Manager" />
           <DetailItem
             label="Reporting Manager"
             value={professional.reportingManager}
           />
-          <DetailItem label="Rental City" value={"Jaipur"} />
-          <DetailItem label="Leaving Date" value={"25-Jan-2018"} />
+          <DetailItem label="Rental City" value="Jaipur" />
+          <DetailItem label="Leaving Date" value="25-Jan-2018" />
         </div>
       </div>
 

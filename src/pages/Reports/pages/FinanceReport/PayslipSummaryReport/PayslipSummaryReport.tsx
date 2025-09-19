@@ -1,23 +1,21 @@
-
-//imports
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Table, { type Column } from "../../../../../components/common/Table";
-import PayslipSummaryReportFilter from "./component/PayslipSummaryReportFilter";
 import PayslipSummaryTemplate from "./component/PayslipSummaryTemplate";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../../../../store/store";
 import {
   fetchPayslipSummary,
   downloadPayslipSummary,
-  deletePayslipSummary, 
+  deletePayslipSummary,
   schedulePayslipSummary,
   resetScheduleStatus,
   type ScheduleData,
 } from "../../../../../store/slice/payslipSummarySlice";
 import { toast } from "react-toastify";
-import AlertModal from "../../../../../components/Modal/AlertModal"; 
-import { Trash2 } from "lucide-react"; 
+import AlertModal from "../../../../../components/Modal/AlertModal";
+import { Trash2, Search } from "lucide-react";
+import useDebounce from "../../../../../hooks/useDebounce";
 
 // INTERFACE
 interface PayslipSummary {
@@ -123,7 +121,6 @@ const formatDateForAPI = (dateString: string) => {
 
 // MAIN COMPONENT
 const PayslipSummaryReport: React.FC = () => {
-  
   const [view, setView] = useState<"report" | "template" | "schedule">(
     "report"
   );
@@ -132,8 +129,8 @@ const PayslipSummaryReport: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
-  // NEW: State for modals and inline form
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [scheduleFormData, setScheduleFormData] = useState<
     Omit<ScheduleData, "startDate"> & { startDate: string }
@@ -149,8 +146,14 @@ const PayslipSummaryReport: React.FC = () => {
     body: "Please find the attached report: Payslip Summary.",
   });
 
+  // Read state from URL
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const itemsPerPage = 10;
+  const currentLimit = parseInt(searchParams.get("limit") || "10", 10);
+  const currentSearch = searchParams.get("search") || "";
+
+  // Local state for live search input
+  const [searchQuery, setSearchQuery] = useState(currentSearch);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   const {
     reportData,
@@ -168,11 +171,34 @@ const PayslipSummaryReport: React.FC = () => {
     dispatch(
       fetchPayslipSummary({
         page: currentPage,
-        limit: itemsPerPage,
-        filter: currentFilters,
+        limit: currentLimit,
+        search: currentSearch,
+        filters: currentFilters,
       })
     );
-  }, [dispatch, currentPage, itemsPerPage, currentFilters]);
+  }, [
+    dispatch,
+    currentPage,
+    currentLimit,
+    currentSearch,
+    JSON.stringify(currentFilters),
+    refetchTrigger, 
+  ]);
+  
+  useEffect(() => {
+    if (debouncedSearchQuery !== currentSearch) {
+      setSearchParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.set("page", "1");
+          newParams.set("search", debouncedSearchQuery);
+          newParams.set("limit", String(currentLimit));
+          return newParams;
+        },
+        { replace: true }
+      );
+    }
+  }, [debouncedSearchQuery, currentSearch, currentLimit, setSearchParams]);
 
   useEffect(() => {
     if (status === "failed" && error && reportExists) {
@@ -180,8 +206,21 @@ const PayslipSummaryReport: React.FC = () => {
     }
   }, [status, error, reportExists]);
 
+  const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set("limit", e.target.value);
+      newParams.set("page", "1");
+      return newParams;
+    });
+  };
+
   const handlePageChange = (newPage: number) => {
-    setSearchParams({ page: String(newPage) });
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set("page", String(newPage));
+      return newParams;
+    });
     window.scrollTo(0, 0);
   };
 
@@ -189,8 +228,9 @@ const PayslipSummaryReport: React.FC = () => {
     dispatch(
       fetchPayslipSummary({
         page: currentPage,
-        limit: itemsPerPage,
-        filter: currentFilters,
+        limit: currentLimit,
+        search: currentSearch,
+        filters: currentFilters,
       })
     );
     setView("report");
@@ -231,14 +271,53 @@ const PayslipSummaryReport: React.FC = () => {
 
   const handleApplyFilters = (filters: any) => {
     setCurrentFilters(filters);
-    setSearchParams({ page: "1" });
+    setSearchParams({
+      page: "1",
+      limit: String(currentLimit),
+      search: currentSearch,
+    });
     setIsFilterOpen(false);
   };
 
-  const handleDownload = (format: "csv" | "xlsx") => {
+
+  const handleDownload = async (format: "csv" | "xlsx") => {
     if (isDownloading) return;
-    dispatch(downloadPayslipSummary({ format, filter: currentFilters }));
-    toast.info(`Your ${format.toUpperCase()} download will begin shortly...`);
+
+    const toastId = toast.loading(
+      `Preparing your ${format.toUpperCase()} download...`
+    );
+
+    try {
+      const result = await dispatch(
+        downloadPayslipSummary({ format, filters: currentFilters })
+      ).unwrap();
+
+      const url = window.URL.createObjectURL(new Blob([result.fileData]));
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", result.fileName); 
+
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url); 
+
+      toast.update(toastId, {
+        render: "Download started successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 5000,
+      });
+    } catch (err: any) {
+      
+      toast.update(toastId, {
+        render: err || "Download failed. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 5000,
+      });
+    }
   };
 
   const handleDeleteClick = () => {
@@ -253,10 +332,10 @@ const PayslipSummaryReport: React.FC = () => {
     if (!reportId) return;
     try {
       await dispatch(deletePayslipSummary(reportId)).unwrap();
-      setSearchParams({ page: "1" });
-      dispatch(
-        fetchPayslipSummary({ page: 1, limit: itemsPerPage, filter: {} })
-      );
+
+      setSearchParams({ page: "1", limit: String(currentLimit), search: "" });
+
+      setRefetchTrigger((prev) => prev + 1);
     } catch (err: any) {
       console.error("Failed to delete report:", err);
     } finally {
@@ -315,7 +394,6 @@ const PayslipSummaryReport: React.FC = () => {
     }
   };
 
-  // UPDATED: renderContent function to use new logic
   const renderContent = () => {
     if (status === "failed" && !reportExists) {
       return (
@@ -331,7 +409,7 @@ const PayslipSummaryReport: React.FC = () => {
       );
     }
     if (status === "loading" && reportData.length === 0) {
-      return <TableSkeleton rows={itemsPerPage} />;
+      return <TableSkeleton rows={currentLimit} />;
     }
     if (status === "failed") {
       return <p className="p-10 text-center text-red-500">Error: {error}</p>;
@@ -348,8 +426,11 @@ const PayslipSummaryReport: React.FC = () => {
     return (
       <>
         <Table
+          key={currentLimit}
+          defaultItemsPerPage={currentLimit}
           data={reportData}
           columns={columns}
+          className="[&_.table-controls]:hidden"
           showSearch={false}
           showPagination={false}
         />
@@ -357,7 +438,7 @@ const PayslipSummaryReport: React.FC = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           totalItems={totalItems}
-          itemsPerPage={itemsPerPage}
+          itemsPerPage={currentLimit}
           onPageChange={handlePageChange}
         />
       </>
@@ -368,16 +449,12 @@ const PayslipSummaryReport: React.FC = () => {
     return <PayslipSummaryTemplate onBack={handleBackFromTemplate} />;
   }
 
-  // NEW: Inline render for schedule form
   if (view === "schedule") {
     const isSubmitting = scheduleStatus === "loading";
     return (
       <div className="p-8 bg-gray-50 min-h-screen">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Schedule Report</h1>
-          <p className="text-sm text-gray-500">
-            <Link to="/reports/all">Reports</Link> / Schedule Report
-          </p>
         </div>
         <div className="bg-white p-8 rounded-lg shadow-sm">
           <div className="inline-block bg-purple-100 text-purple-800 text-sm font-medium px-4 py-1 rounded-full mb-8">
@@ -610,10 +687,7 @@ const PayslipSummaryReport: React.FC = () => {
           Payslip Summary Report
         </h1>
         <div className="flex flex-col items-end space-y-3">
-          <p className="text-sm text-gray-500">
-            <Link to="/reports">Reports</Link> / Payslip Summary Report
-          </p>
-          {/* UPDATED: Added new buttons with consistent disabled logic */}
+          
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setView("template")}
@@ -636,7 +710,6 @@ const PayslipSummaryReport: React.FC = () => {
             >
               {isDownloading ? "DOWNLOADING..." : "DOWNLOAD XLSX"}
             </button>
-
             <button
               onClick={handleScheduleClick}
               disabled={status !== "succeeded" || !reportId}
@@ -654,12 +727,45 @@ const PayslipSummaryReport: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="bg-white p-6 rounded-lg shadow-sm">{renderContent()}</div>
-      <PayslipSummaryReportFilter
-        isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        onApplyFilters={handleApplyFilters}
-      />
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        {reportExists && (
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="limit-select"
+                className="text-sm font-medium text-gray-700"
+              >
+                Show
+              </label>
+              <select
+                id="limit-select"
+                value={currentLimit}
+                onChange={handleLimitChange}
+                className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span className="text-sm font-medium text-gray-700">entries</span>
+            </div>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search size={16} className="text-gray-400" />
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search on Name and EmpId"
+                className="border border-gray-300 rounded-md pl-9 pr-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#741CDD]"
+              />
+            </div>
+          </div>
+        )}
+        {renderContent()}
+      </div>
+
       <AlertModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

@@ -209,14 +209,7 @@ const OrganizationSettingsPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Organization Settings</h1>
           <nav aria-label="Breadcrumb" className="mt-1">
             <ol className="flex items-center space-x-2 text-sm">
-              <li>
-                <Link to="/dashboard" className="text-gray-500 hover:text-gray-700">
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <span className="text-gray-500">/</span>
-              </li>
+            
               <li>
                 <Link to="/getting-started" className="text-gray-500 hover:text-gray-700">
                   Getting Started

@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, type FormEvent } from "react";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
 
 interface LoanFormData {
   empName: string;
@@ -14,6 +13,7 @@ interface AddLoanModalProps {
   onClose: () => void;
   onSubmit: (data: LoanFormData) => void;
   initialState: LoanFormData;
+  loading: boolean; 
 }
 
 export default function AddLoanModal({
@@ -21,12 +21,21 @@ export default function AddLoanModal({
   onClose,
   onSubmit,
   initialState,
+  loading,
 }: AddLoanModalProps) {
   const [formData, setFormData] = useState<LoanFormData>(initialState);
+
+  const [errors, setErrors] = useState({
+    empName: "",
+    amountReq: "",
+    note: "",
+    staffNote: "",
+  });
 
   useEffect(() => {
     if (isOpen) {
       setFormData(initialState);
+      setErrors({ empName: "", amountReq: "", note: "", staffNote: "" });
     }
   }, [isOpen, initialState]);
 
@@ -34,31 +43,56 @@ export default function AddLoanModal({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
+    }));
+
+    let errorMessage = "";
+    switch (name) {
+      case "empName":
+        if (value && !/^[A-Za-z\s]+$/.test(value)) {
+          errorMessage = "Only letters and spaces are allowed.";
+        }
+        break;
+      case "amountReq":
+        if (value && parseFloat(value) < 0) {
+          errorMessage = "Amount must be 0 or greater.";
+        } else if (value && parseFloat(value) > 2000000) {
+          errorMessage = "Amount cannot exceed 20,00,000.";
+        }
+        break;
+      case "note":
+      case "staffNote":
+        if (value && (value.length < 10 || value.length > 30)) {
+          errorMessage = `Must be between 10 and 30 characters. (Current: ${value.length})`;
+        }
+        break;
+      default:
+        break;
+    }
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: errorMessage,
     }));
   };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-
+    if (Object.values(errors).some((error) => error !== "")) {
+      toast.error("Please fix the errors shown on the form.");
+      return;
+    }
     if (
+      !formData.empName.trim() ||
       !formData.amountReq.trim() ||
       !formData.note.trim() ||
       !formData.staffNote.trim()
     ) {
-      toast.error("Please fill out all required fields.", {
-        className: "bg-orange-50 text-orange-800",
-      });
-      return; 
-    }
-
-    if (Number(formData.amountReq) <= 0) {
-      toast.error("Requested amount must be greater than zero.", {
-        className: "bg-orange-50 text-orange-800",
-      });
-      return; 
+      toast.error("Please fill out all required fields.");
+      return;
     }
 
     onSubmit(formData);
@@ -67,9 +101,17 @@ export default function AddLoanModal({
   if (!isOpen) {
     return null;
   }
+  const isFormValid =
+    formData.empName.trim() !== "" &&
+    formData.amountReq.trim() !== "" &&
+    formData.note.trim() !== "" &&
+    formData.staffNote.trim() !== "" &&
+    Object.values(errors).every((error) => error === "");
 
-  const commonInputClasses =
-    "block w-full border-0 border-b-2 border-gray-200 bg-transparent py-2 px-1 text-lg text-gray-900 placeholder:text-gray-400 placeholder:text-base focus:border-[#741CDD] focus:outline-none focus:ring-0 transition-colors duration-300";
+  const commonInputClasses = (hasError: boolean) =>
+    `block w-full border-0 border-b-2 bg-transparent py-2 px-1 text-lg text-gray-900 placeholder:text-gray-400 placeholder:text-base focus:border-[#741CDD] focus:outline-none focus:ring-0 transition-colors duration-300 ${
+      hasError ? "border-red-500" : "border-gray-200"
+    }`;
 
   return (
     <div className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300">
@@ -106,23 +148,31 @@ export default function AddLoanModal({
                 htmlFor="empName"
                 className="block text-sm font-medium text-gray-700"
               >
-                Employee Name
+                Employee Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 id="empName"
                 name="empName"
                 value={formData.empName}
-                readOnly
-                className="mt-1 block w-full border-0 border-b border-gray-300 bg-slate-50 py-2 px-1 sm:text-sm text-gray-500"
+                onChange={handleChange}
+                disabled={true}
+                className={`mt-1 block cursor-not-allowed w-full border-0 border-b py-2 px-1 sm:text-sm text-gray-500 ${
+                  errors.empName
+                    ? "border-red-500"
+                    : "border-gray-300 bg-slate-50"
+                }`}
               />
+              {errors.empName && (
+                <p className="mt-1 text-xs text-red-600">{errors.empName}</p>
+              )}
             </div>
             <div>
               <label
                 htmlFor="amountReq"
                 className="block text-sm font-medium text-gray-700"
               >
-                Requested Amount
+                Requested Amount <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -132,15 +182,18 @@ export default function AddLoanModal({
                 onChange={handleChange}
                 placeholder="e.g., 500000"
                 required
-                className={commonInputClasses}
+                className={commonInputClasses(!!errors.amountReq)}
               />
+              {errors.amountReq && (
+                <p className="mt-1 text-xs text-red-600">{errors.amountReq}</p>
+              )}
             </div>
             <div>
               <label
                 htmlFor="note"
                 className="block text-sm font-medium text-gray-700"
               >
-                Note
+                Note <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="note"
@@ -150,15 +203,18 @@ export default function AddLoanModal({
                 rows={3}
                 placeholder="e.g., Need for home repairs"
                 required
-                className={commonInputClasses}
+                className={commonInputClasses(!!errors.note)}
               />
+              {errors.note && (
+                <p className="mt-1 text-xs text-red-600">{errors.note}</p>
+              )}
             </div>
             <div>
               <label
                 htmlFor="staffNote"
                 className="block text-sm font-medium text-gray-700"
               >
-                Staff Note
+                Staff Note <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="staffNote"
@@ -168,8 +224,11 @@ export default function AddLoanModal({
                 rows={3}
                 placeholder="e.g., Urgent requirement"
                 required
-                className={commonInputClasses}
+                className={commonInputClasses(!!errors.staffNote)}
               />
+              {errors.staffNote && (
+                <p className="mt-1 text-xs text-red-600">{errors.staffNote}</p>
+              )}
             </div>
           </div>
 
@@ -183,9 +242,10 @@ export default function AddLoanModal({
             </button>
             <button
               type="submit"
-              className="py-2.5 px-8 font-semibold text-white bg-[#741CDD] rounded-md hover:bg-[#5f3dbb] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#741CDD] transition-colors shadow-sm"
+              disabled={!isFormValid || loading}
+              className="py-2.5 px-8 font-semibold text-white bg-[#741CDD] rounded-md hover:bg-[#5f3dbb] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#741CDD] transition-colors shadow-sm disabled:bg-purple-300 disabled:cursor-not-allowed"
             >
-              Submit
+              {loading ? "Submitting..." : "Submit"}
             </button>
           </footer>
         </form>
