@@ -320,7 +320,7 @@ const Sidebar: React.FC = () => {
       >
         <div className="p-4 text-center border-b border-purple-200">
           <h1 className="text-3xl font-extrabold text-purple-700 tracking-tight">
-            Appinventiv
+            HRMS
           </h1>
         </div>
 
