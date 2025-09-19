@@ -118,7 +118,7 @@ const EmployeesTable: React.FC = () => {
 
   const {
     employees,
-    loading, 
+    loading,
     error,
     filters: reduxFilters,
     total,
@@ -485,7 +485,7 @@ const EmployeesTable: React.FC = () => {
         <Table
           key={currentLimit}
           defaultItemsPerPage={currentLimit}
-          data={filteredEmployees} 
+          data={filteredEmployees}
           columns={columns}
           className="[&_.table-controls]:hidden w-[75vw] text-sm"
           showPagination={false}
@@ -494,7 +494,7 @@ const EmployeesTable: React.FC = () => {
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          totalItems={total} 
+          totalItems={total}
           itemsPerPage={currentLimit}
           onPageChange={handlePageChange}
         />

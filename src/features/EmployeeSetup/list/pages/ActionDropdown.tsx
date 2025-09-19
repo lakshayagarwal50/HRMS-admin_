@@ -12,6 +12,7 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
   onAction,
 }) => {
   const [open, setOpen] = useState(false);
+  const [openDirection, setOpenDirection] = useState<"up" | "down">("down");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,6 +36,19 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
     employee.status === "Inactive" ? "Re-invite" : "Invite",
   ];
 
+  useEffect(() => {
+    if (open && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+
+      if (rect.bottom + 200 > viewportHeight) {
+        setOpenDirection("up");
+      } else {
+        setOpenDirection("down");
+      }
+    }
+  }, [open]);
+
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
       <button
@@ -43,8 +57,13 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
       >
         <MoreVertical size={16} />
       </button>
+
       {open && (
-        <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg focus:outline-none flex flex-col">
+        <div
+          className={`absolute right-0 z-10 w-48 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg focus:outline-none flex flex-col
+            ${openDirection === "down" ? "top-full mt-2" : "bottom-full mb-2"}
+          `}
+        >
           {actions.map((action, index) => (
             <button
               key={index}
